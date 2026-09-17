@@ -905,3 +905,232 @@ checks PASS; all six ADRs reviewed and confirmed accurate; all three vacuous
 clauses confirmed empty by nature rather than by check failure.
 The gate did its job: it blocked on something no machine clause could see.
 
+
+---
+
+# MIGRATION — governance into the shared repo
+
+Continues the numbering above. Run against `MIGRATE-TO-SHARED-PROMPT.md`.
+
+## F-23 — the consumers had been amending their delivered copies for months
+Where   : backend/governance/modules/{SEC,FIN,MDL}/**
+          frontend/governance/modules/{SEC,FIN,MDL}/**
+Expected: `gov.py deliver` copies the factory's artifacts into a consumer repo.
+          The consumer READS them. `GOVERNANCE-SHARED-DESIGN.md` §1 — "one
+          writer per path, no exception" — gives every one of those paths
+          exactly one writer: the factory.
+Actual  : measured before deleting anything, because the migration's own rule
+          is to verify content byte-identical first. It was not identical in
+          either direction:
+            lines present ONLY in a consumer copy : 550
+            lines present ONLY in the factory's   : 1956
+          across 40 files in 6 module trees. Not drift from a stale copy — the
+          backend EDITED its copy, deliberately, and committed the edits with
+          reasons. `6b8df42 feat: Enhance SEC module with cross-module read
+          capabilities` added a whole requirement to the delivered SRS:
+            REQ-SEC-034 — Cross-module read of a user's contact details
+            Source : AMENDMENT 2026-09-11
+          plus three `Note:` blocks recording operative decisions taken at
+          implementation ("the account is created with an unusable random
+          secret", "N = 10 most recent AuditLogEntry rows"). None of it ever
+          reached the factory. The factory's plan for SEC did not describe what
+          the backend had built, and nothing anywhere could see that.
+          The 1956 in the other direction are mostly real too: the factory's
+          later `Data source:` lines and search-endpoint rows, and three
+          `frontend-test-plan-*.md` that the consumers hold as 27-line stubs
+          and the factory as the finished 200-to-570-line plans.
+          A copy in either direction would have destroyed one side.
+Fix     : FIXED — resolved as the three-way merge it actually is. Base is each
+          file's FIRST revision in the consumer repo, which is the delivered
+          copy; ours is the factory tree, theirs the consumer's.
+            16 files merged with no conflict at all
+            14 conflicted — every one of them the two sides making the SAME
+               change in different words (`Page\<UserResponse\>` against
+               "paginated list of UserResponse"), or the consumer recording
+               something the factory could not know (the 500 path is owned by
+               the shared GlobalExceptionHandler, so it carries no
+               module-scoped code)
+            20 derived files (manifest/state/verification .json) left alone —
+               the factory regenerates them
+          Conflicts resolved toward the consumer: it is the side that built it.
+          Verified after, not assumed — every atom id appearing anywhere in the
+          consumer copies resolves in the shared tree: SEC 341, FIN 540,
+          MDL 119, and no file was written carrying a conflict marker.
+          The merge also honoured the consumer's DELETIONS, which is the part a
+          copy would have got wrong in the other direction: seven traceability
+          and search-endpoint rows the backend removed stayed removed, because
+          they are in the base.
+Status  : FIXED
+Note    : this is the finding that justifies the whole migration. Three copies
+          kept in step by a command drifted for months in both directions and
+          no check could see it, because no check compared them. One copy
+          cannot drift from itself.
+
+## F-24 — `_commit` would have staged a pointer and saved nothing
+Where   : governance-tools/gov.py::_commit
+Expected: a stage commits its own output.
+Actual  : `_commit` ran `git add` in the factory root over paths that, after
+          the flip, live in a submodule. Git stages the submodule POINTER for
+          such a path, not the content — and then commits cleanly. A stage
+          would have reported `OK: P1 committed abc1234` having saved none of
+          the artifact it produced. That is the worst shape a failure can take:
+          a success message over nothing.
+Fix     : FIXED — `_owning_checkout()` resolves the repo per path from the
+          declared checkouts (innermost wins, so a submodule beats the parent
+          containing it), `_commit` groups by owner and commits in each, and
+          advances the parent's pointer in the same operation so a factory
+          commit records the shared commit its artifacts went into.
+          Guarded by test_commit_routing.py; three of its four tests fail if
+          the old behaviour is restored, checked by restoring it.
+Status  : FIXED
+
+## F-25 — `git commit` with no pathspec takes the whole index
+Where   : governance-tools/gov.py::_commit_in
+Expected: a commit contains what the caller named.
+Actual  : found by probing F-24's fix rather than by reading it. `git commit
+          -m msg` commits everything staged, so a probe that wrote one file
+          produced a commit containing that file AND 36 deletions staged out of
+          band by the migration, under a message describing only the file.
+          The old `_commit` had the same hole; it mattered less with one repo.
+Fix     : FIXED — every git call in `_commit_in` is pathspec-limited. Proved by
+          staging an unrelated file in the shared repo and watching it stay out
+          of the commit.
+Status  : FIXED
+
+## F-26 — `{profile_id}` escaped into a filesystem path, and the error lied
+Where   : governance-tools/config.py::fmt · factory.yaml repos.*.publishes
+Expected: a declared path resolves before it is used.
+Actual  : `paths` resolved `{profile_id}`; `CFG.fmt` did not. So
+          `repos.backend.publishes.api-docs` reached the filesystem as
+          `…/governance-shared/{profile_id}/modules/SEC/api-docs`, found
+          nothing, and `fetch-inputs` reported:
+            GATE CLOSED — missing inputs: api-docs ← …/{profile_id}/…
+          over a directory holding eleven files. A closed gate is the right
+          answer to a missing input and the wrong answer to an unresolved
+          template, and nothing in the message distinguishes them.
+          Found by RUNNING the pipeline after the migration, not by reading it.
+Fix     : FIXED — resolved in `CFG.fmt`, where every other token is resolved,
+          so any declared value may carry it; an explicit `profile_id=` still
+          wins. Guarded by walking every declared `publishes` and `partitions`
+          template and asserting none survives formatting with the token
+          intact.
+Status  : FIXED
+
+## F-27 — repointing a path can invert the check that guards it
+Where   : backend/.github/workflows/governance-shared.yml
+          frontend/.github/workflows/governance-shared.yml
+Expected: the guard means "no local api-docs copy has reappeared in this repo".
+Actual  : the migration rewrote `governance/modules/...` to
+          `governance/shared/erp/modules/...` across 25 consumer files. The
+          guard's own path went with it, and its meaning became "fail if
+          api-docs exist in the shared repo" — the location that is now
+          correct. It would have failed every run, for being right.
+          A mechanical path rewrite is safe for a path that is read and unsafe
+          for a path that is ASSERTED ABSENT. Nothing distinguishes the two
+          syntactically.
+Fix     : FIXED — both workflows rewritten around what they should check: every
+          `*_path` in this repo's execution state resolves; the check examined
+          something rather than passing over an empty glob; and no governance
+          directory has reappeared outside the submodule. Both directions of
+          the reappearance guard proven before committing.
+Status  : FIXED
+
+## F-28 — a commit made in a submodule is abandoned by the next update
+Where   : the working procedure, not a file
+Expected: committing in the submodule and pushing is how the shared repo is
+          written.
+Actual  : `git submodule update --remote` leaves the checkout on a COMMIT, not
+          a branch. A commit made there is on a detached HEAD, and the next
+          `submodule update` moves away from it — leaving a real commit that
+          nothing references. It happened here: `809a22c platform rules leave
+          the repo the other repos were reaching into` was committed, orphaned,
+          and the subsequent `git push origin HEAD:main` was a silent no-op
+          because HEAD was no longer that commit.
+Fix     : FIXED for this instance — recovered from the reflog and cherry-picked.
+          Recorded in `GOVERNANCE-SHARED-DESIGN.md` §4 as the rule it implies:
+          `git checkout main` inside the submodule before any write.
+Status  : FIXED
+Note    : a `gov.py` guard that refuses to write into a detached submodule
+          would close this mechanically. Not built — recorded so the choice is
+          made rather than inherited.
+
+## F-29 — `FIN/execute-backend-test` names a plan that was never generated
+Where   : backend/.claude/commands/FIN/execute-backend-test.md:20
+Expected: a generated command names files that exist.
+Actual  : it reads every `TC-FIN-<seq>` block out of
+          `…/FIN/test_gen/backend-test-plan-fin.md`. That file does not exist
+          and never did — FIN's `test_gen/` holds only
+          `frontend-test-plan-fin.md` and the execution manifest. The split
+          package `packages/backend-test/` exists, so the plan was split from
+          something that is not there under that name.
+          Pre-existing; surfaced by this migration's check that every literal
+          path in a consumer command resolves. It is the ONLY one of roughly
+          two hundred that does not.
+Fix     : OPEN — either the plan is generated, or the command reads the split
+          package it actually has. Which is right depends on whether FIN's
+          backend test plan was ever authored, and the repo does not say.
+Status  : OPEN
+
+## PRIOR FINDINGS THIS MIGRATION CLOSED
+
+- **F-6** two writers on one `execution-state.json` — CLOSED structurally, not
+  by picking a winner. The file carried two things. Everything `gov.py deliver`
+  wrote into it already lived in a tracked file nobody overwrites
+  (`manifest.json`, `_state/gate-pass-*.md`, `_state/analyze-*.md`); what
+  remained is execution progress, which belongs to the track. `deliver` is
+  retired and each track now writes its own
+  `modules/{MOD}/{backend,frontend}/execution-state.json`. Two files, two
+  writers, no contention.
+- **F-12** a consumer repo key had to silently equal its track name — CLOSED.
+  The finding left the repair open between merging the two tables and letting a
+  track name its repo. `repos.shared` settles it: it is a repo and not a track,
+  so they cannot merge. `tracks.<t>.repo` states the link and
+  `lint.scan_config` checks it — factory.yaml's own structure was validated by
+  nothing, since C5 covers profiles only. Verified the check fires on all four
+  disagreements it claims to catch.
+- **F-16** a fourth unpinned clone of the shared repo — CLOSED. Recorded as
+  WONTFIX ("not mine to delete"); it proved its own case twice in one session.
+  A write went to it instead of the submodule and looked like it had not
+  happened; a reset meant for the submodule landed on it and dropped a commit.
+  No `git submodule status` reports a checkout that is not a submodule.
+  Removed after verifying it held nothing unpushed. `shallow = true` went with
+  it from all three mounts: it was right while the consumers only read, and
+  wrong once they write — a writer pushes, and a pusher needs history.
+- **F-14** the phase list restated in both consumer generators — NOT closed.
+  Step 6 touched those files for their paths, not their phase vocabulary. It
+  remains OPEN, unchanged.
+
+## MIGRATION — summary
+
+Steps completed : all 8
+Repos cleaned   : factory 631 → 0 governance files · backend 411 removed ·
+                  frontend 225 removed. Each now holds code, tools, its own
+                  reports, and a submodule pointer. `governance/.gitignore` is
+                  the only file left under either consumer's `governance/` that
+                  is not a tool, a report, or the mount.
+Shared repo     : 892 tracked files · 7 modules (CU FILE FIN MDL NOTE NOTIF
+                  SEC) · 233 commits · partitions platform, factory, api-docs,
+                  backend, frontend
+deliver         : retired. 266 lines of command and helper, the `delivery:`
+                  config block, `naming.delivery_branch`, `CFG.delivery`,
+                  `CFG.delivery_branch`, the `verify-delivery` command file,
+                  and `deliver` from both passes' `then:` lists. Nothing read
+                  any of it after the flip — checked before deleting.
+Findings        : F-23 … F-29 — 6 FIXED · 1 OPEN (F-29)
+Prior findings  : F-6, F-12, F-16 closed · F-14 untouched and still OPEN
+Baseline        : lint 0/0/0 · 250 passed, 1 skipped (was 242/1 at the start;
+                  +8 from the guards this migration added)
+Move fidelity   : 631/631 blob hashes identical to the source, 89 commits
+                  readable by path (`git log erp/<file>` follows a file's real
+                  history, which `git subtree add` alone does not give), and
+                  the derived `_state` caches rebuild 64/68 byte-identical —
+                  the other four differ only in their own timestamps.
+Verdict         : yes. Each repo knows only where to read and where to write,
+                  and both are the same place. The factory writes
+                  `governance-shared/`; the backend writes `api-docs/` and
+                  `backend/` inside it; the frontend writes `frontend/`. Proven
+                  by running the pipeline, not by reading it: `fetch-inputs`
+                  folds 11, 10 and 4 api-doc files for SEC, FIN and MDL out of
+                  the backend's partition into the factory's inputs, both
+                  inside the shared repo, with nothing copied between
+                  repositories at any point.
