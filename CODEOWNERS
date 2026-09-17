@@ -1,11 +1,17 @@
-# One writer per path. This file is the enforcement half of the ownership table
-# in factory/GOVERNANCE-SHARED-DESIGN.md §3 — a shared repo that does not name an
-# owner per path is a place everyone writes, and drift there is invisible.
+# Ownership is the mechanism, not the convention: a write outside an owned path
+# is refused at review, not noticed in a diff a week later. The table this
+# enforces is GOVERNANCE-SHARED-DESIGN.md §3 — change them together.
 #
-# Most specific wins: the backend owns api-docs inside its own partition and
-# nothing else; the factory owns everything it derives.
+# Most specific wins. The factory owns everything except three sub-paths per
+# module, because it is the only party that reconciles both sides.
 
-/platform/                  @hesham421
-/backend/modules/*/api-docs/ @hesham421
-/backend/                   @hesham421
-/frontend/                  @hesham421
+*                               @hesham421
+
+# The backend authors api-docs from the running app, and records its own
+# execution progress. The factory READS both; it never writes them.
+/erp/modules/*/api-docs/        @hesham421
+/erp/modules/*/backend/         @hesham421
+
+# The frontend records its own execution progress. It reads api-docs and
+# packages; it writes neither.
+/erp/modules/*/frontend/        @hesham421
