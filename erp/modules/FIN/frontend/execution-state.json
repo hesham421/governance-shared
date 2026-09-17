@@ -1,0 +1,272 @@
+{
+  "module": "FIN",
+  "generated_at": "2026-09-12",
+  "current_phase": "F1",
+  "current_sub": "F1-SCR-FIN-001",
+  "api_docs_path": "governance/shared/backend/modules/FIN/api-docs/",
+  "phases": [
+    {
+      "id": "F1",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F1-SCR-FIN-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-010",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-011",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-FIN-012",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F2-SCR-FIN-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-010",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-011",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-FIN-012",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F3-SCR-FIN-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-010",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-011",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-FIN-012",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F4-SCR-FIN-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-010",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-011",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-FIN-012",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "SEC-FE",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "SEC-FE",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "ALIGN-FE",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "ALIGN-FE",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "test_phases": [
+    {
+      "id": "TEST-PLAN-FE",
+      "status": "PENDING",
+      "gated_by_phases": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "SEC-FE",
+        "ALIGN-FE"
+      ],
+      "header_file": "packages/frontend-test/TEST-PLAN-FE-HEADER.md",
+      "subs": [
+        {
+          "id": "UI-FLOWS",
+          "status": "PENDING"
+        },
+        {
+          "id": "INT-FLOW",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "blocked": [],
+  "api_doc_gaps": []
+}

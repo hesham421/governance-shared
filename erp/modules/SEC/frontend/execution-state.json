@@ -1,0 +1,237 @@
+{
+  "module": "SEC",
+  "generated_at": "2026-09-12",
+  "current_phase": "F1",
+  "current_sub": "F1-SCR-SEC-001",
+  "api_docs_path": "governance/shared/backend/modules/SEC/api-docs/",
+  "phases": [
+    {
+      "id": "F1",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F1-SCR-SEC-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F1-SCR-SEC-010",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F2-SCR-SEC-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F2-SCR-SEC-010",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F3-SCR-SEC-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F3-SCR-SEC-010",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "F4-SCR-SEC-001",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-002",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-003",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-004",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-005",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-006",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-007",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-008",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-009",
+          "status": "PENDING"
+        },
+        {
+          "id": "F4-SCR-SEC-010",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "SEC-FE",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "SEC-FE",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "id": "ALIGN-FE",
+      "status": "PENDING",
+      "subs": [
+        {
+          "id": "ALIGN-FE",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "test_phases": [
+    {
+      "id": "frontend-test",
+      "status": "PENDING",
+      "path": "governance/modules/SEC/frontend-test/",
+      "gated_by_phases": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "SEC-FE",
+        "ALIGN-FE"
+      ],
+      "header_file": null,
+      "subs": [
+        {
+          "id": "TEST-PLAN-FE",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "blocked": [],
+  "api_doc_gaps": []
+}
