@@ -12,15 +12,15 @@ Lane `analysis` · implementer ['claude:opus'] · effort high · round 1
 - Owns IDs: UXD, SCR — ID grammar `{prefix}-{MOD}-{seq}` (seq width 3); never re-number, never restart a sequence.
 - Read only what this brief contains (generated current state); never open version folders yourself.
 - Write exactly these files (complete files; in a delta version only what changed, plus `change-manifest.md`):
-- `erp/modules/MDL/P3_2/flow-diagram-mdl.md`
-- `erp/modules/MDL/P3_2/ui-ux-spec-mdl.md`
-- `erp/modules/MDL/P3_2/frontend-execution-plan-mdl.md`
-- `erp/modules/MDL/P3_2/registry-exec-fe-mdl.md` (registry)
+- `governance-shared/erp/modules/MDL/P3_2/flow-diagram-mdl.md`
+- `governance-shared/erp/modules/MDL/P3_2/ui-ux-spec-mdl.md`
+- `governance-shared/erp/modules/MDL/P3_2/frontend-execution-plan-mdl.md`
+- `governance-shared/erp/modules/MDL/P3_2/registry-exec-fe-mdl.md` (registry)
 - Respond with one `<<<FILE: <repo-relative path>>>> … <<<END FILE>>>` block per file when running through a command runner; when running as the operator, write the files directly.
 
 ## Contracts checked by `gov.py analyze` after this stage
 - **C8** real API docs (consumer repo input) → frontend: C8.1 exists {'input': 'api-docs'} [CRITICAL]; C8.2 registry-agree {'artifact': 'api-docs', 'registry': 'registry-exec-be', 'kinds': ['API'], 'direction': 'artifact→registry'} [MAJOR]; C8.3 registry-agree {'artifact': 'api-docs', 'registry': 'registry-exec-be', 'kinds': ['API'], 'direction': 'registry→artifact'} [MAJOR]; C8.4 endpoint-agrees {'artifact': 'backend-execution-plan', 'source': 'api-docs', 'kind': 'API'} [MAJOR]
-- **C9** frontend design + execution plan → split / deliver: C9.1 markers {'artifact': 'frontend-execution-plan', 'track': 'frontend', 'plan': 'exec'} [CRITICAL]; C9.2 traces {'from': 'frontend-execution-plan', 'blocks': ['PHASE', 'SUB'], 'min': 1} [MAJOR]; C9.3 traces {'from': 'UXD', 'to': ['REQ', 'AC'], 'min': 1} [MAJOR]; C9.4 traces {'from': 'SCR', 'to': ['REQ', 'UXD'], 'min': 1, 'mode': 'any'} [MAJOR]; C9.5 traces {'from': 'frontend-execution-plan', 'to': ['API'], 'defined_in': 'api-docs'} [CRITICAL]; C9.6 orphans {'kind': 'UXD', 'referenced_by': ['frontend-execution-plan'], 'min': 1} [MAJOR]; C9.7 orphans {'kind': 'SCR', 'referenced_by': ['frontend-execution-plan'], 'min': 1} [MAJOR]; C9.8 registry-agree {'artifact': ['ui-ux-spec', 'frontend-execution-plan'], 'registry': 'registry-exec-fe', 'kinds': ['UXD', 'SCR']} [MAJOR]; C9.9 ids-owned {'stage': 'P3.2'} [CRITICAL]; C9.10 no-questions {'stage': 'P3.2'} [CRITICAL]; C9.11 ids-continue {'stage': 'P3.2'} [CRITICAL]; C9.13 xref-surface {'artifact': ['frontend-execution-plan'], 'locator': 'stack.backend.api.base_path', 'kinds': ['API']} [MAJOR]; C9.14 languages {'stage': 'P3.2'} [MAJOR]; C9.12 verdict-agrees {'artifact': ['frontend-execution-plan'], 'spec': 'self_check', 'when': 'profile.self_check'} [CRITICAL]
+- **C9** frontend design + execution plan → split: C9.1 markers {'artifact': 'frontend-execution-plan', 'track': 'frontend', 'plan': 'exec'} [CRITICAL]; C9.2 traces {'from': 'frontend-execution-plan', 'blocks': ['PHASE', 'SUB'], 'min': 1} [MAJOR]; C9.3 traces {'from': 'UXD', 'to': ['REQ', 'AC'], 'min': 1} [MAJOR]; C9.4 traces {'from': 'SCR', 'to': ['REQ', 'UXD'], 'min': 1, 'mode': 'any'} [MAJOR]; C9.5 traces {'from': 'frontend-execution-plan', 'to': ['API'], 'defined_in': 'api-docs'} [CRITICAL]; C9.6 orphans {'kind': 'UXD', 'referenced_by': ['frontend-execution-plan'], 'min': 1} [MAJOR]; C9.7 orphans {'kind': 'SCR', 'referenced_by': ['frontend-execution-plan'], 'min': 1} [MAJOR]; C9.8 registry-agree {'artifact': ['ui-ux-spec', 'frontend-execution-plan'], 'registry': 'registry-exec-fe', 'kinds': ['UXD', 'SCR']} [MAJOR]; C9.9 ids-owned {'stage': 'P3.2'} [CRITICAL]; C9.10 no-questions {'stage': 'P3.2'} [CRITICAL]; C9.11 ids-continue {'stage': 'P3.2'} [CRITICAL]; C9.13 xref-surface {'artifact': ['frontend-execution-plan'], 'locator': 'stack.backend.api.base_path', 'kinds': ['API']} [MAJOR]; C9.14 languages {'stage': 'P3.2'} [MAJOR]; C9.12 verdict-agrees {'artifact': ['frontend-execution-plan'], 'spec': 'self_check', 'when': 'profile.self_check'} [CRITICAL]
 
 ---
 # ENGINE
@@ -58,9 +58,6 @@ code lookup only).
 
 Questions are `forbidden`. Ambiguity → `factory.yaml → ambiguity` (§7). No human
 approval sits inside this engine: the human decision is the `gate:pass-2` gate.
-
-Mockups are a **design artifact** (a per-screen mockup spec, optionally one generated image)
-— never an implemented shell, never code, never a gate for anything.
 
 **Delta versions** (v2+) emit only ADDED / MODIFIED / REMOVED blocks +
 `change-manifest.md` against `_state/`; `SCR/UXD` sequences continue,
@@ -116,24 +113,12 @@ One block per `SCR-*`, fields and permissions copied from the SRS (no additions,
 ```
 ## SCR-MDL-<seq> — <name>                 traces=REQ-MDL-<seq>,AC-MDL-<seq>[,UXD-MDL-<seq>]
 UI pattern        : <from the SRS screen entry — do not change>
-Container pattern : SIDE_DRAWER | FULL_PAGE | TREE_MASTER_DETAIL   (entry screens only — decided here, §A.4)
 Sub-views         : Search · Entry (· Detail · Wizard) under this ONE SCR
 Fields shown      : <every SRS field of the owning ENT — label per language (ar/en), read-only flags>
 Permissions       : <SRS matrix rows for this screen — reference only> — names follow `PERM_<PAGE_CODE>_<ACTION>`, gateway `VIEW`
 Cross-module data : <field → UXD-MDL-<seq> (owner module)> | none
 States            : empty · loading · error (generic — catalog codes are Part B's) · offline (if the SRS says so)
-Design intent     : <proposal, clearly marked PROPOSAL — never a rule>
-Mockup            : <optional — see §A.6>
 ```
-
-### A.4 Container pattern — decision order (stop at the first match)
-
-1. hierarchical parent–child data (trees) → `TREE_MASTER_DETAIL` (two-pane, tree + permanently visible form);
-2. header + repeating line items with a computed total (document-style) → `FULL_PAGE`;
-3. otherwise (bounded field count, no repeating rows) → `SIDE_DRAWER`.
-
-A screen that fits none is a signal to re-read the SRS field list, not to invent a fourth
-pattern. The choice is authoritative input to Part B's screens/routes role.
 
 ### A.5 Cross-module display dependencies — `UXD-*`
 
@@ -160,25 +145,18 @@ B4 every screen entry of the SRS has exactly one SCR-* block          → gap: b
 RESULT  reconciled <n> · reworked <n> (bounded to flagged blocks) · ADRs <list>
 ```
 
-### A.7 Mockup spec (optional design artifact)
-
-Per screen, a bounded brief: the A.3 block as the sole input, "render exactly these fields,
-pattern and states — nothing more, nothing less; anything that seems missing is flagged back,
-never added". Output = the spec (+ one generated image if the run produces one), verified
-against B1–B4 (every SRS field present, none extra, permission-gated actions represented,
-container pattern respected). It is never implemented, never a prerequisite for Part B.
-
 ## 3. Part B — frontend execution plan
 
 ### 3.0 Binding to the real API surface
 
-Before writing any phase, extract from `_inputs/api-docs-mdl.md` and bind:
+Before writing any phase, bind this plan to `_inputs/api-docs-mdl.md`. Record only
+what exists in neither source alone — the shapes stay where they are published:
 ```
-API SURFACE — MDL v1   (source: api-docs-mdl.md — the ONLY endpoint source)
-ENDPOINTS   API-MDL-<seq> │ verb │ path │ request DTO (fields, types, required) │ response DTO │ paging (Page<T>) │ envelope (ApiResponse<T>)
-ERRORS      runtime code (per LocalizedException → {code, messageAr, messageEn}) │ HTTP │ RULE-* │ message per language (ar, en)
-LOOKUPS     endpoint per lookup key — rule: all LOV values runtime-loaded from the lookup module; no hardcoded enums in APIs or field specs
-PERMISSIONS names the backend registry declares (`PERM_<PAGE_CODE>_<ACTION>`)
+API SURFACE — MDL v1   (shapes: api-docs-mdl.md — cited by API-* id, never restated)
+BINDING     REQ-MDL-<seq> → API-MDL-<seq> — the binding only; verb, path, request/response
+            DTO, paging and envelope are read there, not copied here
+UNMAPPED    REQ needing an endpoint that has none · documented endpoint mapping to no REQ → ADR
+CODES       runtime error code → RULE-MDL-<seq> — the link neither the api-docs nor the SRS carries
 ```
 Reconcile once against the SRS: every REQ that needs an endpoint has one (missing/renamed
 → ADR — naming diffs continue, a missing core operation is breaking); every documented
@@ -222,26 +200,18 @@ Phase table for `profile.tracks.frontend.plans.exec` (plan order):
 ### 3.2 Content roles
 
 The profile names the phases; the engine supplies content **by role**, matched on the words
-in the phase display ("Models & Types", "Data Hooks", "Forms & Validators", "Screens & Routes",
+in the phase display ("Models & Types", "Data Hooks", "Screens & Routes",
 security, alignment). A phase matching no role is filled as the profile describes it. Stack
-facts come from `profile.stack.frontend`: framework `react-ts-vite`; libraries — routing: `react-router`, server-state: `tanstack-query`, forms: `react-hook-form`, validation: `zod`, state: `useState/useReducer + Context (no global store by default)`; lazy chunk per `composite-screen`.
+facts come from `profile.stack.frontend`: framework `react-ts-vite`; libraries — routing: `react-router`, server-state: `tanstack-query`, forms: `react-hook-form`, validation: `zod`, state: `zustand`; lazy chunk per `composite-screen`.
 
-**RF1 — Models & types.** Per `ENT-*` (from the response DTOs in the api-docs) and per `SCR-*`:
-```
-### <role>-MODEL — ENT-MDL-<seq> — <name>          (inside SUB:<phase>-SCR-… of the owning screen)
-Source DTO   : <api-docs DTO>            fields: <property : type · read-only · system-only · lookup (code string, never enum) · deferred ⏸>
-Read-only    : PK, business code, audit fields — never form input
-### <role>-SCREEN — SCR-MDL-<seq>
-Search model : filters (type, filter kind EXACT|LIKE|DATE_RANGE|SET) · paging + sort params (per Page<T>)
-Form model   : fields (required/optional) · excluded system fields · read-only on edit
-Container    : <from A.3>
-```
-Rules: lookup fields are strings holding the code (all LOV values runtime-loaded from the lookup module; no hardcoded enums in APIs or field specs); both names per language (ar, en); no internal/tenant identifiers in any model; nothing modelled that the api-docs do not return.
+**RF1 — Models & types.**
+Field/DTO binding : see _inputs/api-docs-mdl.md — the published request/response
+                     shapes for this module are the source, not restated here.
 
 **RF2 — Data hooks.** Declares WHAT each screen needs from the API — not hook code:
 ```
 ### <role>-QUERY — API-MDL-<seq>            traces=API-…,REQ-…
-Verb · path (exact from api-docs) · request shape · response shape · kind (read query | mutation)
+Kind (read query | mutation) — verb, path and request/response shape are cited by the API-* id above, never restated
 Cache key    : [resource, filters] — every filter that changes the response is in the key
 Errors       : catalog code → routing (field validation → inline · business rule → user message · unauthenticated → login · forbidden → unauthorized · server → generic)
 Loading      : NONE | LOCAL | GLOBAL (GLOBAL only when the SRS says the call is slow → ADR)
@@ -255,35 +225,13 @@ State rule: page and page size live **inside** the filter object that forms the 
 never as independent state. Components use the facade only; the facade uses the declared
 queries only (server-state library: `tanstack-query`).
 
-**RF3 — Forms & validators.** One block per `RULE-*` enforced on a form:
-```
-### <role>-VALIDATION — RULE-MDL-<seq>      traces=REQ-…,AC-…
-Statement · message per language (from the catalog code, never hard-coded) · scope (CREATE|UPDATE|ALL)
-Field · kind (REQUIRED | LENGTH | PATTERN | LOOKUP_VALID | UNIQUE_CHECK | BUSINESS_RULE | DATE_RANGE) · when (change | blur | submit — declared once per form)
-Validation shape : <what the schema must express — the implementer writes it with `zod` + `react-hook-form`>
-UNIQUE_CHECK     : async, on blur, via API-…; current record excluded on edit
-LOOKUP_VALID     : value ∈ runtime-loaded options — never a static list
-```
-Rules: no frontend-only validation the SRS does not state; business code displayed read-only,
-never an input; locale from session → browser → `ar`; permission-driven field
-behaviour (no edit permission → read-only form).
-
 **RF4 — Screens & routes.** One block per `SCR-*`:
 ```
 ### <role>-SCREEN — SCR-MDL-<seq>            traces=REQ-…,UXD-…,API-…
-Routes       : base slug (lower, plural, kebab) · new · :id · :id/edit · [tree — registered BEFORE :id routes]
-Chunk        : one lazy chunk per composite-screen (routing: `react-router`)
 Guard        : every route element guarded by its permission (`PERM_<PAGE_CODE>_<ACTION>` from the SRS matrix — never invented here)
-Components   : route-level pages (suffix "Page") · presentational parts (no suffix) — named by container pattern:
-               FULL_PAGE → SearchPage + EntryPage (separate routes)
-               SIDE_DRAWER → SearchPage + FormDrawer (drawer toggled by a route param, never local-only state)
-               TREE_MASTER_DETAIL → TreePage hosting tree + detail (node route param)
-Mode         : CREATE | EDIT | VIEW resolved from the route match, never from a parent prop
 Facade       : the RF2 facade of this screen · pages never call queries directly
-Shared UI    : only the design-system components this screen renders
 Cross-module : UXD-* cited for every foreign-data field (missing → ADR, never minted here)
 ```
-Composite invariant: Search and Entry are always separate components under ONE `SCR-*`, one lazy chunk, linked by route params — never a second chunk for the sub-view.
 
 **RF5 — Security (frontend half).** Per `SCR-*`: navigation guard (no `VIEW` → unauthorized redirect) and UI behaviour per action (no VIEW → its affordance hidden / read-only; no CREATE → its affordance hidden / read-only; no UPDATE → its affordance hidden / read-only; no DELETE → its affordance hidden / read-only); forbidden responses shown as the localized catalog message. Permission names are the backend registry's — never redeclared.
 
@@ -359,7 +307,7 @@ a row with an empty route is a ✗.
 ```
 REGISTRY — P3.2 — MDL v1
 ID RANGES     UXD-MDL-<first>..<last> · SCR-MDL-<first>..<last>
-SCREENS       SCR │ name │ container pattern │ owning ENT │ permissions
+SCREENS       SCR │ name │ owning ENT │ permissions
 UXD INDEX     UXD │ screen │ field │ owner module · API used
 API COVERAGE  documented endpoints used / unused (with ADR)
 ALIGN      verdict as stamped · findings fixed
@@ -395,12 +343,12 @@ for the best-practice choice. No question is raised at this stage.
 
 | Owns (mints) | References (read-only) | Never touches |
 |---|---|---|
-| `UXD-*`, `SCR-*`; flow diagram; ui-ux-spec; mockup spec; F-blocks; ALIGN; ADRs it raises | `REQ/AC/ENT/RULE` (P1), `API` (P3.1 — shape from the api-docs), catalog codes, permission names, `US` (P0.5) | `DBF/XM` (P2 — backend-only), `QR`, `TC` (test-gen), any code, any build |
+| `UXD-*`, `SCR-*`; flow diagram; ui-ux-spec; F-blocks; ALIGN; ADRs it raises | `REQ/AC/ENT/RULE` (P1), `API` (P3.1 — shape from the api-docs), catalog codes, permission names, `US` (P0.5) | `DBF/XM` (P2 — backend-only), `QR`, `TC` (test-gen), any code, any build |
 
 Hand-off (the orchestrator prints it): plan + registry split by the toolkit into
-`packages/frontend-execution/`, delivered on
-`gov/{mod}-v{version}-{track}` after the `gate:pass-2` verdict, then tagged
-`{mod}-v{version}`. The implementer reads the plan in profile-phase order, the spec for
+`packages/frontend-execution/` inside the
+shared repo after the `gate:pass-2` verdict, then tagged `{mod}-v{version}`. Nothing is
+copied anywhere: the implementer reads it where it was written, at the commit its own repo pins. The implementer reads the plan in profile-phase order, the spec for
 intent, the api-docs for shapes, and never invents a route, component, permission or field
 not traceable to an F-block (a gap → ADR, not an invention).
 
@@ -902,37 +850,18 @@ per the ambiguity rule (shared/GOVERNANCE-CORE.md).
 <<<END INPUT>>>
 
 <<<INPUT: api-docs>>>
+<!-- GENERATED by `gov.py fetch-inputs` — do not edit.
+     source : /Users/ezzat/my project/factory/governance-shared/erp/modules/MDL/api-docs
+     files  : 4
+     digest : 2c13821bde2477282f9b76401318884dd35539220e8d91332cb43b5e0f6bb547
+     Edits belong in the source; anything this factory adds belongs in
+     the companion file, which this command never touches. -->
+
+<!-- fetched-from: index.md -->
 <!-- AUTO-GENERATED by api-doc-generator — do not edit manually -->
 # MDL API Documentation
 
 _OpenAPI definition_
-
-## API ID BINDING — added by P3.2 reconciliation (ADR-MDL-001)
-
-The published generator emits no governance `API-*` id. This annex binds each `API-MDL-*` of
-`registry-exec-be-mdl.md` to the endpoint this document actually publishes, matched on verb +
-path. No endpoint is invented and no id is re-numbered; three rows carry a shape diff (GET +
-query params planned, POST `…/search` + a filter envelope published) recorded in ADR-MDL-002
-and marked ⚠ below.
-
-| API id | Operation | Published verb · path | Bound |
-|---|---|---|---|
-| API-MDL-001 | search lookup types | POST `/api/v1/mdl/lookup-types/search` | ⚠ shape diff |
-| API-MDL-002 | create lookup type | POST `/api/v1/mdl/lookup-types` | ✓ |
-| API-MDL-003 | update lookup type | PUT `/api/v1/mdl/lookup-types/{id}` | ✓ |
-| API-MDL-004 | deactivate lookup type | DELETE `/api/v1/mdl/lookup-types/{id}` | ✓ |
-| API-MDL-005 | search lookup values of a type | POST `/api/v1/mdl/lookup-types/values/search` | ⚠ shape diff |
-| API-MDL-006 | create lookup value | POST `/api/v1/mdl/lookup-types/{id}/values` | ✓ |
-| API-MDL-007 | update lookup value | PUT `/api/v1/mdl/lookup-values/{id}` | ✓ |
-| API-MDL-008 | deactivate lookup value | DELETE `/api/v1/mdl/lookup-values/{id}` | ✓ |
-| API-MDL-009 | reorder lookup values | PATCH `/api/v1/mdl/lookup-types/{id}/values/reorder` | ✓ |
-| API-MDL-010 | browse the registry by owner | POST `/api/v1/mdl/lookup-types/by-owner/search` | ⚠ shape diff |
-| API-MDL-011 | read values by type key (consumer API) | GET `/api/v1/mdl/lookups` | ✓ |
-
-Coverage: 11 registered ids ↔ 11 published endpoints — no unbound id, no undocumented
-endpoint. Operations the SRS names that this document publishes no endpoint for are listed in
-ADR-MDL-005; they are omitted from the frontend, never faked.
-
 
 API version: `v0`
 
@@ -1048,11 +977,7 @@ Shared, module-independent mapping every business error code's `Status` resolves
 |---|---|---|---|
 | GET | `/api/v1/mdl/lookups` | Read lookup values by type key | [readByKey](endpoints/lookup-consumer-api.md#get-apiv1mdllookups) |
 
-
----
-
-<!-- from api-docs/endpoints/lookup-consumer-api.md -->
-
+<!-- fetched-from: endpoints/lookup-consumer-api.md -->
 <!-- AUTO-GENERATED by api-doc-generator — do not edit manually -->
 # Lookup Consumer API
 
@@ -1118,11 +1043,7 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 |---|---|---|
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
-
----
-
-<!-- from api-docs/endpoints/lookup-type-management.md -->
-
+<!-- fetched-from: endpoints/lookup-type-management.md -->
 <!-- AUTO-GENERATED by api-doc-generator — do not edit manually -->
 # Lookup Type Management
 
@@ -1515,11 +1436,7 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 | 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
 
-
----
-
-<!-- from api-docs/endpoints/lookup-value-management.md -->
-
+<!-- fetched-from: endpoints/lookup-value-management.md -->
 <!-- AUTO-GENERATED by api-doc-generator — do not edit manually -->
 # Lookup Value Management
 
