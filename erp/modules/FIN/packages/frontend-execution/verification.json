@@ -1,0 +1,13 @@
+{
+  "module": "FIN",
+  "track": "frontend",
+  "plan": "exec",
+  "version": 1,
+  "verify": "sha256",
+  "source": "governance-shared/erp/modules/FIN/P3_2/frontend-execution-plan-fin.md",
+  "checked": 50,
+  "missing": [],
+  "mismatched": [],
+  "ok": true,
+  "at": "2026-09-17T17:10:07+00:00"
+}
