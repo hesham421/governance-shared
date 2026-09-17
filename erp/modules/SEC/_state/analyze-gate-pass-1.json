@@ -4,8 +4,8 @@
   "scope": "gate:pass-1",
   "counts": {
     "CRITICAL": 1,
-    "MAJOR": 61,
-    "MINOR": 0
+    "MAJOR": 75,
+    "MINOR": 1
   },
   "clean": false,
   "blocking": [
@@ -27,32 +27,31 @@
     "C2.2": 10,
     "C3.7": 11,
     "C4.4": 12,
-    "C5.2": 33,
-    "C5.3": 33,
-    "C5.4": 33,
-    "C5.5": 33,
+    "C5.2": 35,
+    "C5.3": 35,
+    "C5.4": 35,
+    "C5.5": 35,
     "C5.6": 7,
-    "C5.8": 86,
+    "C5.8": 90,
     "C6.2": 104,
     "C6.3": 0,
     "C6.5": 104,
     "C6.6": 13,
     "C7.2": 41,
     "C7.3": 27,
-    "C7.4": 65,
+    "C7.4": 66,
     "C7.5": 0,
     "C7.5b": 0,
-    "C7.6": 33,
-    "C7.22": 38,
+    "C7.6": 35,
+    "C7.22": 39,
     "C7.21": 13,
     "C7.23": 0,
     "C7.20": 0,
     "C7.19": 56,
-    "C7.18": 0
+    "C7.18": 2
   },
   "vacuous": [
     "C6.3",
-    "C7.18",
     "C7.20",
     "C7.23",
     "C7.5",
@@ -61,11 +60,11 @@
   "findings": [
     {
       "severity": "CRITICAL",
-      "clause": "C7.15",
-      "check": "verdict-agrees",
-      "message": "`backend-execution-plan` claims 1 findings but `gov.py analyze` produced 2 for it \u2014 the artifact the implementer reads contradicts the report beside it. Correct line: `BLOCKED \u2717 \u2014 2 findings`",
+      "clause": "C7.12",
+      "check": "xref-resolve",
+      "message": "`XM-NOTIF-001` names module `NOTIF`, which the profile's module registry does not declare",
       "artifact": "backend-execution-plan",
-      "line": 1271
+      "line": 1230
     },
     {
       "severity": "MAJOR",
@@ -90,6 +89,86 @@
       "message": "`US-SEC-012` traces to 0 `POL` id(s), needs \u22651",
       "artifact": "",
       "line": 110
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C5.8",
+      "check": "registry-agree",
+      "message": "`AC-SEC-034` defined in `srs` but absent from `registry-srs`",
+      "artifact": "srs",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C5.8",
+      "check": "registry-agree",
+      "message": "`AC-SEC-035` defined in `srs` but absent from `registry-srs`",
+      "artifact": "srs",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C5.8",
+      "check": "registry-agree",
+      "message": "`REQ-SEC-034` defined in `srs` but absent from `registry-srs`",
+      "artifact": "srs",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C5.8",
+      "check": "registry-agree",
+      "message": "`REQ-SEC-035` defined in `srs` but absent from `registry-srs`",
+      "artifact": "srs",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "declares the code format `SEC-<HTTP-status>-<SCENARIO>` but `stack.backend.api.error_code_format` is `{MOD}-{http}[-{SLUG}]` \u2014 a format string maintained as free text drifts from the values it describes",
+      "artifact": "backend-execution-plan",
+      "line": 414
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "declares the code format `SEC-<HTTP-status>` but `stack.backend.api.error_code_format` is `{MOD}-{http}[-{SLUG}]` \u2014 a format string maintained as free text drifts from the values it describes",
+      "artifact": "backend-execution-plan",
+      "line": 416
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "declares the code format `SEC-<HTTP-status>-<SCENARIO>` but `stack.backend.api.error_code_format` is `{MOD}-{http}[-{SLUG}]` \u2014 a format string maintained as free text drifts from the values it describes",
+      "artifact": "backend-execution-plan",
+      "line": 1279
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "declares the code format `SEC-<HTTP-status>-<SCENARIO>` but `stack.backend.api.error_code_format` is `{MOD}-{http}[-{SLUG}]` \u2014 a format string maintained as free text drifts from the values it describes",
+      "artifact": "backend-execution-plan",
+      "line": 1333
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "declares the code format `SEC-<3-digit-sequence>` but `stack.backend.api.error_code_format` is `{MOD}-{http}[-{SLUG}]` \u2014 a format string maintained as free text drifts from the values it describes",
+      "artifact": "backend-execution-plan",
+      "line": 1333
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.18",
+      "check": "count-agrees",
+      "message": "`XM ROWS` declares 2 but `db-script` carries 0 `XM` row(s) \u2014 a hand-counted total drifts from the rows it heads the moment one row moves, and every reader downstream takes the stated number for the real one",
+      "artifact": "backend-execution-plan",
+      "line": 25
     },
     {
       "severity": "MAJOR",
@@ -549,17 +628,57 @@
     },
     {
       "severity": "MAJOR",
+      "clause": "C7.22",
+      "check": "orphans",
+      "message": "`QR-SEC-039` is referenced by 0 of ['API'], needs \u22651",
+      "artifact": "",
+      "line": 1392
+    },
+    {
+      "severity": "MAJOR",
       "clause": "C7.23",
       "check": "operation-resolves",
       "message": "20 of 27 `API` blocks name no `ENT` (API-SEC-002, API-SEC-003, API-SEC-005, API-SEC-006, API-SEC-007, API-SEC-009 \u2026), so an operation that resolves to none of them cannot be told apart from one that was never built \u2014 the demand each `SCR-REQ` declares stays unchecked until every block carries the subject its own template requires",
+      "artifact": "backend-execution-plan",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.4",
+      "check": "registry-agree",
+      "message": "`QR-SEC-039` defined in `backend-execution-plan` but absent from `registry-exec-be`",
+      "artifact": "backend-execution-plan",
+      "line": 0
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.6",
+      "check": "orphans",
+      "message": "`REQ-SEC-034` is referenced by 0 of ['API', 'DBF'], needs \u22651",
+      "artifact": "",
+      "line": 681
+    },
+    {
+      "severity": "MAJOR",
+      "clause": "C7.6",
+      "check": "orphans",
+      "message": "`REQ-SEC-035` is referenced by 0 of ['API', 'DBF'], needs \u22651",
+      "artifact": "",
+      "line": 695
+    },
+    {
+      "severity": "MINOR",
+      "clause": "C7.11",
+      "check": "code-format",
+      "message": "does not state the declared code format `{MOD}-{http}[-{SLUG}]` (`stack.backend.api.error_code_format`)",
       "artifact": "backend-execution-plan",
       "line": 0
     }
   ],
   "provenance": {
     "rules": {
-      "contracts": "63e99b69b027774dc19a906179452ecd58ade297326434557a7e1d726eef1472",
-      "checker": "aa6869341d2922e5e280a2ee3727b6e98bf42c0e75e2aa1f85382a5d6cce70a2",
+      "contracts": "8f6ebedbb0d071367e5b571d8805b373cfc9fae96b00fbce58fbee5ccdbdc4e1",
+      "checker": "de7b60cb40e131cace2b9cb86364a8ebc123b7e9e112995261397c81aaad034f",
       "policy": "61d1af6c86d3f26a4b5546b4b158a1ac8fdfe69edfb7da0cb5c2023e3e99a68c"
     },
     "resolvable": [
@@ -586,8 +705,8 @@
       "ui-ux-spec"
     ],
     "inputs": {
-      "api-docs": "d8a246551321a9a9628063dfd2531e0ac6c1e22180bd86e7d8f107e837fa6119",
-      "backend-execution-plan": "d12d3a5b0cc402f123fc8818571383ae366031fb8e24f1b7e931c9903a93fb41",
+      "api-docs": "1b12361264c44ee17a42de54bbfdbd45e2e141c6778da67b9a8aab3563332e16",
+      "backend-execution-plan": "9f9c0921ddf0a1611c2251806ac583126f20e4fb72911ffa999904912e39c060",
       "backend-test-plan": "7565dc421900e9ada23800dd4132d790f8f9ca6cfe3489daab1ac8d9430a57cb",
       "business-policies": "aa84e4fa34c5d3e1b7ef71e2055bdd4b81980bcf4a1b53f81351cd120566d35a",
       "db-script": "f2acb416a75cfb02417d74be8e12ad7bd393dd0127cc7df33b4c64e11ef75c33",
@@ -603,11 +722,11 @@
       "registry-exec-be": "c6cbadf659dee2d9e200f07d5f4a00aafb8a54d4a66311bd4182f6bd713c1d51",
       "registry-exec-fe": "6b375b33d272818379850c70a3ac85fae3f7e095125ff2cd47ae51274c14cb47",
       "registry-srs": "735121f843b9ea9b8ac8ccfbcf2955273204e67d4959077606b37df59088f167",
-      "srs": "e02f0061a6fb9f4a6f95eb627ad211c44e2657d72b9bb462b7b58b417c0f9190",
+      "srs": "28ad98234e54fb76791608174994a3d9c19e88a1581f241893ae1e0a9d5ac252",
       "system-test-index": "67d6136b3df1bf00744f47bfd9cc34af944ee01ea67fd14d1999655c0af389b9",
       "test-execution-manifest": "fe360a9c38baf2785c213cffdd24b06f9e68738419dd21fa96c66b588070f78c",
       "ui-ux-spec": "2773bd597812d0990990b231d5582e4461698eaa0294c15788db4c27a1896397"
     },
-    "at": "2026-09-17T12:30:54+00:00"
+    "at": "2026-09-17T14:09:08+00:00"
   }
 }

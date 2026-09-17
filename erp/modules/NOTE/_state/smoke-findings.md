@@ -1134,3 +1134,374 @@ Verdict         : yes. Each repo knows only where to read and where to write,
                   the backend's partition into the factory's inputs, both
                   inside the shared repo, with nothing copied between
                   repositories at any point.
+
+---
+
+# REVIEW 3 — factory, flow, boundaries (F-30 …)
+
+## F-30 — `sync` diagnoses a consumer that mounts nothing as a stale pointer
+Where   : governance-tools/gov.py:776 (printer) · :741 (producer)
+Expected: `sync` "reports per-partition presence and stale consumer pointers".
+          The three states are distinct repairs: a submodule never initialised
+          (`git submodule update --init`), one on a commit other than the pinned
+          one (bump the pointer), and a repo whose `.gitmodules` does not name
+          the shared repo at all (neither command helps).
+Actual  : the producer pushed a prose string for the third state, and the
+          printer re-derived the diagnosis from the row's first character:
+          `'not initialised' if line.startswith('-') else 'differs from its
+          pinned commit'`. Anything not starting with `-` read as `+`. Forced
+          with a decoy checkout via `GOV_BACKEND_CHECKOUT`:
+            backend: submodule differs from its pinned commit
+                     — MOUNTS NOTHING — .gitmodules does not name the shared repo
+          A reader is told to bump a pointer that does not exist.
+Fix     : FIXED — each row now carries its own diagnosis as a third element;
+          the printer states it rather than guessing. Re-verified all three:
+          mounts-nothing → "mounts the shared repo nowhere"; uninitialised →
+          "not initialised"; both real consumers → 0 stale rows.
+Status  : FIXED
+
+## F-31 — `render` re-joined a path key to the root, ignoring `paths.external`
+Where   : governance-tools/render.py:36
+Expected: §1's lever — every artifact path funnels through `config.dir()`, and
+          `paths.external` alone decides which keys resolve against the shared
+          checkout: "Which is which is declared in `paths.external`, never
+          decided in this function."
+Actual  : `jinja2.FileSystemLoader(str(cfg.root / cfg.paths["templates"]))` —
+          the key is read, then joined to the factory root by hand, so the
+          `external` declaration is not consulted. Proven by declaring
+          `templates` external at runtime: `config.dir("templates")` moved to
+          `<factory>/governance-shared/governance-tools/templates` while the
+          loader stayed at `<factory>/governance-tools/templates`. Latent
+          today — `templates` is not external — but the funnel had a hole in it.
+Fix     : FIXED — `cfg.dir("templates")`. Re-verified: the loader now follows
+          the declaration in both directions. lint 0/0/0, 262 passed.
+Status  : FIXED
+
+## F-32 — the feedback waiver records a status it never reads
+Where   : governance-tools/gov.py:878 (written) · :892 (read)
+Expected: "`waive-feedback` is pinned to the items it saw." The record stores
+          pairs — `[key, status]` — which states that the status is part of what
+          was waived.
+Actual  : `covered = {k for k, _ in waiver.get("waived", [])}` discards the
+          status. The waiver is pinned to the item's identity only. Proven on a
+          copy of the shared checkout (`GOV_SHARED_CHECKOUT`):
+            - waive MDL → blockers 0
+            - append a NEW gap → blockers 1  ← the gate closes again, correctly
+            - flip the WAIVED item's `resolution` from `UNRESOLVED` (parsed
+              `UNRECOGNISED`) to `OPEN` → blockers 0
+          So the item waived while the factory "cannot tell whether this is
+          still owed" stays waived once the consumer confirms it IS still owed.
+          The stored status is a value nothing reads (condition 1).
+          The headline behaviour is sound: the waiver is NOT an off switch, and
+          a gap recorded after it does close the gate. Only the status is dead.
+Fix     : OPEN — either pin on `(key, status)`, so a change of status re-closes
+          the gate and the stored half is load-bearing; or drop the status from
+          the record and store keys, so nothing implies it was considered. The
+          repo cannot settle it: both readings of "the items it saw" are
+          defensible, and which is right is a policy question about whether a
+          waiver covers an item or an item-in-a-state.
+Status  : OPEN
+
+## F-33 — the whole `versioning` block is declared and read by nothing
+Where   : factory.yaml `versioning:` (4 keys) · config.py:255
+Expected: "A declared value nothing reads is dead config and should be deleted,
+          not kept 'for later'."
+Actual  : `cfg.versioning` — the accessor — has zero callers. Every mention of
+          `versioning.authority` and `versioning.delta_only` in the tools is
+          inside a comment or docstring citing the block as justification
+          (config.py:401, publications.py:74, state.py:197); `current_state` and
+          `freeze_previous` appear nowhere in code or templates at all. Changing
+          any of the four changes nothing. Two further keys are equally dead:
+          `naming.module_code` and `publications.*.derived_from`.
+          `shared/VERSIONING.md` tells a reader `versioning.freeze_previous`
+          governs tag-freezing, which no tool consults — so this is not merely
+          unread config, it is documented behaviour with no implementation
+          behind it.
+          (Checked against false positives: `ids.ears.patterns.*` IS read, via
+          `render.block_ears` iterating `.items()`; `markers.rules.split_unit`
+          IS read, by the P3.1 engine template. Both survived the first pass of
+          this scan and were cleared individually.)
+Fix     : OPEN — either delete the six keys and correct `shared/VERSIONING.md`
+          and `shared/GOVERNANCE-CORE.md`, or implement the behaviour the docs
+          already promise. Deleting silently would make two shipped documents
+          wrong; implementing silently would change tagging. Not a reviewer's
+          call.
+Status  : OPEN
+
+## F-34 — the hardcode check is narrower than the rule it enforces
+Where   : governance-tools/lint.py:279-300 (`scan_code_literals`)
+Expected: C1 as the constitution states it — no stage id, phase key, ID prefix,
+          **path, profile name, repo key, branch** or vocabulary term typed in
+          Python.
+Actual  : the scanner compares literals against `stage_ids | phase_keys` and
+          `prefixes` only; its own docstring says so. Probed by injecting
+          literals into `findings.py` and running `lint`:
+            'ui-shell'          → CRITICAL (removed concept)   ✓
+            'INT-XM', 'P0'      → MAJOR (code-literal)          ✓
+            'spring-boot-java', 'SEC_PAGES', 'postgresql16'
+                                → MAJOR (profile-literal)       ✓
+            'erp'               → NOT CAUGHT                    ✗
+          The profile NAME — the one term the consumers' CI, CLAUDE.md and
+          commands all go out of their way not to type — is the one the factory's
+          own check cannot see. No such literal exists in the tools today, so
+          this is a gap in the check, not a live violation. Path, repo-key and
+          branch literals are likewise unchecked, and several exist:
+          gov.py:1076 (`"_archive-v5"`, `"history"`), gov.py:1215
+          (`"factory.yaml"`), lint.py:309 (`"commands"`), render.py:219
+          (`"README.md"`), analyze.py:469 (`"REGISTRY-SCHEMA.md"`).
+          Note also line 287: `scan_code_literals` exempts `lint.py` from its own
+          scan. Re-ran the scanner's logic against `lint.py` with the exemption
+          removed: 0 literals hidden today, so the exemption conceals nothing
+          now — but it is an unbounded carve-out for the one file no other check
+          covers.
+Fix     : OPEN — the profile name is cheap to add (`profile.id`) and would have
+          caught nothing so far. Paths are not: a literal like `"README.md"` is a
+          filename, not a factory fact, and a naive path rule would fire on all
+          of them. The repo has to decide which of C1's eight categories the
+          check is actually claiming before the check can be widened honestly.
+          Narrowing the CONSTITUTION's wording to match the check would also
+          settle it, and is the smaller change.
+Status  : OPEN
+
+## F-35 — a consumer command types the authoritative phase list it also publishes
+Where   : frontend/.claude/commands/orchestrate-module.md:43 ·
+          backend/.claude/commands/orchestrate-module.md (same shape)
+Expected: the file's own Step 0 — "resolve where governance lives (never type
+          it) … The profile folder is the factory's to name; spelling it here
+          makes a second profile an edit to this file." Consumers must resolve
+          published facts from `platform/profile-summary.json`.
+Actual  : the command applies that principle to the profile (`jq -r
+          .paths.modules "$SUMMARY"`) and then breaks it for the phase list:
+            Frontend execution phases, in order: `F1 → F2 → F3 → F4 → SEC-FE → ALIGN-FE`
+          Those keys are published at
+          `tracks.frontend.plans.exec.phases[].key`. Compared the typed list
+          against the published one for both tracks: they AGREE today (frontend
+          6/6, backend 8/8), so this is duplication, not drift — but nothing
+          checks that they agree, and the list has already changed once (F4 was
+          added to the frontend plan). `ALIGN-FE` is further used as an
+          authoritative trigger at :518 and :547 ("when the phase just closed is
+          `ALIGN-FE`"), which a runtime acts on. The narrative mentions of phase
+          keys elsewhere in the file are illustrative and are not counted here.
+Fix     : OPEN — either resolve the list from `$SUMMARY` at Step 0 alongside
+          `$MODULES`, or add a guard to each consumer's CI comparing the typed
+          list to the published one. The first removes the duplicate; the second
+          keeps the prose readable and fails when it lies. Adding a new CI check
+          is an extension, so it is not made here.
+Status  : OPEN
+
+## F-36 — generated consumer commands carry no marker, no freshness check, and have been hand-edited
+Where   : backend/.claude/commands/{CU,FILE,FIN,MDL,NOTIF,SEC}/*.md
+Expected: per-module commands are resolved output — "Check they were
+          regenerated, not hand-edited." The factory's own generated files carry
+          `lint.generated_marker` ("GENERATED by `gov.py render` … do not edit by
+          hand") and `lint` fails on `C1-stale-render` when one drifts.
+Actual  : none of the 12 per-module commands carries any marker (`head -5 | grep
+          -ci generated` → 0 for all 12), and no check anywhere compares them to
+          what `/generate-module-setup` would produce. They have in fact been
+          edited by hand during implementation:
+            git show ddd5d02 -- .claude/commands/FIN/execute-backend-test.md
+            → 21 insertions, 13 deletions, inside a commit titled
+              "feat(FiscalPeriod): Implement search functionality for fiscal periods"
+          The edit rewrote the required-coverage totals (46+1 TCs → 101+2) and
+          added a line telling the next reader not to trust the file:
+            "Do not trust these id lists over the file: they are a convenience,
+             and the plan has grown more than once. Enumerate the
+             `TC:TC-FIN-*:START` markers actually present and use that."
+          That sentence is the finding: a human hit stale generated output,
+          could not regenerate it, and wrote a warning into the artifact instead.
+Fix     : OPEN — either the generator stamps the marker and a consumer CI step
+          fails when a command differs from a regeneration, or these files are
+          reclassified as authored-once scaffolding that implementation owns, and
+          the claim that they are generated output is dropped. Today they are
+          treated as both.
+Status  : OPEN
+
+## F-37 — `CODEOWNERS` names one owner for all four paths, so it enforces nothing
+Where   : governance-shared/CODEOWNERS · GOVERNANCE-SHARED-DESIGN.md §3
+Expected: §3 states the mechanism and the table it enforces:
+            *                                   @factory-maintainers
+            /{profile_id}/modules/*/api-docs/   @backend-maintainers
+            /{profile_id}/modules/*/backend/    @backend-maintainers
+            /{profile_id}/modules/*/frontend/   @frontend-maintainers
+          and the file's own header: "a write outside an owned path is refused at
+          review". §4 concedes git cannot enforce visibility, and rests write
+          enforcement on "التقسيم + `CODEOWNERS`".
+Actual  : every rule in the shipped file resolves to the same principal:
+            *                          @hesham421
+            /erp/modules/*/api-docs/   @hesham421
+            /erp/modules/*/backend/    @hesham421
+            /erp/modules/*/frontend/   @hesham421
+          "Most specific wins" decides nothing when all four are one owner: no
+          write is ever outside an owned path, so the rule cannot fire in either
+          direction. This is a check that cannot be made to fail.
+          Second defect in the same file: it spells `erp` where the design writes
+          `{profile_id}`. The second-profile test otherwise PASSES — I created
+          `profiles/demo.yaml`, ran `GOV_PROFILE=demo gov.py lint` (which caught
+          the id/stem mismatch correctly) and `render_all(write=False)`, and 12
+          generated files regenerate with no code edit. But a real second profile
+          would need `CODEOWNERS` edited, and that file is outside
+          `factory/profiles/`. The `{profile_id}/…` partitions are the one place
+          the design's own path variable was flattened to a literal.
+Fix     : OPEN — the ownership split cannot be enforced by one account. Either
+          three teams exist and the file names them, or §3 and §4 stop claiming
+          `CODEOWNERS` enforces the partition and name the consumers' CI guards
+          as the real mechanism (they do bite — proven below). The profile
+          literal is separately fixable only if GitHub's path syntax is given a
+          generated file, since `CODEOWNERS` cannot read `profile-summary.json`.
+Status  : OPEN
+
+## F-38 — an implemented module is "not declared", against the repo's own RESERVED rule
+Where   : governance-tools/analyze.py:790 · :877 (`known`) ·
+          shared/GOVERNANCE-CORE.md:58 · profiles/erp.yaml `vocabulary.module_prefixes`
+Expected: `shared/GOVERNANCE-CORE.md` states the policy outright — "a module
+          named during a run but not yet listed here is used as RESERVED (never
+          blocked) and the list is extended later — no stage invents a code, but
+          no stage waits on the profile either". And the module set has a
+          declared authority: `versioning.authority: filesystem`, which is why
+          `CFG.modules()` sweeps the filesystem rather than reading a list.
+Actual  : `xref-resolve` builds its universe from one side only —
+          `known = set(CFG.profile.vocabulary["module_prefixes"])` — and raises
+          at blocking severity when a cross-module id names anything outside it:
+          "`XM-NOTIF-001` names module `NOTIF`, which the profile's module
+          registry does not declare". The two sources disagree in both
+          directions:
+            implemented but NOT in the registry : CU, FILE, NOTIF
+            in the registry but NOT implemented : CTR, HR, INV, ORG, PRC, SLS
+          NOTIF is a real module with a full partition, api-docs and execution
+          state — `sync` counts it among the 7 — and a reference to it is
+          CRITICAL. Live today: 2 such findings, and this one is new since the
+          stored report (see F-39).
+Fix     : OPEN — either `known` is the union of the registry and the filesystem
+          (the RESERVED rule as written, and consistent with
+          `versioning.authority`), or the registry is the authority and the
+          RESERVED paragraph is deleted and the six unimplemented codes justified.
+          The repo cannot settle it because it currently asserts both: one
+          document says an unlisted module is never blocked, and one check
+          blocks on exactly that. Not fixed here — changing `known` changes
+          analyze verdicts for every module, which is a gate-affecting decision.
+Status  : OPEN
+
+## F-39 — the stored `analyze` report had drifted far from what the tool produces
+Where   : governance-shared/erp/modules/SEC/_state/analyze-all.{md,json}
+Expected: `_state/analyze-*.md` is generated state, and it carries the same
+          "GENERATED … do not edit by hand" marker as every rendered file.
+          `lint` fails on `C1-stale-render` when a rendered file drifts.
+Actual  : re-running `gov.py analyze -m SEC` — the only write this review made
+          to the real shared repo, and a normal side effect of the command —
+          rewrote the report from **1 critical · 61 major · 0 minor** to
+          **2 critical · 76 major · 1 minor**: 188 inserted lines, 36 deleted.
+          The committed artifact understated SEC's blocking findings by 15
+          majors and one critical. Nothing detects this: `C1-stale-render`
+          covers `render`'s targets, not `analyze`'s, so a stale analyze report
+          is indistinguishable from a current one until someone re-runs it.
+Fix     : OPEN — either analyze reports get the same freshness check as rendered
+          files (they are equally derived, and the marker already claims they
+          are), or they are timestamped as point-in-time run records and no
+          longer read as current state. The gate reads them, so the first is the
+          safer reading — but adding that check is an extension, not a repair,
+          so it is left here. The re-run report itself is left in place: it is
+          the accurate one.
+Status  : OPEN
+
+## REVIEW — factory, flow, boundaries
+
+Scope       : RAN — `lint` (before and after every change), the full suite,
+              `sync` (all three consumer states forced via a decoy checkout on
+              `GOV_BACKEND_CHECKOUT`), `feedback`, `waive-feedback` (on a copy
+              of the shared checkout via `GOV_SHARED_CHECKOUT`), `verify-split`
+              on four SEC track/plan pairs, `analyze -m SEC`, `render_all(
+              write=False)` under a second profile, the import graph by AST,
+              `scan_config` and `scan_code_literals` by deliberate injection,
+              `_commit_in` pathspec-limiting and the detached-HEAD guard in a
+              throwaway repo, and both consumers' CI guard steps line by line in
+              both directions. READ ONLY — `run-pass`, `gate`, `split`,
+              `publish`, `approve`, `archive`, and the P-stage engines. No pass
+              was regenerated. One write reached the real shared repo:
+              `analyze -m SEC` rewrites its own report as a normal side effect,
+              and what it rewrote is F-39.
+Arbitrary   : 7 — `versioning.{authority,delta_only,current_state,
+              freeze_previous}` (the accessor has zero callers),
+              `naming.module_code`, `publications.*.derived_from`, and the
+              `status` half of every waiver row. Two candidates cleared as false
+              positives: `ids.ears.patterns.*` and `markers.rules.split_unit`.
+Coupling    : cycles 0 · modules that cannot load alone: none — all 16 import
+              clean in isolation. `config` and `findings` depend on nothing;
+              `contracts`, `idmodel`, `publications` on `config` alone, as
+              claimed. `lint` importing `publications` and `render` is registry
+              lookup and delegation, not the checker-imports-its-subject shape:
+              `findings.py` exists precisely to keep that edge acyclic.
+Hardcode    : factory 6 path literals (gov.py:1076 ×2, gov.py:1215, lint.py:309,
+              render.py:219, analyze.py:469), none of which the check covers —
+              F-34. consumers 2: the phase list in both `orchestrate-module`
+              commands (F-35) and `erp` in `CODEOWNERS` (F-37). Everything else
+              the consumers touch resolves from `platform/profile-summary.json`;
+              the `erp` spellings in their CLAUDE.md and commands are all either
+              `# e.g.` comments or explicitly labelled "the live value today",
+              which is descriptive, not authoritative.
+Flow        : none found in the tools. `fetch-inputs` folds 11 / 10 / 4 api-doc
+              files for SEC / FIN / MDL — re-measured, exact — and both its
+              source and destination resolve INSIDE the shared checkout, so
+              nothing is copied between repositories; `reads_from: shared` is
+              what makes that true, and removing it would silently reintroduce
+              cross-repo copying. The step that would break first is not a tool:
+              it is the next `/generate-module-setup FIN`, which would overwrite
+              the hand-corrected coverage totals in
+              `FIN/execute-backend-test.md` and restore 46+1 TCs over the
+              corrected 101+2, with nothing to detect it (F-36).
+Boundaries  : no write outside a partition found — including the placeholder
+              forms; every `[MODULE]`/`$MODULE`/`{MODULE}` path in the consumer
+              commands lands under that repo's own partition or under a
+              factory-owned path it only reads. One CODEOWNERS/design mismatch,
+              and the design is the half that is right (F-37). Both consumers'
+              CI guards are byte-identical modulo the track name and both bite
+              in both directions: the path-resolution step caught an injected
+              missing path and an injected empty one, and the reappearance guard
+              fired on a planted `governance/modules` and went quiet when it was
+              removed. The `seen == 0` branch is real, not decorative — it
+              examines 9 `*_path` keys across 9 files today.
+Checks      : 13 made to fail on purpose — `scan_code_literals` (removed concept,
+              stage id, phase key, 3 profile vocabulary terms), `scan_config`
+              (all 5 of its invariants, one more than the 4 F-12 claimed),
+              the publication-builder check (both the missing and the
+              unregistered branch), `_commit_in` pathspec limiting (a file staged
+              out of band did NOT ride along), the detached-HEAD guard, `sync`
+              stale detection (2 of 3 states; the third was the defect),
+              both consumers' CI guards, and `C5-profile`'s id/stem rule.
+              `verify-split` needed no forcing — it is failing on real drift now
+              and passes clean on the other three SEC tracks, which is both
+              directions. 1 that could NOT be made to fail: `CODEOWNERS`, and
+              that is F-37 — with one principal on all four rules there is no
+              input that makes it fire.
+Findings    : F-30 … F-39 — 2 FIXED · 8 OPEN
+Known state : all four rows still say what they say. F-29 still names
+              `test_gen/backend-test-plan-fin.md`, which still does not exist
+              (FIN's `test_gen/` holds only the frontend plan and the execution
+              manifest). SEC backend/test still reports exactly 2 missing and 3
+              drifted blocks. `analyze` still returns MAJOR on SEC (C7.19 ×4,
+              C7.21, C7.22, C7.23, C7.4, C7.6 ×2, C8.4) — content defects in the
+              plans, not tool defects. 38 unanswered feedback items, re-measured
+              exactly, across FIN, NOTIF, CU, FILE, MDL, SEC; the status
+              vocabulary does return `UNRECOGNISED` rather than guessing, and
+              the eleven ways `resolution` was being written are visible as
+              `BINDING`, `THE`, `NOT`, `REPLACE`, `VALIDATE`, `ABSENT`,
+              `UNRESOLVED`, `IMPLEMENTATION`, `BUILD-CREATE-SERVICE` — the
+              parser reads the first word of prose and refuses to bucket it.
+Baseline    : lint 0/0/0 · 262 passed, 1 skipped — measured first, and identical
+              after both fixes.
+Verdict     : yes for the factory and the flow; qualified for the boundaries.
+              Each repo does know only where to read and where to write: the
+              lever holds (§1's two named non-escapes are the only root-relative
+              builds left that matter, and the third one I found in `render` is
+              now closed), the import graph is acyclic, the shared checkout is
+              the single home, and nothing crosses a repo boundary at any step I
+              ran. What is NOT proven is the enforcement of that boundary
+              against a party that does not want to respect it: `CODEOWNERS`
+              cannot fire, so the consumers' CI guards are the only mechanism
+              actually standing, and they check that governance has not come
+              BACK into a consumer — not that a consumer stayed out of a
+              partition it does not own. The load-bearing property §1 names —
+              that the shared checkout sits INSIDE the factory root — is still
+              undeclared in code, and `dispatch.ingest()` and
+              `splitter._clean_previous()` still hold only because of it. It
+              should be checked: it is one assertion, and it is the assumption
+              every root-relative path in the toolkit rests on.
