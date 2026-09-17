@@ -11,7 +11,7 @@ Open ADRs : 1 — erp/decisions/SEC/ (ADR-SEC-001, carried from P2; no new ADR t
 ```
 ── FROM srs ──────────────────────────────────────────────────────────────
 ENTITIES      13 — ENT-SEC-001..013, all kind=security (SRS A3)
-REQUIREMENTS  33 — REQ-SEC-001..033 (SRS A4), each with ≥1 AC-SEC-*
+REQUIREMENTS  35 — REQ-SEC-001..035 (SRS A4), each with ≥1 AC-SEC-* (034/035 added by the 2026-09-11 amendment)
 RULES         7 — RULE-SEC-001..007 (SRS A5), full text reused verbatim below
 SCREENS       10 — SCR-REQ-SEC-001..010 (SRS Part B), each composite per profile.conventions.composite_screen
 PERMISSIONS   SEC_PAGES page codes + PERM_<PAGE_CODE>_<ACTION>, gateway VIEW (SRS §7.1 / Access summary)
@@ -22,7 +22,7 @@ TABLES        13 tables, exact names SEC_USER … SEC_SIGNUP_REQUEST (db-script-
 PK GENERATION every table: `GENERATED ALWAYS AS IDENTITY` (postgresql16 identity clause, db-script §3 header)
 COLUMNS       104 DBF-SEC-001..104, exact names/types/null/default per db-script §1 and §6
 CONSTRAINTS   PK_*, UQ_*, CHK_*, FK_* per db-script §3 BLOCK 5; INDEXES IDX_* per BLOCK 7
-XM            none — SEC is ROOT (db-script §2 XM REGISTER: empty)
+XM            none CONSUMED — SEC is ROOT (db-script §2 XM REGISTER: empty in that direction); 1 EXPOSED crossmodule surface, 0 XM rows (db-script §2 amendment 2026-09-11)
 ── FROM registries ───────────────────────────────────────────────────────
 SHARED ENTITIES CONSUMED   none (SEC is ROOT)
 EXISTING LOOKUP KEYS        USER_STATUS, SIGNUP_STATUS, AUDIT_EVENT_TYPE (registry-db-sec.md — reused, not recreated)
@@ -224,10 +224,13 @@ Open ADRs: 1 — decisions/SEC/ (ADR-SEC-001, non-breaking, carried from P2)
 | AUDIT_EVENT_TYPE | eventTypeCode | ENT-SEC-011 |
 
 **QRC SUMMARY** (agent reference only — full catalog below)
-38 QR ids, QR-SEC-001..038 — see §Query Reference Catalog.
+39 QR ids, QR-SEC-001..039 — see §Query Reference Catalog (QR-SEC-039 added 2026-09-11 with REQ-SEC-035).
 
 **DB ALIGNMENT** — see manifest below — ALIGNED ✓ / issues: 0
-**XM STATUS** — 0 (SEC is ROOT)
+**XM STATUS** — 0 CONSUMED (SEC is ROOT) · 1 EXPOSED crossmodule surface
+(`com.erp.sec.crossmodule.SecUserDirectoryApi`, REQ-SEC-034/035) carrying 0 XM rows — it
+registers no entity, table or column, and ids for that direction are the consuming module's
+own P2 to assign, not SEC's
 **SECURITY** — 7 secured screens × role-driven grants (no fixed role count — data-driven per RBAC)
 
 ## DB Alignment Manifest — SEC v1
@@ -387,6 +390,7 @@ All 104 rows: **status ✓ (aligned), XM — (none)** for every row; property/ty
 | QR-SEC-036 | EXISTS | SVC-API | API-SEC-019 | ENT-SEC-004, ENT-SEC-005 | EXISTS | RULE-SEC-004: module registered? + uniqueness: page code |
 | QR-SEC-037 | EXISTS | SVC-API | API-SEC-020 | ENT-SEC-005, ENT-SEC-006 | EXISTS | screen exists? + uniqueness: permission code |
 | QR-SEC-038 | EXISTS | SVC-API | API-SEC-004 | ENT-SEC-012 | EXISTS | RULE-SEC-006: token unexpired and unused? |
+| QR-SEC-039 | FIND_ALL | INT-R | — (no API — `SecUserDirectoryApi`) | ENT-SEC-001, ENT-SEC-003, ENT-SEC-006, ENT-SEC-009 | FIND_ALL | REQ-SEC-035: user ids holding a permission code through an active role |
 
 Standard operation defaults (engine §5) apply to every QR above unless noted; no QR overrides
 paging/filter/transaction defaults except where its row states otherwise. Join governance:
@@ -401,17 +405,19 @@ returned as codes; the frontend resolves the display label).
 
 **Layers** (`profile.stack.backend.layers`): controller → service → mapper → domain → repository.
 - **controller**: HTTP binding, request validation shape (types/required), maps DTO ↔ command; never queries the repository directly; never contains a RULE-* check.
-- **service**: orchestration — loads, validates every RULE-*, integrates (none for SEC — zero XM), persists via repository; the sole place RULE-* logic runs; the sole place PERM_* is asserted before any mutation proceeds.
+- **service**: orchestration — loads, validates every RULE-*, integrates (for SEC only the optional NOTIF password-reset dispatch — REQ-SEC-029, §PHASE 5 INT-C; still zero XM), persists via repository; the sole place RULE-* logic runs; the sole place PERM_* is asserted before any mutation proceeds.
 - **mapper**: entity ↔ DTO conversion only; no business logic, no query.
 - **domain**: entity classes; domain-behaviour placement = **in entity methods** for single-entity invariants (e.g. `User.deactivate()` flips `isActiveFl`/`statusCode`), and in the service layer for any rule spanning more than one entity (e.g. RULE-SEC-001/002/003/005/007, which read another table).
 - **repository**: Spring Data JPA repositories, one per entity/table; every non-trivial query is a named method backed by a `QR-SEC-*` spec (§Query Reference Catalog); no business logic.
 
 **Error signalling**: `LocalizedException → {code, messageAr, messageEn}`. Runtime `code` format:
-`{MOD}-{http}[-{SLUG}]` (profile.stack.backend.api.error_code_format; `{MOD}` = SEC, `{http}` =
-the row's HTTP status, `{SLUG}` = SCREAMING-KEBAB, the slug half optional — e.g.
-`SEC-409-USER-DUP`, and `SEC-500` where no slug is needed). Stated once here so `api-verify` can
-assert on it. Every catalog row (§Error Catalog) is registered as a
-static enum/constant the controller-advice layer maps to the envelope; `messageAr`/`messageEn`
+`SEC-<HTTP-status>-<SCENARIO>` (module-scoped, stated once here so `api-verify` can assert on it —
+e.g. `SEC-409-USER-DUP`). EVERY `SecErrorCodes` value carries that full three-segment shape; no
+scenario-less `SEC-<HTTP-status>` code exists, because the 500 path is not module-scoped at all.
+Every module-owned catalog row (§Error Catalog) is registered as a static constant in
+`SecErrorCodes` that the shared exception→envelope mapping resolves; the single PLATFORM-STD 500
+row (`INTERNAL_ERROR`) is owned and emitted by the shared `GlobalExceptionHandler` in
+`com.erp.common.web`, so SEC neither declares nor throws it. `messageAr`/`messageEn`
 are copied character-perfect from the SRS RULE message or from this plan where PLATFORM-STD.
 
 **Transaction scope defaults**: `READ_ONLY` for every `FIND_*`/`EXISTS`/`AGGREGATE` QR;
@@ -460,8 +466,9 @@ dedicated action endpoint, never a workflow definition.
 in both `ar` and `en` in every DTO and every response — a single-language value anywhere is
 incomplete per §Error Catalog / §6.1 rule.
 
-**Cross-module contract placement**: not applicable this version — SEC has zero XM (it is
-ROOT); no inversion-of-control interface is consumed by SEC. SEC itself is consumed by every
+**Cross-module contract placement**: no XM contract to place this version — SEC has zero XM (it
+is ROOT). The one interface SEC injects is NOTIF-owned, not SEC-owned: `NotificationDispatchApi`
+for the REQ-SEC-029 password-reset dispatch (§PHASE 5 INT-C). SEC itself is consumed by every
 future module through its own REST surface (§SVC-API below), not through an injected interface.
 
 **Cross-cutting authorization (REQ-SEC-033)**: a single servlet filter / method-level
@@ -511,7 +518,10 @@ DTO MEMBERSHIP: create-request excludes {userPk, passwordHash(raw password field
 LOOKUP FIELDS: `statusCode` → key `USER_STATUS` → GET /api/v1/mdl/lookups?type=USER_STATUS (API-MDL-011 — MDL's consumer lookup API; v1 validates server-side against the closed set per ADR-SEC-001) — stores the code, never a numeric FK.
 DOMAIN RULES: none scoped to User alone (RULE-SEC-005 scopes ENT-SEC-003/009, cited there).
 STATE MACHINE: `statusCode` (USER_STATUS) — values PENDING/ACTIVE/DISABLED; initial ACTIVE (direct create, API-SEC-006) or PENDING (via sign-up approval, API-SEC-011); transitions PENDING→ACTIVE (API-SEC-011, actor: administrator), ACTIVE→DISABLED (API-SEC-009, actor: administrator), DISABLED→ACTIVE (API-SEC-010, actor: administrator); no terminal state; no invalid-transition RULE beyond "the four listed transitions are the only ones exposed" (enforced by which endpoint exists, not a DB CHECK on the transition itself).
-CROSS-MODULE: none (SEC is ROOT).
+CROSS-MODULE: none CONSUMED (SEC is ROOT). EXPOSED since 2026-09-11: the contact projection
+(email + both display names + active, DBF-SEC-003/005/006/007) and this entity's pk as the
+permission-holder result, both read-only via `com.erp.sec.crossmodule.SecUserDirectoryApi`
+(REQ-SEC-034, REQ-SEC-035) — no table, column or FK registered, so still no XM row (§PHASE 6).
 REPOSITORY OPS → QR-SEC-001 (FIND_ONE by username), QR-SEC-005 (FIND_BY_CRITERIA), QR-SEC-006 (SAVE), QR-SEC-007 (UPDATE), QR-SEC-009 (UPDATE, deactivate), QR-SEC-010 (UPDATE, reactivate), QR-SEC-033 (EXISTS, uniqueness).
 
 #### ENT-SEC-002 — Role      kind: security
@@ -651,7 +661,7 @@ FIELDS:
 | DBF-SEC-074 | grantedAt | granted_at | Instant | NOT NULL | Yes | — |
 DOMAIN RULES:
 **RULE-SEC-002** — Scope ENT-SEC-009 · Trigger: on create (action grant) · Statement: "The system shall prevent an action grant for a role that does not hold the action's screen grant." · Message ar: "لا يمكن منح إجراء دون منح الشاشة أولًا" / en: "Cannot grant an action without first granting its screen" · DB enforcement: application layer (service, via QR-SEC-029) · owner layer: service.
-**RULE-SEC-005** — Scope ENT-SEC-003, ENT-SEC-009 · Trigger: on create (role assignment or action grant) · Statement: "The system shall prevent assigning a user, by any combination of roles, both actions of a module-declared conflicting pair." · Message ar: "هذا المستخدم يملك إجراءً متعارضًا بالفعل" / en: "This user already holds a conflicting action" · DB enforcement: application layer (service, via QR-SEC-031, checked across all of a user's roles) · owner layer: service.
+**RULE-SEC-005** — Scope ENT-SEC-003, ENT-SEC-009 · Trigger: on create (role assignment or action grant) · Statement: "The system shall prevent assigning a user, by any combination of roles, both actions of a module-declared conflicting pair." · Message ar: "هذا المستخدم يملك إجراءً متعارضًا بالفعل" / en: "This user already holds a conflicting action" · DB enforcement: application layer (service, via QR-SEC-031, checked across all of a user's roles) · owner layer: service. · **DEFERRED (SEC v1)**: nothing in SEC v1 declares a conflicting pair — there is no ENT, DBF, table, API field or screen element for such a declaration — so REQ-SEC-020's `optional` precondition is never established and this guard, though implemented, is inert (the conflicting-counterpart set is empty in v1). The platform's only real conflicting pair is FIN-owned and FIN-enforced: governance/modules/FIN/P3_1/backend-execution-plan-fin.md:1061-1066 (RULE-FIN-015, error `FIN-403-SOD-VIOLATION`). Whether SEC v1 should own a conflicting-pair register at all is an open P1/P2 decision, not an execution one.
 **RULE-SEC-007** — Scope ENT-SEC-009 · Trigger: on evaluate (any action check) and on create (action grant, informational) · Statement: "The system shall require a role to hold the VIEW action grant on a screen before any other action grant on that screen takes effect for it." · Message ar: "يلزم منح إجراء العرض (VIEW) أولًا على هذه الشاشة" / en: "The VIEW action must be granted on this screen first" · DB enforcement: application layer (service, via QR-SEC-030 at grant time + the CORE interceptor at request time) · owner layer: service.
 CROSS-MODULE: none.
 REPOSITORY OPS → QR-SEC-017 (SAVE), QR-SEC-029 (EXISTS), QR-SEC-030 (EXISTS), QR-SEC-031 (EXISTS).
@@ -711,12 +721,12 @@ API count = 27 ≥ 8 → split by threshold, grouped CRUD / SEARCH / INT.
 
 <!-- API:API-SEC-005:START traces=REQ-SEC-009,DBF-SEC-002,DBF-SEC-003,DBF-SEC-005,DBF-SEC-006,DBF-SEC-007 -->
 ### API-SEC-005 — search users
-Endpoint     : GET /api/v1/sec/users   verb: GET
+Endpoint     : POST /api/v1/sec/users/search   verb: POST
 Layers       : controller → `UserController.search` ; service → `UserService.search`
-Request      : query params `username`(LIKE), `email`(LIKE), `fullName`(LIKE, matches fullNameAr or fullNameEn), `statusCode`(EXACT), `page`, `size`, `sort`
+Request      : body `UserSearchRequest` (BaseSearchContractRequest) — `filters[]` of (field, operator, value) over `username`, `email`, `statusCode`, plus `fullName` (LIKE, matches fullNameAr or fullNameEn), and `page`, `size`, `sortField`, `sortDirection`
 Response     : 200 · `Page<UserResponse>` (userPk, username, email, fullNameAr, fullNameEn, statusCode, lastLoginAt) · envelope `ApiResponse<Page<UserResponse>>`
 Validations  : none (read-only)
-Errors       : none beyond platform-standard (§Error Catalog SEC-500)
+Errors       : none beyond platform-standard (§Error Catalog INTERNAL_ERROR)
 Orchestration: load (QR-SEC-005 FIND_BY_CRITERIA) → map → return
 Repository   : QR-SEC-005 · join NONE · transaction READ_ONLY
 Security     : screen SEC_USERS · permission `PERM_SEC_USERS_VIEW`
@@ -725,12 +735,12 @@ Localization : fullNameAr/fullNameEn both returned
 
 <!-- API:API-SEC-012:START traces=REQ-SEC-012,DBF-SEC-015,DBF-SEC-016,DBF-SEC-017,DBF-SEC-020 -->
 ### API-SEC-012 — search roles
-Endpoint     : GET /api/v1/sec/roles
+Endpoint     : POST /api/v1/sec/roles/search
 Layers       : controller → `RoleController.search` ; service → `RoleService.search`
-Request      : query params `code`(LIKE), `name`(LIKE, nameAr or nameEn), `isActiveFl`(EXACT), `page`, `size`, `sort`
+Request      : body `RoleSearchRequest` (BaseSearchContractRequest) — `filters[]` of (field, operator, value) over `code`, `isActiveFl`, plus `name` (LIKE, nameAr or nameEn), and `page`, `size`, `sortField`, `sortDirection`
 Response     : 200 · `Page<RoleResponse>` (rolePk, code, nameAr, nameEn, descriptionAr, descriptionEn, isActiveFl) · `ApiResponse<Page<RoleResponse>>`
 Validations  : none
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: load (QR-SEC-012) → map → return
 Repository   : QR-SEC-012 · join NONE · transaction READ_ONLY
 Security     : screen SEC_ROLES · permission `PERM_SEC_ROLES_VIEW`
@@ -739,12 +749,12 @@ Localization : nameAr/nameEn/descriptionAr/descriptionEn returned
 
 <!-- API:API-SEC-021:START traces=REQ-SEC-016,DBF-SEC-031,DBF-SEC-040,DBF-SEC-050 -->
 ### API-SEC-021 — search registry
-Endpoint     : GET /api/v1/sec/registry
+Endpoint     : POST /api/v1/sec/registry/search
 Layers       : controller → `RegistryController.search` ; service → `RegistryService.search`
-Request      : query params `moduleCode`(EXACT), `pageCode`(LIKE), `page`, `size`, `sort`
+Request      : body `RegistrySearchRequest` (BaseSearchContractRequest) — `filters[]` of (field, operator, value) over `code` (the module code), plus `pageCode` (LIKE, on the child screen), and `page`, `size`, `sortField`, `sortDirection`
 Response     : 200 · `Page<RegistryRowResponse>` (a module row with its nested active screens and, per screen, its active actions) · `ApiResponse<Page<RegistryRowResponse>>`
 Validations  : none
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: load (QR-SEC-021, joins SEC_MODULE_REG → SEC_SCREEN_REG → SEC_ACTION_REG, all intra-module) → assemble tree → return
 Repository   : QR-SEC-021 · join intra-module (module/screen/action — same table family, not cross-module) · transaction READ_ONLY
 Security     : screen SEC_MODULE_REGISTRY · permission `PERM_SEC_MODULE_REGISTRY_VIEW`
@@ -758,21 +768,22 @@ Layers       : controller → `DashboardController.summary` ; service → `Dashb
 Request      : none
 Response     : 200 · `DashboardResponse` — six sub-figures, each present only if the caller holds that widget's source-screen VIEW permission (omitted field, not a zeroed one, when absent): `usersOverview{total,active,disabled,pendingSignups}`, `failedLogins24h{count}`, `activeSessions{count}`, `recentActivity{list of last N AuditLogEntry}`, `rolesPermissionsSummary{roleCount,privilegedRoleCount,usersPerRole}`, `onboardingFunnel{pendingSignups,stalledCount}` · `ApiResponse<DashboardResponse>`
 Validations  : none — this endpoint filters its OWN output by REQ-SEC-023 (unwanted pattern) rather than rejecting the call
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: resolve caller's effective permissions (same read path as API-SEC-027) → for each widget whose source-screen VIEW the caller holds, compute it live (QR-SEC-022 sub-queries) → assemble → return (REQ-SEC-022: every figure computed at that moment, never cached)
 Repository   : QR-SEC-022 (6 independent COUNT/aggregate sub-queries against SEC_USER, SEC_ACTIVE_SESSION, SEC_AUDIT_LOG, SEC_ROLE/SEC_USER_ROLE) · join NONE (each sub-query is single-table) · transaction READ_ONLY
 Security     : screen SEC_DASHBOARD · permission `PERM_SEC_DASHBOARD_VIEW` (gateway) + per-widget the widget's own source-screen VIEW (SEC_USERS, SEC_SESSIONS, SEC_AUDIT_LOG, SEC_ROLES)
 Localization : recentActivity entries carry detailsAr/detailsEn
+Notes        : three figures in the Response line above are named but never defined upstream — `recentActivity`'s N, `onboardingFunnel.stalledCount`'s "stalled" window, and what makes a role `privileged` (REQ-SEC-022, AC-SEC-022, SCR-REQ-SEC-007 B1-B5, prd-sec.md and all 104 DBF are silent). Operative definitions, chosen at implementation to fill that silence and subject to a human's confirmation: N = 10 most recent AuditLogEntry rows; stalled = a SignupRequest still PENDING more than 7 days; privileged role = a role holding at least one action grant whose `actionCode` is not the VIEW gateway (RULE-SEC-007 / REQ-SEC-030's own VIEW-vs-other distinction, QR-SEC-022 via `countPrivilegedRoles`). All three are named constants in one class, not config keys, so a decision can change them in one place; nothing upstream authorises them yet.
 <!-- API:API-SEC-022:END -->
 
 <!-- API:API-SEC-023:START traces=REQ-SEC-025,DBF-SEC-084,DBF-SEC-085,DBF-SEC-086 -->
 ### API-SEC-023 — search audit log
-Endpoint     : GET /api/v1/sec/audit-log
+Endpoint     : POST /api/v1/sec/audit-log/search
 Layers       : controller → `AuditLogController.search` ; service → `AuditLogService.search`
-Request      : query params `eventTypeCode`(EXACT), `actorUserId`(EXACT), `occurredFrom`/`occurredTo`(DATE_RANGE), `page`, `size`, `sort`
+Request      : body `AuditLogEntrySearchRequest` (BaseSearchContractRequest) — `filters[]` of (field, operator, value) over `eventTypeCode` and `occurredAt` (any range operator), plus `actorUserId` (EXACT), and `page`, `size`, `sortField`, `sortDirection`
 Response     : 200 · `Page<AuditLogEntryResponse>` (all fields, unmodified) · `ApiResponse<Page<AuditLogEntryResponse>>`
 Validations  : none
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: load (QR-SEC-023) → return unmodified (REQ-SEC-025: "without altering any of them")
 Repository   : QR-SEC-023 · join NONE · transaction READ_ONLY
 Security     : screen SEC_AUDIT_LOG · permission `PERM_SEC_AUDIT_LOG_VIEW`
@@ -781,12 +792,12 @@ Localization : detailsAr/detailsEn returned
 
 <!-- API:API-SEC-025:START traces=REQ-SEC-027,DBF-SEC-076,DBF-SEC-079,DBF-SEC-081 -->
 ### API-SEC-025 — list active sessions
-Endpoint     : GET /api/v1/sec/sessions
+Endpoint     : POST /api/v1/sec/sessions/search
 Layers       : controller → `SessionController.search` ; service → `SessionService.search`
-Request      : query params `userId`(EXACT), `ipAddress`(LIKE), `page`, `size`, `sort`
+Request      : body `ActiveSessionSearchRequest` (BaseSearchContractRequest) — `filters[]` of (field, operator, value) over `ipAddress`, plus `userId` (EXACT), and `page`, `size`, `sortField`, `sortDirection`
 Response     : 200 · `Page<ActiveSessionResponse>` (activeSessionPk, userId, username, startedAt, lastActivityAt, ipAddress) — `tokenRef` never returned · `ApiResponse<Page<ActiveSessionResponse>>`
 Validations  : filter `terminatedAt IS NULL` always applied server-side (REQ-SEC-027: "every session that has not been terminated") — not a client-supplied filter
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: load (QR-SEC-025, filter terminatedAt IS NULL) → map → return
 Repository   : QR-SEC-025 · join NONE · transaction READ_ONLY
 Security     : screen SEC_SESSIONS · permission `PERM_SEC_SESSIONS_VIEW`
@@ -800,7 +811,7 @@ Layers       : controller → `MenuController.effective` ; service → `MenuServ
 Request      : none (caller resolved from the authenticated session)
 Response     : 200 · `List<ModuleMenuResponse>` — only modules the caller's effective grants hold (REQ-SEC-021/032), each with only that caller's effective granted screens beneath it · `ApiResponse<List<ModuleMenuResponse>>`
 Validations  : none — the endpoint's entire behaviour IS the filter (REQ-SEC-021, REQ-SEC-032)
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: resolve caller's roles (QR-SEC-027, join SEC_ROLE_MODULE_GRANT/SEC_ROLE_SCREEN_GRANT to SEC_MODULE_REG/SEC_SCREEN_REG, all intra-module) → union across the caller's roles → assemble modules→screens tree → return
 Repository   : QR-SEC-027 · join intra-module (grant tables to registry tables) · transaction READ_ONLY
 Security     : no page code of its own (SRS B4) — every authenticated caller may call it; its content is the security boundary, not a permission on itself
@@ -893,6 +904,7 @@ Orchestration: load SignupRequest → verify PENDING → on APPROVE: create User
 Repository   : QR-SEC-011 · join NONE · transaction READ_WRITE
 Security     : screen SEC_USERS (the "Pending sign-ups" tab, SRS B3) · permission `PERM_SEC_USERS_UPDATE`
 Localization : n/a
+Notes        : credential — no upstream artifact names one for the approved account, yet DBF-SEC-004 `password_hash` is NOT NULL. Operative behaviour: the account is created with an unusable random secret (never logged, returned or transmitted), so it is ACTIVE but cannot be authenticated against; the owner's route to a real credential is the existing API-SEC-003 → API-SEC-004 reset pair (RULE-SEC-006). OPEN for a human (not decided here): no SEC artifact says the approved owner is notified or that a reset token is issued at approval — REQ-SEC-029 triggers on token issuance, not approval, and is itself `optional` — and the state is undiscoverable from outside, since login answers the deliberately uniform `SEC-401-INVALID-CREDENTIALS` (POL-SEC-004) and API-SEC-003 answers the same generic 200 whether or not the email exists, making "approved", "still pending" and "rejected" indistinguishable. The two candidate answers are (a) SEC issues a reset token at approval time — which introduces a NOTIF dependency into a module declared ROOT — or (b) the spec states plainly that the owner is informed out of band.
 <!-- API:API-SEC-011:END -->
 
 <!-- API:API-SEC-013:START traces=REQ-SEC-012,DBF-SEC-015,DBF-SEC-016,DBF-SEC-017,DBF-SEC-018,DBF-SEC-019 -->
@@ -1019,7 +1031,7 @@ Request      : body `{email}`
 Response     : 200 · generic confirmation `{message}` — always the same shape whether or not the email exists (never reveals which)
 Validations  : none exposed to the caller (existence check is internal only, never surfaced)
 Errors       : none beyond platform-standard
-Orchestration: look up user by email (internal) → if found: create PasswordResetToken (QR-SEC-003, expiresAt=now+30min) → append AuditLogEntry `PASSWORD_RESET_REQUESTED` → **Where** the Notifications integration is enabled (REQ-SEC-029, optional pattern): dispatch a `dispatch()` call per `new project/integration-notifications-fileservice.md` §1.2 with `templateCode` identifying the reset message, `recipientId=userPk`, `moduleCode="SEC"` → if not found: do nothing further (still returns the same generic 200) → return
+Orchestration: look up user by email (internal) → if found: create PasswordResetToken (QR-SEC-003, expiresAt=now+30min) → append AuditLogEntry `PASSWORD_RESET_REQUESTED` → **Where** the Notifications integration is enabled (REQ-SEC-029, optional pattern): dispatch per `new project/integration-notifications-fileservice.md` §1.2 through NOTIF's `NotificationDispatchApi.dispatchIndependently()` crossmodule entry point — not `dispatch()`: `dispatchIndependently` runs in an independent transaction (`REQUIRES_NEW`), so a dispatch failure commits or rolls back on its own and can never mark SEC's transaction rollback-only, leaving the token and audit rows intact — with `templateCode` identifying the reset message, `recipientId=userPk`, `moduleCode="SEC"`, and the recipient's `email` carried among the dispatch `variables` (alongside `token` / `expiresAt`) because NOTIF resolves the destination address from `variables.get("email")`, having no crossmodule contact-lookup for a bare recipientId → if not found: do nothing further (still returns the same generic 200) → return
 Repository   : QR-SEC-003 · join NONE · transaction READ_WRITE
 Security     : screen SEC_PWD_RESET · public — no permission required
 Localization : generic confirmation message in ar + en
@@ -1088,7 +1100,7 @@ Layers       : controller → `AuditLogController.export` ; service → `AuditLo
 Request      : query params — same filter set as API-SEC-023 (eventTypeCode, actorUserId, occurredFrom/occurredTo), no paging (exports the full filtered set)
 Response     : 200 · `Content-Type: text/csv` body, one row per matching AuditLogEntry, all fields
 Validations  : none
-Errors       : SEC-500 only
+Errors       : INTERNAL_ERROR only (platform-standard, shared handler)
 Orchestration: load the full filtered set (QR-SEC-024, same filters as QR-SEC-023, unpaged) → serialize to CSV → return (REQ-SEC-026: "exactly the filtered entries' fields")
 Repository   : QR-SEC-024 · join NONE · transaction READ_ONLY
 Security     : screen SEC_AUDIT_LOG · permission `PERM_SEC_AUDIT_LOG_VIEW` (shares VIEW — export is not a separate mutation, SRS Access summary)
@@ -1101,7 +1113,8 @@ Localization : detailsAr/detailsEn both included as separate CSV columns
 ## PHASE 4 — DOC
 
 **API contract summary** (R4 — backend self-check only; the frontend stage binds to the
-real `api-docs-sec.md` published after implementation, never to this table):
+real generated api-docs published under `governance/modules/SEC/api-docs/` after
+implementation — `index.md` plus `endpoints/<group-slug>.md` — never to this table):
 
 | API | Path | Verb | Request DTO | Response DTO | Stability |
 |---|---|---|---|---|---|
@@ -1109,14 +1122,14 @@ real `api-docs-sec.md` published after implementation, never to this table):
 | API-SEC-002 | /auth/signup | POST | SignupSubmitRequest | SignupRequestResponse | v1 |
 | API-SEC-003 | /auth/password-reset/request | POST | PasswordResetRequest | ConfirmationResponse | v1 |
 | API-SEC-004 | /auth/password-reset/complete | POST | PasswordResetCompleteRequest | ConfirmationResponse | v1 |
-| API-SEC-005 | /users/search | POST | UserSearchRequest | paginated list of UserResponse | v1 |
+| API-SEC-005 | /users/search | POST | UserSearchRequest | Page\<UserResponse\> | v1 |
 | API-SEC-006 | /users | POST | UserCreateRequest | UserResponse | v1 |
 | API-SEC-007 | /users/{id} | PUT | UserUpdateRequest | UserResponse | v1 |
 | API-SEC-008 | /users/{id}/roles | PUT | UserRoleAssignmentRequest | UserResponse | v1 |
 | API-SEC-009 | /users/{id} | DELETE | — | UserStatusResponse | v1 |
 | API-SEC-010 | /users/{id} | PATCH | — | UserStatusResponse | v1 |
 | API-SEC-011 | /signup-requests/{id} | PATCH | SignupDecisionRequest | UserResponse \| SignupRequestResponse | v1 |
-| API-SEC-012 | /roles/search | POST | RoleSearchRequest | paginated list of RoleResponse | v1 |
+| API-SEC-012 | /roles/search | POST | RoleSearchRequest | Page\<RoleResponse\> | v1 |
 | API-SEC-013 | /roles | POST | RoleCreateRequest | RoleResponse | v1 |
 | API-SEC-014 | /roles/{id}/modules | POST | RoleModuleGrantRequest | RoleModuleGrantResponse | v1 |
 | API-SEC-015 | /roles/{id}/modules/{moduleId} | DELETE | — | ModuleGrantRevokeResponse | v1 |
@@ -1125,21 +1138,22 @@ real `api-docs-sec.md` published after implementation, never to this table):
 | API-SEC-018 | /registry/modules | POST | ModuleRegistryCreateRequest | ModuleRegistryResponse | v1 |
 | API-SEC-019 | /registry/screens | POST | ScreenRegistryCreateRequest | ScreenRegistryResponse | v1 |
 | API-SEC-020 | /registry/actions | POST | ActionRegistryCreateRequest | ActionRegistryResponse | v1 |
-| API-SEC-021 | /registry/search | POST | RegistrySearchRequest | paginated list of RegistryRowResponse | v1 |
+| API-SEC-021 | /registry/search | POST | RegistrySearchRequest | Page\<RegistryRowResponse\> | v1 |
 | API-SEC-022 | /dashboard | GET | — | DashboardResponse | v1 |
-| API-SEC-023 | /audit-log/search | POST | AuditLogEntrySearchRequest | paginated list of AuditLogEntryResponse | v1 |
-| API-SEC-024 | /audit-log/export | GET | (proposed) query parameters — api-docs declares them but binds no schema | (proposed) CSV stream — api-docs declares no response schema | v1 |
-| API-SEC-025 | /sessions/search | POST | ActiveSessionSearchRequest | paginated list of ActiveSessionResponse | v1 |
+| API-SEC-023 | /audit-log/search | POST | AuditLogEntrySearchRequest | Page\<AuditLogEntryResponse\> | v1 |
+| API-SEC-024 | /audit-log/export | GET | (query params) | text/csv | v1 |
+| API-SEC-025 | /sessions/search | POST | ActiveSessionSearchRequest | Page\<ActiveSessionResponse\> | v1 |
 | API-SEC-026 | /sessions/{id} | DELETE | — | SessionTerminationResponse | v1 |
-| API-SEC-027 | /menu | GET | — | array of ModuleMenuResponse | v1 |
+| API-SEC-027 | /menu | GET | — | List\<ModuleMenuResponse\> | v1 |
 (paths relative to `/api/v1/sec`)
 
 **DTO typing constraints**: `statusCode`/`eventTypeCode`/`actionCode` are `String` holding
 the coded value, never a Java enum (profile lookup rule); business code fields — not
 applicable, no SEC entity has one; PK fields never appear in a create-request body.
 
-**Pagination + filter standard**: request shape `{page, size, sort}` + named filters per
-screen (§Phase 1 CORE "Search contract"); an unrecognized `sort` field is rejected
+**Pagination + filter standard**: request shape `{page, size, sortField, sortDirection, filters}`
+— the shared `BaseSearchContractRequest` body every `*SearchRequest` extends — with the filter
+fields named per screen (§Phase 1 CORE "Search contract"); an unrecognized `sortField` is rejected
 (`SEC-400-INVALID-SORT`); an empty filtered result is `200` with empty `content`, never `404`.
 <!-- PHASE:DOC:END -->
 
@@ -1147,8 +1161,23 @@ screen (§Phase 1 CORE "Search contract"); an unrecognized `sort` field is rejec
 ## PHASE 5 — INT-C (cross-module consume)
 
 No `XM-*` row exists for SEC (db-script-sec.md §2: "None — SEC is ROOT"). SEC consumes no
-other module's entity, table or API. This phase is intentionally near-empty, stated so per
+other module's entity, table or column and carries no cross-module FK — the XM REGISTER is a
+schema-level statement and stays empty. This phase is intentionally near-empty, stated so per
 engine §6.2 rather than omitted; no SUB is opened (XM count 0 < the split threshold of 5).
+
+One in-process service call does cross the boundary, and it is sanctioned, not an omission:
+`PasswordResetService.dispatchResetNotification` (API-SEC-003, `SUB:SVC-API-INT`) injects NOTIF's
+`com.erp.notif.crossmodule.NotificationDispatchApi` and hands it the `DispatchCommand` read-model,
+wrapped in `InternalCallerContext` because the caller is pre-authentication. That is REQ-SEC-029 —
+srs-sec.md §A8's *External service* table, `SOFT / optional` — and it is not an `XM-*` row because
+it registers no entity, table or column for db-script §2 to carry. Verified here against
+build-create-service "Cross-Module Calls": only the `crossmodule` package is imported, the
+reference is held by the service alone (never a Domain, mapper or controller), the argument is
+NOTIF's own record, propagation intent is stated at the call site, and the failure is caught there
+and logged — so REQ-SEC-006's generic 200 still answers when Notifications is unavailable.
+Propagation is `REQUIRES_NEW`, declared on NOTIF's `dispatchIndependently` entry point: a failure
+inside dispatch commits or rolls back on its own and never marks SEC's transaction rollback-only,
+so the PasswordResetToken and audit rows still commit — execution-state.json gap #5 closed.
 
 SEC's actual cross-module role runs in the opposite direction: every future module
 *consumes* SEC through the plain REST surface documented in Phase 3 (registration:
@@ -1159,7 +1188,12 @@ API consumption by another module's own P3.1, not an `XM-*` row inside SEC's own
 <!-- PHASE:INT-R:START traces=REQ-SEC-016 -->
 ## PHASE 6 — INT-R (cross-module resolve)
 
-No `XM-*` row to resolve — same basis as Phase 5. No SUB opened (0 < 5).
+No `XM-*` row to resolve — same basis as Phase 5. No SUB opened (0 < 5). Since 2026-09-11 this
+phase also carries SEC's one EXPOSED inbound surface, `com.erp.sec.crossmodule` — both former
+inbound gaps close here, and this is the inbound phase, so the surface is documented here rather
+than in Phase 5 (which stays the consume direction: NOTIF's `NotificationDispatchApi`). The
+surface registers no entity, table or column, so it still adds no `XM-*` row to db-script §2
+(amended there to say so), and SEC still assigns no XM id of its own.
 
 Inbound dependency stub (future consumers, not `TODO`): `XM-INBOUND-STUB-1` — any future
 module (first expected: MDL, then FIN per GENERATION-INSTRUCTIONS.md §3) will register
@@ -1167,6 +1201,36 @@ itself via API-SEC-018/019/020 and consume identity/authorization via API-SEC-00
 the CORE interceptor; the entity it reaches is `ENT-SEC-004` (ModuleRegistry) /
 `ENT-SEC-005` (ScreenRegistry) / `ENT-SEC-006` (ActionRegistry); formal `XM-*` ids for that
 direction are assigned by the *consuming* module's own P2, not by SEC.
+
+Two inbound-contract gaps were found during execution and recorded here. **Both are now CLOSED
+(2026-09-11)**, by the human-authorized amendment that gave SEC its first cross-module read
+surface — a P1/P2 decision, taken deliberately and reflected back into P1 (REQ-SEC-034,
+REQ-SEC-035, SRS §A8's third table) and P2 (§2 XM REGISTER), not an execution-time invention.
+
+`XM-INBOUND-GAP-1` — **CLOSED. A consumer can now read the user ids holding a permission code.**
+`SecUserDirectoryApi.findUserIdsHoldingPermission(String)` (REQ-SEC-035, QR-SEC-039) returns the
+DISTINCT user ids reaching that permission code through an active role — the inverse of
+QR-SEC-027, with the same active-flag predicates. The original finding stands as written: no SEC
+*endpoint* returns a role's user set, and none was added. FIN's plan
+(`governance/modules/FIN/P3_1/backend-execution-plan-fin.md:383-386`) says the SoD check reads the
+sets "through SEC's role/grant read APIs"; that wording is **superseded**, because
+`build-create-service` requires cross-module reads to go through "direct Spring interface
+injection, not loopback HTTP" — an injected interface, never an HTTP call between two modules of
+one deployable. Correcting FIN's wording is FIN's own pass; `governance/modules/FIN/**` was not
+modified here. The surface answers with user ids only: SEC neither learns nor evaluates FIN's
+conflicting pair, so REQ-SEC-020's "inert in v1" Note is unaffected.
+
+`XM-INBOUND-GAP-2` — **CLOSED on both halves.** *Delivery half*, closed earlier on 2026-09-11:
+`PasswordResetService.dispatchResetNotification` now carries the resolved user's `email` among the
+`DispatchCommand` variables, which is exactly the contract `DefaultChannelProvider` publishes
+("NOTIF has no crossmodule contact-lookup for a bare recipientId"), so REQ-SEC-029's outbound half
+delivers instead of writing `NOTIF_LOG FAILED — missing recipient email address`. *Durable half*,
+closed now: `SecUserDirectoryApi.findContact(Long)` (REQ-SEC-034) returns a `UserContact` —
+email, both display names, active — for a bare user id, so NOTIF can resolve a recipient without
+SEC pushing the address, and can discharge its own `XM-NOTIF-001` whenever it chooses.
+NOTIF's `DefaultRecipientStatusReader` stub was **deliberately left in place**: replacing it is
+NOTIF's call in NOTIF's own pass, and nothing under `src/main/java/com/erp/notif/` or
+`governance/modules/NOTIF/**` was touched from this SEC-driven pass.
 <!-- PHASE:INT-R:END -->
 
 <!-- PHASE:SEC-BE:START traces=REQ-SEC-012,REQ-SEC-013,REQ-SEC-014,REQ-SEC-020,REQ-SEC-023,REQ-SEC-030,REQ-SEC-033 -->
@@ -1212,7 +1276,7 @@ engine §6.1 R8 ("written as the phase content of the alignment-role phase").
 
 ## Error Catalog — SEC v1
 
-Envelope: `LocalizedException → {code, messageAr, messageEn}`. Runtime code format: `{MOD}-{http}[-{SLUG}]` (Phase 1 CORE; profile.stack.backend.api.error_code_format).
+Envelope: `LocalizedException → {code, messageAr, messageEn}`. Runtime code format: `SEC-<HTTP-status>-<SCENARIO>` (Phase 1 CORE).
 
 | code | RULE / PLATFORM-STD | API | HTTP | trigger | message-AR | message-EN |
 |---|---|---|---|---|---|---|
@@ -1243,7 +1307,7 @@ Envelope: `LocalizedException → {code, messageAr, messageEn}`. Runtime code fo
 | SEC-409-ALREADY-TERMINATED | PLATFORM-STD (lifecycle) | API-SEC-026 | 409 | session already terminated | هذه الجلسة منتهية بالفعل | This session is already terminated |
 | SEC-403-FORBIDDEN | PLATFORM-STD (RULE-SEC-007 + REQ-SEC-033, CORE interceptor) | every secured API | 403 | missing module/screen/action grant | غير مصرح بهذا الإجراء | You are not authorized to perform this action |
 | SEC-400-INVALID-SORT | PLATFORM-STD (search contract) | every search API | 400 | unrecognized `sort` field | حقل الترتيب غير معروف | Unrecognized sort field |
-| SEC-500 | PLATFORM-STD (infrastructure) | any | 500 | unhandled server error | حدث خطأ في الخادم | A server error occurred |
+| INTERNAL_ERROR | PLATFORM-STD (infrastructure, shared GlobalExceptionHandler — not module-scoped) | any | 500 | unhandled server error | حدث خطأ غير متوقع. يرجى المحاولة لاحقاً. | An unexpected error occurred. Please try again later. |
 
 `SEC-401-INVALID-CREDENTIALS` and every other PLATFORM-STD row is a standard infrastructure
 error (not-found / conflict / server / forbidden), not sourced from a specific SRS RULE — per
@@ -1259,16 +1323,16 @@ module/screen/action gate) rather than restated as individual RULE-* ids; non-br
 ## Alignment self-check (ALIGN) — SEC v1
 
 ```
-TRACEABILITY      ✓ every API-*/QR-*/RULE-*/DBF-* used in a phase appears in the Plan Index; every PHASE/SUB/atom carries traces=; every traces target exists upstream (REQ-SEC-001..033, DBF-SEC-001..104 all defined in srs/db-script)
-BINDING (§2A)     ✓ no placeholder table/column/key/generation object; every column cites a DBF (Field Registry + per-entity FIELDS tables); every RULE message present in ar+en; business code: none applicable (stated, not silently skipped)
+TRACEABILITY      ✓ every API-*/QR-*/RULE-*/DBF-* used in a phase appears in the Plan Index; every PHASE/SUB/atom carries traces=; every traces target exists upstream (REQ-SEC-001..035, DBF-SEC-001..104 all defined in srs/db-script)
+BINDING (§2A)     ⚠ no placeholder table/column/key object; every column cites a DBF (Field Registry + per-entity FIELDS tables); every RULE message present in ar+en; business code: none applicable (stated, not silently skipped). Two things this row did not catch: a real column-name mismatch (ENT-SEC-007's `grant_at` vs db-script's `granted_at`, DBF-SEC-064 — api_doc_gaps #2, since corrected), and the generation object it certifies is NOT what is built — the module ships 13 `SEQ_SEC_*` sequences + `GenerationType.SEQUENCE` per GOVERNANCE-RULES.md §Convention Precedence 1, while 13 BINDINGS lines and the Phase 1 type table still name `GENERATED ALWAYS AS IDENTITY`
 MANIFEST (§4)     ✓ only the 4 mandated columns beyond DBF/ENT (property, type — status/XM added per engine format); all 104 DBF of every bound table listed; 0 ⏸ rows (0 XM)
-QRC (§5)          ✓ every API with a DB operation has ≥1 QR (API-SEC-001..027 all cite one); every QR entry carries the "logical spec, not code" framing (catalog header); no join for a lookup label; exact generation object named (`GENERATED ALWAYS AS IDENTITY`, Phase 1 CORE type table)
-API (R3)          ✓ every RULE in a Validations line has a catalog row; platform errors carry RULE=PLATFORM-STD + ADR-SEC-002; create/update requests exclude PK/audit/system fields (DTO MEMBERSHIP, Phase 2; Request lines, Phase 3); business code: not applicable (none exists)
-CROSS-MODULE      ✓ 0 XM from db-script, 0 placed, 0 mismatched; inbound stub uses XM-INBOUND-STUB-1 notation, not TODO
-SECURITY (R7)     ✓ every secured API declares its PERM_* (Phase 3 Security lines, cross-checked against Phase 7 table); every secured screen has a Phase 7 seed row; no permission outside SRS §7.1/Access summary — profile.review.extra_checks ERP-4 (every mutation endpoint declares its PERM_*): checked — every POST/PUT/PATCH/DELETE API above states one
-CORE (R1)         ✓ layers declared, domain placement declared (entity methods for single-entity, service for multi-row), error signalling declared (code format `{MOD}-{http}[-{SLUG}]`), type mapping declared (postgresql16 → Java table)
-DECISIONS         ✓ ADR-SEC-001 (carried from P2, lookup centralization deferral) and ADR-SEC-002 (this stage, PLATFORM-STD catalog umbrella) both ACCEPTED, non-breaking; no BLOCKED ADR
-RESULT            BLOCKED ✗ — 1 findings
+QRC (§5)          ⚠ every API with a DB operation has ≥1 QR — re-verified, all 27 API atoms cite one; every QR entry carries the "logical spec, not code" framing (catalog header); no join for a lookup label. But the exact generation object named (`GENERATED ALWAYS AS IDENTITY`, Phase 1 CORE type table) is superseded as above. Separately, QR-SEC-025's declared query was dead code: `ActiveSessionRepository.findNonTerminated(Pageable)` had no caller after API-SEC-025 moved to a SpecBuilder-driven POST /search (A.2.9). CLOSED 2026-09-11: the plan declares `join NONE` for QR-SEC-025 (plan:792) and this catalog already registers it as FIND_BY_CRITERIA (plan:376), so the plan never required the JOIN FETCH — the orphan method was deleted and A.2.9 now holds across all 37 methods the module's 13 repositories declare
+API (R3)          ⚠ every RULE in a Validations line has a catalog row (28 catalog rows = 27 module-owned rows, one per SecErrorCodes constant, all present in messages.properties AND messages_ar.properties, plus the 1 platform row INTERNAL_ERROR the shared GlobalExceptionHandler owns and SEC does not declare); platform errors carry RULE=PLATFORM-STD + ADR-SEC-002; create/update requests exclude PK/audit/system fields (DTO MEMBERSHIP, Phase 2; Request lines, Phase 3) — verified in code. But the check only tests field EXCLUSION, never whether a field an API NAMES is DEFINED, which is why it passed API-SEC-011 with the approved account's credential unspecified (api_doc_gaps #4) and API-SEC-022 with three Response figures undefined (api_doc_gaps #6). Separately `SEC-500`, named by 8 API blocks (not 9) as their only error, was never emitted — the shared GlobalExceptionHandler answers `INTERNAL_ERROR` and SecErrorCodes.SEC_500 had zero references. CLOSED 2026-09-11: those 8 Errors lines and the catalog row now name `INTERNAL_ERROR`, and `SecErrorCodes.SEC_500` plus both `SEC-500=` bundle keys were removed
+CROSS-MODULE      ⚠ 0 XM rows from db-script, 0 placed, 0 mismatched — still exact, but only for the CONSUME direction and only at the SCHEMA level (db-script §2 XM REGISTER, as amended 2026-09-11: "None in the CONSUME direction"; no consumed entity, table or FK); inbound stub uses XM-INBOUND-STUB-1 notation, not TODO. At the API level SEC is not isolated in EITHER direction. CONSUMES: PasswordResetService injects `com.erp.notif.crossmodule.NotificationDispatchApi` (INT-C — srs-sec.md §A8's one declared SOFT integration, the module's only non-sec/non-common import). EXPOSES, new 2026-09-11: `com.erp.sec.crossmodule.SecUserDirectoryApi` — `findContact` (REQ-SEC-034) and `findUserIdsHoldingPermission` (REQ-SEC-035, QR-SEC-039) — implemented by `SecUserDirectoryApiImpl` delegating to `UserService`, injecting no repository, returning only the `UserContact` read-model and a list of ids; it registers no entity, table or column, so the XM row count legitimately stays 0 and the CONSUMING module's own P2 assigns any XM id for that direction. Both inbound gaps INT-R recorded are therefore CLOSED (this row previously read "two inbound contracts SEC does not satisfy"): XM-INBOUND-GAP-1 by `findUserIdsHoldingPermission`, XM-INBOUND-GAP-2 on both halves (`email` among the dispatch variables, plus `findContact`). MODULE-LEVEL CYCLE — stated here rather than discovered later: SEC already consumes NOTIF's `NotificationDispatchApi`, so the moment NOTIF adopts `SecUserDirectoryApi` the two modules point at each other at the MODULE level. That is NOT the circular dependency build-create-service forbids — neither crossmodule interface calls the other, and the two paths are independent (SEC→NOTIF at reset-token issuance; NOTIF→SEC at delivery, to resolve a bare recipientId) — but it is real, and must be weighed before any further surface is added in either direction
+SECURITY (R7)     ⚠ every secured screen has a Phase 7 seed row — now checkable and true: all 9 page codes and all 13 permission codes the Phase 7 matrix names are seeded by V17__sec_security_seed.sql. Every secured API declares its PERM_* with two stated exceptions: API-SEC-027 has no page code of its own (SRS B4) and is gated `isAuthenticated()`, and API-SEC-001..004 are public by contract — 22 of 27 Security lines name a PERM_*, matching exactly 22 PERM_-based @PreAuthorize in com.erp.sec.service. profile.review.extra_checks ERP-4 ("every mutation endpoint declares its PERM_*") is FALSE as written: API-SEC-002, API-SEC-003 and API-SEC-004 are POST mutations writing SEC_SIGNUP_REQUEST / SEC_PWD_RESET_TOKEN / SEC_USER rows and state "public — no permission required". One seeded code, PERM_SEC_ROLES_DELETE, has no PermissionConstants constant (Phase 7 marks it reserved)
+CORE (R1)         ✓ layers declared, domain placement declared (entity methods for single-entity, service for multi-row), error signalling declared (code format `SEC-<HTTP-status>-<SCENARIO>`, verified against all 27 SecErrorCodes values), type mapping declared (postgresql16 → Java table) — holds only after api_doc_gaps #1: as generated this row certified a `SEC-<3-digit-sequence>` format matching no catalog row and no emitted code
+DECISIONS         ✗ ADR-SEC-001 (lookup centralization deferral) and ADR-SEC-002 (PLATFORM-STD catalog umbrella) are cited as ACCEPTED at `erp/decisions/SEC/ADR-SEC-00N.md` throughout P2/P3.1 and in modules/project-registry.md — NEITHER FILE EXISTS anywhere in this repository and there is no decisions/ directory (`find . -iname 'ADR-SEC-*'` returns nothing). Both decisions are stated inline in the artifacts citing them and nowhere else, so ACCEPTED is unevidenced. Correct on its own terms: no BLOCKED ADR
+RESULT            FAILED ✗ — 11 findings, not 0, when this block was re-run at ALIGN-BE. Current state of governance/modules/SEC/execution-state.json, re-derived 2026-09-11 by reading all 13 `api_doc_gaps[]` resolution fields: 13 entries, re-derived again 2026-09-11 after the api-docs closure — 9 CLOSED (#1 and #2 by realignment; #5 both halves — the internal-caller authorization half, and the transaction-propagation half via NOTIF's `NotificationDispatchApi.dispatchIndependently` REQUIRES_NEW crossmodule entry point; #10 the dead QR-SEC-025 query, #11 the unreachable SEC-500 code, #12 the five stale GET rows in _SECTIONS.md's EXECUTION PLAN INDEX API table; plus, on the human-authorized amendment, #8 XM-INBOUND-GAP-1 — closed by `SecUserDirectoryApi.findUserIdsHoldingPermission` (REQ-SEC-035, QR-SEC-039), a crossmodule Spring interface and deliberately NOT a REST endpoint, since build-create-service requires "direct Spring interface injection, not loopback HTTP" — and #9 XM-INBOUND-GAP-2 on both halves, the delivery half by carrying `email` among the dispatch variables and the durable half by `SecUserDirectoryApi.findContact` (REQ-SEC-034); and #7 the missing producer for the published api-docs, closed by the per-module `GroupedOpenApi` beans in `src/main/java/com/erp/main/config/OpenApiConfig.java` plus an actual generator run, which wrote `index.md` and ten `endpoints/<group-slug>.md` files under `governance/modules/SEC/api-docs/`, and by striking `api-docs-sec.md` from the DOC-phase paragraph in favour of that layout) · 3 answered by an implementation choice with a human-only P1/P2 question left over (#3 RULE-SEC-005's absent conflicting-pair source, #4 the approved sign-up's credential, #6 the three undefined dashboard figures) · 0 partially closed · 1 open and needing a decision outside SEC (#13 the reset mail's unspecified `lang` and `actionLink`). Owed elsewhere, deliberately not written from this SEC-driven pass: NOTIF's own governance artifacts still need a matching cross-module contract entry for `dispatchIndependently`, and its `DefaultRecipientStatusReader` stub is NOTIF's to replace over `SecUserDirectoryApi` (governance/modules/NOTIF/** and src/main/java/com/erp/notif/** both left untouched); FIN's plan (`governance/modules/FIN/P3_1/backend-execution-plan-fin.md:383-386`) still describes the SoD read as going "through SEC's role/grant read APIs" — superseded wording that FIN's own pass must correct (governance/modules/FIN/** left untouched). Four of the ten rows above are only partly true and one is false. Master validation: the last full pass against the implemented module scored 122/133 applicable checks (91.7%), verdict CONDITIONAL, with 9 labelled deviations — recorded 2026-09-11 BEFORE the A.2.9 fix, and deliberately NOT re-derived at this closure. A.2.9 now passes where it then failed and its automatic-rejection trigger no longer fires; against that, API-SEC-025's page no longer uses a fetch join, so A.2.6 would have to be re-judged. No new score is asserted here — deriving one honestly means re-running the full 148-check pass. Per-check evidence, the N/A reasons and every deviation's justification: governance/project-artifacts/sec-alignment-report.md
 ```
 
 **Coverage — ENT/DBF → phases → QR → XM**: every ENT-SEC-001..013 appears in exactly one
@@ -1325,6 +1389,7 @@ CORE interceptor at runtime → SEC-403-FORBIDDEN).
 **QR-SEC-036** — EXISTS module registered + uniqueness page code (RULE-SEC-004) [ENT-SEC-004, ENT-SEC-005, API-SEC-019]
 **QR-SEC-037** — EXISTS screen exists + uniqueness permission code [ENT-SEC-005, ENT-SEC-006, API-SEC-020]
 **QR-SEC-038** — EXISTS reset token unexpired and unused (RULE-SEC-006) [ENT-SEC-012, API-SEC-004]
+**QR-SEC-039** — FIND_ALL DISTINCT user ids holding a permission code through an active role (REQ-SEC-035) [ENT-SEC-001, ENT-SEC-003, ENT-SEC-006, ENT-SEC-009, no API — `SecUserDirectoryApi`]
 
 ## Registry content
 See `registry-exec-be-sec.md`.

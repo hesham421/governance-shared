@@ -1,5 +1,5 @@
 <!-- source: PHASE:INT-XM -->
-<!-- traces: AC-FIN-038, API-FIN-002, API-FIN-026, REQ-FIN-001, REQ-FIN-037, REQ-FIN-038, XM-FIN-001 -->
+<!-- traces: API-FIN-002, API-FIN-026, REQ-FIN-001, REQ-FIN-037, REQ-FIN-038, XM-FIN-001 -->
 <!-- PHASE:INT-XM:START traces=REQ-FIN-001,REQ-FIN-037,REQ-FIN-038,XM-FIN-001 -->
 FIN declares exactly ONE XM: XM-FIN-001 (SOFT-READ → MDL's lookup values), consumed by
 FinLookupValidationService through the injected MdlLookupApi. MDL is in the current selection, so it
@@ -21,10 +21,9 @@ Expected     : the request fails with FIN-400-INVALID-LOOKUP, message ar "الق
 Test data    : any account payload; MDL's ACCOUNT_TYPE lookup type deactivated (or the MdlLookupApi test double configured to throw MDL_404_TYPE_KEY)
 <!-- TC:TC-FIN-047:END -->
 
-<!-- TC:TC-FIN-091:START traces=AC-FIN-038,REQ-FIN-037,REQ-FIN-038,API-FIN-026 -->
+<!-- TC:TC-FIN-091:START traces=REQ-FIN-037,REQ-FIN-038,API-FIN-026 -->
 ### TC-FIN-091 — RETIRED 2026-09-12 — asserts nothing; the SEC directory read it exercised no longer exists
-Derived from : AC-FIN-038 (REQ-FIN-038), through the now-deleted XM-FIN-002 ·
-  Exercised: API-FIN-026 PATCH /api/v1/fin/fiscal-periods/{id}/hard-close
+Derived from : (was XM-FIN-002) · Exercised: API-FIN-026 PATCH /api/v1/fin/fiscal-periods/{id}/hard-close
 Rule / code  : none — this TC is RETIRED and contributes NO coverage
 Scenario     : RETIRED — do not implement, do not count as a gap
 Status       : RETIRED 2026-09-12. The id is deliberately kept, never deleted and never renumbered,
@@ -45,13 +44,6 @@ Coverage moved: REQ-FIN-037 is covered by TC-FIN-037 (closedBy/closedAt recorded
   and now also by TC-FIN-059's Expected. REQ-FIN-038 is covered by TC-FIN-038 and TC-FIN-060 (the
   denial, on API-FIN-026 and API-FIN-027), TC-FIN-061 (the satisfied direction) and TC-FIN-062 (the
   gateway resolution). Neither REQ loses coverage. XM coverage DOES drop, 2/2 → 1/1
-Traces note  : the `traces=` of this block names AC-FIN-038, the acceptance criterion whose
-  denial direction this case asserted before XM-FIN-002 was deleted. The trace records where the
-  case CAME FROM; it does not restore coverage — AC-FIN-038 is covered by TC-FIN-038, TC-FIN-060
-  and TC-FIN-062, and this block still contributes none. It was added because `traces=` had been
-  left with REQ and API ids only when XM-FIN-002 went, which left a defined TC with no
-  AC/XM/UXD source at all (analyze C10.1, CRITICAL) — a retired case must still say what it was
-  derived from. The id is still never enumerated by a runner.
 Test data    : none
 <!-- TC:TC-FIN-091:END -->
 <!-- PHASE:INT-XM:END -->

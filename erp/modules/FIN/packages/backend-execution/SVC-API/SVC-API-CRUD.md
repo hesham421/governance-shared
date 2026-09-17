@@ -196,9 +196,19 @@ corrupts every period-scoped report and the year-end close. This is the only API
 it: every system-generated entry derives the three facts from one another
 Errors: `FIN-400-PERIOD-NOT-IN-YEAR`, `FIN-400-DOCDATE-OUTSIDE-PERIOD`, `FIN-409-UNBALANCED`,
 `FIN-409-NOT-POSTABLE-ACCOUNT`, `FIN-409-PERIOD-NOT-OPEN`, `FIN-409-INVALID-DIMENSION`
+Numbering: `docNo` = `JV-{fiscalYearCode}-{NNNNNN}` — literal prefix `JV-`, the owning
+fiscal year's `code` (DBF-FIN-066, VARCHAR(10)), `-`, then a zero-padded 6-digit counter
+starting at `000001` (e.g. `JV-2026-000123`; worst case 20 chars, inside
+`doc_no VARCHAR(30)`). Counter scoped per `fiscalYearId`, restarting at `000001` each
+fiscal year — one counter for all journal types, never segmented by `journalTypeCode`;
+`UQ_FIN_JOURNAL_ENTRY_YEAR_DOCNO (fiscal_year_id, doc_no)` backs uniqueness at the
+database level. Produced by a FIN-local generator in `com.erp.fin`, deliberately NOT a
+shared `com.erp.common` component (no platform numbering engine exists in this repo);
+implemented in this phase. Assigned once on create, immutable thereafter — excluded from
+every create/update request DTO, present only in responses.
 Orchestration: resolve fiscal year UNDER A ROW LOCK (`SELECT ... FOR UPDATE` on
 FIN_FISCAL_YEAR, the docNo series' allocation lock) → resolve period → check RULE-FIN-017 →
-generate docNo (FIN-local generator, `JV-{fiscalYearCode}-{NNNNNN}`) → build DRAFT (QR-FIN-024) → validate
+generate docNo (FIN-local generator) → build DRAFT (QR-FIN-024) → validate
 (QR-FIN-029..032) → on success: post (QR-FIN-033); on failure: discard the whole attempt
 (one transaction, REQ-FIN-015) → return. The lock is what makes the per-fiscal-year counter
 safe under concurrency: two simultaneous creates can no longer observe the same predecessor,

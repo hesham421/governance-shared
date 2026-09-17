@@ -6,12 +6,20 @@
 
 #### ENT-FIN-004 — JournalEntry      kind: transactional
 BINDINGS: table `FIN_JOURNAL_ENTRY` · PK `journalEntryPk` (DBF-FIN-034) · PK generation `GENERATED ALWAYS AS IDENTITY`
-BUSINESS CODE: **docNo** · column `doc_no` (DBF-FIN-035) · format:
-`JV-{fiscalYearCode}-{NNNNNN}` (e.g. `JV-2026-000123`), counter scoped per `fiscalYearId`
-and restarting at `000001` each fiscal year, single counter across all journal types
-(`UQ_FIN_JOURNAL_ENTRY_YEAR_DOCNO`) · generation source: a FIN-local generator in
-`com.erp.fin` (not `com.erp.common` — see CORE Numbering), invoked at create, before the
-first save — excluded from every create/update request body, always present in responses.
+BUSINESS CODE: **docNo** · column `doc_no` (DBF-FIN-035) · format
+`JV-{fiscalYearCode}-{NNNNNN}` — literal prefix `JV-`, the owning fiscal year's `code`
+(DBF-FIN-066, VARCHAR(10)), `-`, then a zero-padded 6-digit counter starting at `000001`
+(e.g. `JV-2026-000123`; worst case 20 chars, inside `doc_no VARCHAR(30)`) · counter scoped
+per `fiscalYearId`, restarting at `000001` each fiscal year — one counter for all journal
+types, never segmented by `journalTypeCode`; `UQ_FIN_JOURNAL_ENTRY_YEAR_DOCNO
+(fiscal_year_id, doc_no)` backs uniqueness at the database level · generation source: a
+FIN-local generator in `com.erp.fin` (deliberately NOT a shared `com.erp.common`
+component; no platform numbering engine exists in this repo), assigned once on create,
+immutable thereafter — excluded from every create/update request body, always present in
+responses.
+DATA-DOM SCOPE FOR docNo: this phase creates `docNo` as nothing more than an immutable
+`VARCHAR(30)` column on the entity (no generation logic, no generator class, no service
+call). The generator itself is SVC-API's work — see SVC-API-CRUD.md / API-FIN-019.
 FIELDS: DBF-FIN-034..050 — see DB Alignment Manifest; `journalTypeCode`/`statusCode`
 lookup-backed (XM-FIN-001).
 DTO MEMBERSHIP: manual-create request `{docDate, fiscalYearId, periodId, descriptionAr,
