@@ -4,7 +4,7 @@
   "scope": "all",
   "counts": {
     "CRITICAL": 13,
-    "MAJOR": 30,
+    "MAJOR": 29,
     "MINOR": 0
   },
   "clean": false,
@@ -173,14 +173,6 @@
       "check": "traces",
       "message": "`API-MDL-011` cited in `frontend-execution-plan` is not defined in `api-docs`",
       "artifact": "frontend-execution-plan",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C2.2",
-      "check": "registry-agree",
-      "message": "registry does not map categories ['CAT-10']",
-      "artifact": "project-registry",
       "line": 0
     },
     {
@@ -419,7 +411,7 @@
   "provenance": {
     "rules": {
       "contracts": "63e99b69b027774dc19a906179452ecd58ade297326434557a7e1d726eef1472",
-      "checker": "aa6869341d2922e5e280a2ee3727b6e98bf42c0e75e2aa1f85382a5d6cce70a2",
+      "checker": "de7b60cb40e131cace2b9cb86364a8ebc123b7e9e112995261397c81aaad034f",
       "policy": "61d1af6c86d3f26a4b5546b4b158a1ac8fdfe69edfb7da0cb5c2023e3e99a68c"
     },
     "resolvable": [
@@ -458,7 +450,7 @@
       "module-registry": "00c50cdcb36d25d8d01b1ffe59601983321f5185c2cfbe8e273b393ad29462fd",
       "platform-summary": "f34badb101d03d55af07076d04fee4c2647627707292b246f7bc78c449dfc649",
       "prd": "1d14a3ab6d7e190f06748a56be0cd23d633f82ef3b2f802f31badbc54be24d58",
-      "project-registry": "b6ec1d78ac5e39be110e34a249bda2f5b7cbf3e202c14d1a84c700d0d38411be",
+      "project-registry": "017e40f37cc84399cbdf173b5de16c1d81f5fa86c659cca82b589cffe078e6d0",
       "registry-db": "b792b9be98c201f759cc76b14551d9e748ec48dc539b7ee103e03d5d63a831f8",
       "registry-exec-be": "2b1aa474e2a1c341deb92e04e93bab97af750f277fcac4950d0f19cba431b8e7",
       "registry-exec-fe": "cb52700eb512a2cab0390da06fe1dd616f637ec85269f84dcc9f17ce2ea9c15a",
@@ -468,6 +460,6 @@
       "test-execution-manifest": "aad86ad6fedd4ead5c5f4b26d11d0a7dadb0cd38c4652e097dc8f3c2002dd8b3",
       "ui-ux-spec": "5cfbeefafb805d51e7541c83bc567dc0f3814236826d3a9bdda1f7d838fc6ea1"
     },
-    "at": "2026-09-17T12:29:16+00:00"
+    "at": "2026-09-17T13:12:24+00:00"
   }
 }

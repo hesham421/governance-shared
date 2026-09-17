@@ -4,7 +4,7 @@
   "scope": "all",
   "counts": {
     "CRITICAL": 1,
-    "MAJOR": 62,
+    "MAJOR": 61,
     "MINOR": 0
   },
   "clean": false,
@@ -83,14 +83,6 @@
       "message": "`backend-execution-plan` claims 1 findings but `gov.py analyze` produced 2 for it \u2014 the artifact the implementer reads contradicts the report beside it. Correct line: `BLOCKED \u2717 \u2014 2 findings`",
       "artifact": "backend-execution-plan",
       "line": 1271
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C2.2",
-      "check": "registry-agree",
-      "message": "registry does not map categories ['CAT-10']",
-      "artifact": "project-registry",
-      "line": 0
     },
     {
       "severity": "MAJOR",
@@ -584,7 +576,7 @@
   "provenance": {
     "rules": {
       "contracts": "63e99b69b027774dc19a906179452ecd58ade297326434557a7e1d726eef1472",
-      "checker": "aa6869341d2922e5e280a2ee3727b6e98bf42c0e75e2aa1f85382a5d6cce70a2",
+      "checker": "de7b60cb40e131cace2b9cb86364a8ebc123b7e9e112995261397c81aaad034f",
       "policy": "61d1af6c86d3f26a4b5546b4b158a1ac8fdfe69edfb7da0cb5c2023e3e99a68c"
     },
     "resolvable": [
@@ -623,7 +615,7 @@
       "module-registry": "fdee1eb1c5a9ae0be45579eddf863b41859474f9c1b75f2df76d06c830c9cbdc",
       "platform-summary": "ef423becc4481e307d98de8960f8416cb02212571d518daa3f2015c4ddf6a44e",
       "prd": "dc418b01290699f190912e9824a28e60285ab5d1c76f1e95baa234677601a59d",
-      "project-registry": "b6ec1d78ac5e39be110e34a249bda2f5b7cbf3e202c14d1a84c700d0d38411be",
+      "project-registry": "017e40f37cc84399cbdf173b5de16c1d81f5fa86c659cca82b589cffe078e6d0",
       "registry-db": "2d115ca2ad26a9df6a7d7ffbdfaef181b5189d4f2c637047790cba90a92425d1",
       "registry-exec-be": "c6cbadf659dee2d9e200f07d5f4a00aafb8a54d4a66311bd4182f6bd713c1d51",
       "registry-exec-fe": "6b375b33d272818379850c70a3ac85fae3f7e095125ff2cd47ae51274c14cb47",
@@ -633,6 +625,6 @@
       "test-execution-manifest": "fe360a9c38baf2785c213cffdd24b06f9e68738419dd21fa96c66b588070f78c",
       "ui-ux-spec": "2773bd597812d0990990b231d5582e4461698eaa0294c15788db4c27a1896397"
     },
-    "at": "2026-09-17T12:29:12+00:00"
+    "at": "2026-09-17T13:12:26+00:00"
   }
 }

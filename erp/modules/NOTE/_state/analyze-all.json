@@ -4,7 +4,7 @@
   "scope": "all",
   "counts": {
     "CRITICAL": 2,
-    "MAJOR": 4,
+    "MAJOR": 3,
     "MINOR": 0
   },
   "clean": false,
@@ -96,14 +96,6 @@
     },
     {
       "severity": "MAJOR",
-      "clause": "C2.2",
-      "check": "registry-agree",
-      "message": "registry does not map categories ['CAT-10']",
-      "artifact": "project-registry",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
       "clause": "C8.2",
       "check": "registry-agree",
       "message": "artifact `api-docs` missing",
@@ -130,7 +122,7 @@
   "provenance": {
     "rules": {
       "contracts": "63e99b69b027774dc19a906179452ecd58ade297326434557a7e1d726eef1472",
-      "checker": "aa6869341d2922e5e280a2ee3727b6e98bf42c0e75e2aa1f85382a5d6cce70a2",
+      "checker": "de7b60cb40e131cace2b9cb86364a8ebc123b7e9e112995261397c81aaad034f",
       "policy": "61d1af6c86d3f26a4b5546b4b158a1ac8fdfe69edfb7da0cb5c2023e3e99a68c"
     },
     "resolvable": [
@@ -156,13 +148,13 @@
       "module-registry": "f791dec66d9f7d1ccd614a0993eee9b8ff18ca9ce1b91d2a15fe570b0fa03706",
       "platform-summary": "5e8c38ebf3fd9907f984bfc20428f1bcfbc7cb008eca7c9b44d06e06619140a8",
       "prd": "2bbcf3d33900d215941be071621164c463842356e76971e4d090c8faa178717f",
-      "project-registry": "b6ec1d78ac5e39be110e34a249bda2f5b7cbf3e202c14d1a84c700d0d38411be",
+      "project-registry": "017e40f37cc84399cbdf173b5de16c1d81f5fa86c659cca82b589cffe078e6d0",
       "registry-db": "12998fb4b1503d619bb8c09fd757d6764c51c10b62cc126c8d02f4f1ead067a9",
       "registry-exec-be": "06043140320d6ada01b5029b5db318467cd6352d12c3484594de6eb154eaa829",
       "registry-srs": "f97a05270a3e3ef006f13e646effb988f90ee2ff9c22ebab2ceca69377e12c80",
       "srs": "bd06f0e7e47d126f30586d67aa5916956dd70680f0be6989f1efe9d854bd6c30",
       "system-test-index": "67d6136b3df1bf00744f47bfd9cc34af944ee01ea67fd14d1999655c0af389b9"
     },
-    "at": "2026-09-17T12:27:09+00:00"
+    "at": "2026-09-17T13:12:25+00:00"
   }
 }

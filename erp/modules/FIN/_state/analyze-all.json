@@ -4,7 +4,7 @@
   "scope": "all",
   "counts": {
     "CRITICAL": 45,
-    "MAJOR": 166,
+    "MAJOR": 165,
     "MINOR": 0
   },
   "clean": false,
@@ -114,7 +114,7 @@
       "severity": "CRITICAL",
       "clause": "C7.14",
       "check": "paths-resolve",
-      "message": "manifest.json \u2192 `plans.backend/test` = `test_gen/backend-test-plan-fin.md` resolves to nothing under erp/modules/FIN",
+      "message": "manifest.json \u2192 `plans.backend/test` = `test_gen/backend-test-plan-fin.md` resolves to nothing under governance-shared/erp/modules/FIN",
       "artifact": "manifest_file",
       "line": 0
     },
@@ -485,14 +485,6 @@
       "message": "`AC-FIN-045` is referenced by 0 of ['TC'], needs \u22651",
       "artifact": "",
       "line": 880
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C2.2",
-      "check": "registry-agree",
-      "message": "registry does not map categories ['CAT-10']",
-      "artifact": "project-registry",
-      "line": 0
     },
     {
       "severity": "MAJOR",
@@ -1762,7 +1754,7 @@
   "provenance": {
     "rules": {
       "contracts": "63e99b69b027774dc19a906179452ecd58ade297326434557a7e1d726eef1472",
-      "checker": "aa6869341d2922e5e280a2ee3727b6e98bf42c0e75e2aa1f85382a5d6cce70a2",
+      "checker": "de7b60cb40e131cace2b9cb86364a8ebc123b7e9e112995261397c81aaad034f",
       "policy": "61d1af6c86d3f26a4b5546b4b158a1ac8fdfe69edfb7da0cb5c2023e3e99a68c"
     },
     "resolvable": [
@@ -1799,7 +1791,7 @@
       "module-registry": "2c87d7b5ab738ace629d1c62bad0a1ff1c5c4985bdad9c686e3a9ccac8b7dc7d",
       "platform-summary": "92f95565180e1a10a770a4fdec21260b8bdaa5acc2a701a22fd33c7c41d84e0c",
       "prd": "4e4c599d0fa97ceade98746ff53a1ad2909c5a71518241003987060bce6bc818",
-      "project-registry": "b6ec1d78ac5e39be110e34a249bda2f5b7cbf3e202c14d1a84c700d0d38411be",
+      "project-registry": "017e40f37cc84399cbdf173b5de16c1d81f5fa86c659cca82b589cffe078e6d0",
       "registry-db": "0f5a46da0155ed4337835a94493a6f20770a8940d86a0b8eb514ca0f1fd8297d",
       "registry-exec-be": "f4ea82d8eabe27ddaec7143461d406c4efd447319a73d9d7fc9fe0b92e74770f",
       "registry-exec-fe": "c4e609f0fc1e41853b20d4ff7f44bfe1bbbec6e44fadbe138368d470322d863b",
@@ -1809,6 +1801,6 @@
       "test-execution-manifest": "0478297eebe2dd3dbe52f5bdd2969ffb7e970cabff9416e6f3f54222e0b34ceb",
       "ui-ux-spec": "e260838d18d5d7c989555ade4ae04623ac0714684c976ace9a15e9d830327424"
     },
-    "at": "2026-09-17T12:29:16+00:00"
+    "at": "2026-09-17T13:12:24+00:00"
   }
 }
