@@ -4,10 +4,10 @@
 **Endpoints in this file:**
 
 - [PUT /api/v1/fin/dimensions/values/{id}/deactivate](#put-apiv1findimensionsvaluesiddeactivate)
-- [POST /api/v1/fin/dimensions](#post-apiv1findimensions)
-- [POST /api/v1/fin/dimensions/{id}/values](#post-apiv1findimensionsidvalues)
-- [POST /api/v1/fin/dimensions/values/search](#post-apiv1findimensionsvaluessearch)
-- [POST /api/v1/fin/dimensions/search](#post-apiv1findimensionssearch)
+- `API-FIN-006` — [POST /api/v1/fin/dimensions](#post-apiv1findimensions)
+- `API-FIN-007` — [POST /api/v1/fin/dimensions/{id}/values](#post-apiv1findimensionsidvalues)
+- `API-FIN-008` — [POST /api/v1/fin/dimensions/values/search](#post-apiv1findimensionsvaluessearch)
+- `API-FIN-005` — [POST /api/v1/fin/dimensions/search](#post-apiv1findimensionssearch)
 
 ## PUT /api/v1/fin/dimensions/values/{id}/deactivate
 
@@ -67,6 +67,8 @@ _(partial — only fields with a documented example are shown)_
 
 إنشاء بُعد تحليلي
 
+Contract ID: `API-FIN-006`
+
 Operation ID: `create_3`
 
 **Authentication**
@@ -123,11 +125,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/dimensions/{id}/values
 
 **Create dimension value**
 
 إنشاء قيمة ضمن بُعد تحليلي
+
+Contract ID: `API-FIN-007`
 
 Operation ID: `createDimensionValue`
 
@@ -197,11 +209,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/dimensions/values/search
 
 **Search dimension values**
 
 بحث في قيم البُعد التحليلي — معرّف البُعد يُرسَل ضمن مرشِّحات الطلب
+
+Contract ID: `API-FIN-008`
 
 Operation ID: `searchDimensionValues`
 
@@ -269,11 +291,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/dimensions/search
 
 **Search dimensions**
 
 بحث في الأبعاد التحليلية
+
+Contract ID: `API-FIN-005`
 
 Operation ID: `search_4`
 
@@ -336,3 +368,11 @@ _(partial — only fields with a documented example are shown)_
   "isActiveFl": true
 }
 ```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |

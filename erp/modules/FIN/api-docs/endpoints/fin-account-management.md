@@ -3,16 +3,18 @@
 
 **Endpoints in this file:**
 
-- [PUT /api/v1/fin/accounts/{id}](#put-apiv1finaccountsid)
-- [PUT /api/v1/fin/accounts/{id}/deactivate](#put-apiv1finaccountsiddeactivate)
-- [POST /api/v1/fin/accounts](#post-apiv1finaccounts)
-- [POST /api/v1/fin/accounts/search](#post-apiv1finaccountssearch)
+- `API-FIN-003` — [PUT /api/v1/fin/accounts/{id}](#put-apiv1finaccountsid)
+- `API-FIN-004` — [PUT /api/v1/fin/accounts/{id}/deactivate](#put-apiv1finaccountsiddeactivate)
+- `API-FIN-002` — [POST /api/v1/fin/accounts](#post-apiv1finaccounts)
+- `API-FIN-001` — [POST /api/v1/fin/accounts/search](#post-apiv1finaccountssearch)
 
 ## PUT /api/v1/fin/accounts/{id}
 
 **Update account**
 
 تعديل حساب
+
+Contract ID: `API-FIN-003`
 
 Operation ID: `update`
 
@@ -86,11 +88,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## PUT /api/v1/fin/accounts/{id}/deactivate
 
 **Deactivate account**
 
 إلغاء تفعيل حساب
+
+Contract ID: `API-FIN-004`
 
 Operation ID: `deactivate_3`
 
@@ -149,6 +161,8 @@ _(partial — only fields with a documented example are shown)_
 **Create account**
 
 إنشاء حساب في دليل الحسابات
+
+Contract ID: `API-FIN-002`
 
 Operation ID: `create_5`
 
@@ -224,11 +238,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/accounts/search
 
 **Search accounts**
 
 بحث في دليل الحسابات
+
+Contract ID: `API-FIN-001`
 
 Operation ID: `search_6`
 
@@ -301,3 +325,11 @@ _(partial — only fields with a documented example are shown)_
   "isRetainedEarningsFl": false
 }
 ```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |

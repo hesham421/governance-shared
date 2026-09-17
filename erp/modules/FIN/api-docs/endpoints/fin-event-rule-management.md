@@ -4,9 +4,9 @@
 **Endpoints in this file:**
 
 - [PUT /api/v1/fin/event-rules/{id}/deactivate](#put-apiv1finevent-rulesiddeactivate)
-- [POST /api/v1/fin/event-rules](#post-apiv1finevent-rules)
-- [POST /api/v1/fin/event-rules/{id}/lines](#post-apiv1finevent-rulesidlines)
-- [POST /api/v1/fin/event-rules/search](#post-apiv1finevent-rulessearch)
+- `API-FIN-010` — [POST /api/v1/fin/event-rules](#post-apiv1finevent-rules)
+- `API-FIN-011` — [POST /api/v1/fin/event-rules/{id}/lines](#post-apiv1finevent-rulesidlines)
+- `API-FIN-009` — [POST /api/v1/fin/event-rules/search](#post-apiv1finevent-rulessearch)
 
 ## PUT /api/v1/fin/event-rules/{id}/deactivate
 
@@ -61,6 +61,8 @@ _(partial — only fields with a documented example are shown)_
 **Create event-type rule**
 
 إنشاء قاعدة نوع حدث محاسبي
+
+Contract ID: `API-FIN-010`
 
 Operation ID: `create_2`
 
@@ -118,11 +120,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/event-rules/{id}/lines
 
 **Add rule line**
 
 إضافة سطر إلى قاعدة نوع الحدث
+
+Contract ID: `API-FIN-011`
 
 Operation ID: `createRuleLine`
 
@@ -201,11 +213,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/event-rules/search
 
 **Search event-type rules**
 
 بحث في قواعد أنواع الأحداث
+
+Contract ID: `API-FIN-009`
 
 Operation ID: `search_3`
 
@@ -268,3 +290,11 @@ _(partial — only fields with a documented example are shown)_
   "isActiveFl": true
 }
 ```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |

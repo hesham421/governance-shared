@@ -4,9 +4,9 @@
 **Endpoints in this file:**
 
 - [POST /api/v1/fin/fiscal-periods/search](#post-apiv1finfiscal-periodssearch)
-- [PATCH /api/v1/fin/fiscal-periods/{id}/soft-close](#patch-apiv1finfiscal-periodsidsoft-close)
-- [PATCH /api/v1/fin/fiscal-periods/{id}/open](#patch-apiv1finfiscal-periodsidopen)
-- [PATCH /api/v1/fin/fiscal-periods/{id}/hard-close](#patch-apiv1finfiscal-periodsidhard-close)
+- `API-FIN-025` — [PATCH /api/v1/fin/fiscal-periods/{id}/soft-close](#patch-apiv1finfiscal-periodsidsoft-close)
+- `API-FIN-024` — [PATCH /api/v1/fin/fiscal-periods/{id}/open](#patch-apiv1finfiscal-periodsidopen)
+- `API-FIN-026` — [PATCH /api/v1/fin/fiscal-periods/{id}/hard-close](#patch-apiv1finfiscal-periodsidhard-close)
 
 ## POST /api/v1/fin/fiscal-periods/search
 
@@ -85,11 +85,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## PATCH /api/v1/fin/fiscal-periods/{id}/soft-close
 
 **Soft-close a fiscal period**
 
 إغلاق ناعم لفترة محاسبية
+
+Contract ID: `API-FIN-025`
 
 Operation ID: `softClose`
 
@@ -148,6 +158,8 @@ _(partial — only fields with a documented example are shown)_
 
 فتح فترة محاسبية
 
+Contract ID: `API-FIN-024`
+
 Operation ID: `open`
 
 **Authentication**
@@ -204,6 +216,8 @@ _(partial — only fields with a documented example are shown)_
 **Hard-close a fiscal period (approval)**
 
 إغلاق صارم لفترة محاسبية باعتماد
+
+Contract ID: `API-FIN-026`
 
 Operation ID: `hardClose`
 

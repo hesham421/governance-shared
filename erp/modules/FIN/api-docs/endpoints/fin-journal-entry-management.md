@@ -3,17 +3,19 @@
 
 **Endpoints in this file:**
 
-- [POST /api/v1/fin/journal-entries](#post-apiv1finjournal-entries)
-- [POST /api/v1/fin/journal-entries/{id}/reverse](#post-apiv1finjournal-entriesidreverse)
-- [POST /api/v1/fin/journal-entries/search](#post-apiv1finjournal-entriessearch)
-- [POST /api/v1/fin/journal-entries/from-event](#post-apiv1finjournal-entriesfrom-event)
-- [GET /api/v1/fin/journal-entries/{id}](#get-apiv1finjournal-entriesid)
+- `API-FIN-019` — [POST /api/v1/fin/journal-entries](#post-apiv1finjournal-entries)
+- `API-FIN-021` — [POST /api/v1/fin/journal-entries/{id}/reverse](#post-apiv1finjournal-entriesidreverse)
+- `API-FIN-018` — [POST /api/v1/fin/journal-entries/search](#post-apiv1finjournal-entriessearch)
+- `API-FIN-020` — [POST /api/v1/fin/journal-entries/from-event](#post-apiv1finjournal-entriesfrom-event)
+- `API-FIN-022` — [GET /api/v1/fin/journal-entries/{id}](#get-apiv1finjournal-entriesid)
 
 ## POST /api/v1/fin/journal-entries
 
 **Create manual journal entry**
 
 إنشاء وترحيل قيد يومية يدوي
+
+Contract ID: `API-FIN-019`
 
 Operation ID: `createManual`
 
@@ -155,11 +157,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/journal-entries/{id}/reverse
 
 **Reverse a posted journal entry**
 
 عكس قيد يومية مُرحَّل
+
+Contract ID: `API-FIN-021`
 
 Operation ID: `reverse`
 
@@ -262,6 +274,8 @@ _(partial — only fields with a documented example are shown)_
 **Search journal entries**
 
 بحث في قيود اليومية
+
+Contract ID: `API-FIN-018`
 
 Operation ID: `search_1`
 
@@ -379,11 +393,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/journal-entries/from-event
 
 **Build and post a journal entry from an accounting event**
 
 بناء وترحيل قيد يومية من حدث محاسبي
+
+Contract ID: `API-FIN-020`
 
 Operation ID: `buildFromEvent`
 
@@ -505,11 +529,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## GET /api/v1/fin/journal-entries/{id}
 
 **Read a journal entry with its lines**
 
 عرض قيد يومية مع سطوره وأبعاده
+
+Contract ID: `API-FIN-022`
 
 Operation ID: `read`
 

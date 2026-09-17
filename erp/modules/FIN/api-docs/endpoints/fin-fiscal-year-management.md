@@ -3,14 +3,16 @@
 
 **Endpoints in this file:**
 
-- [POST /api/v1/fin/fiscal-years](#post-apiv1finfiscal-years)
-- [POST /api/v1/fin/fiscal-years/{id}/year-end-close](#post-apiv1finfiscal-yearsidyear-end-close)
+- `API-FIN-023` — [POST /api/v1/fin/fiscal-years](#post-apiv1finfiscal-years)
+- `API-FIN-027` — [POST /api/v1/fin/fiscal-years/{id}/year-end-close](#post-apiv1finfiscal-yearsidyear-end-close)
 
 ## POST /api/v1/fin/fiscal-years
 
 **Create fiscal year and generate its periods**
 
 إنشاء سنة مالية وتوليد فتراتها
+
+Contract ID: `API-FIN-023`
 
 Operation ID: `create_1`
 
@@ -102,11 +104,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/fiscal-years/{id}/year-end-close
 
 **Run year-end close**
 
 تشغيل إقفال نهاية السنة وتوليد قيدي الإقفال والافتتاح
+
+Contract ID: `API-FIN-027`
 
 Operation ID: `yearEndClose`
 

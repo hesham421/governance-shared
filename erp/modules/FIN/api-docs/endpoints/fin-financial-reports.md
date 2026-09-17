@@ -3,17 +3,19 @@
 
 **Endpoints in this file:**
 
-- [GET /api/v1/fin/reports/trial-balance](#get-apiv1finreportstrial-balance)
-- [GET /api/v1/fin/reports/income-statement](#get-apiv1finreportsincome-statement)
-- [GET /api/v1/fin/reports/dimension](#get-apiv1finreportsdimension)
-- [GET /api/v1/fin/reports/balance-sheet](#get-apiv1finreportsbalance-sheet)
-- [GET /api/v1/fin/reports/account-ledger](#get-apiv1finreportsaccount-ledger)
+- `API-FIN-029` — [GET /api/v1/fin/reports/trial-balance](#get-apiv1finreportstrial-balance)
+- `API-FIN-031` — [GET /api/v1/fin/reports/income-statement](#get-apiv1finreportsincome-statement)
+- `API-FIN-032` — [GET /api/v1/fin/reports/dimension](#get-apiv1finreportsdimension)
+- `API-FIN-030` — [GET /api/v1/fin/reports/balance-sheet](#get-apiv1finreportsbalance-sheet)
+- `API-FIN-028` — [GET /api/v1/fin/reports/account-ledger](#get-apiv1finreportsaccount-ledger)
 
 ## GET /api/v1/fin/reports/trial-balance
 
 **Trial balance**
 
 ميزان المراجعة المُشتق حيًا
+
+Contract ID: `API-FIN-029`
 
 Operation ID: `trialBalance`
 
@@ -84,6 +86,8 @@ Shape: `TrialBalanceResponse`
 **Income statement**
 
 قائمة الدخل
+
+Contract ID: `API-FIN-031`
 
 Operation ID: `incomeStatement`
 
@@ -167,6 +171,8 @@ Shape: `IncomeStatementResponse`
 
 تقرير الأبعاد حسب تركيبة الحساب وقيمة البُعد
 
+Contract ID: `API-FIN-032`
+
 Operation ID: `dimensionReport`
 
 **Authentication**
@@ -237,6 +243,8 @@ Shape: `DimensionReportResponse`
 **Balance sheet**
 
 الميزانية العمومية
+
+Contract ID: `API-FIN-030`
 
 Operation ID: `balanceSheet`
 
@@ -310,6 +318,8 @@ Shape: `BalanceSheetResponse`
 **Account ledger**
 
 دفتر الحساب المُشتق حيًا من القيود المُرحَّلة
+
+Contract ID: `API-FIN-028`
 
 Operation ID: `accountLedger`
 

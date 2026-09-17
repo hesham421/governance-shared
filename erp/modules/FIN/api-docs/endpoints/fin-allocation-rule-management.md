@@ -4,9 +4,9 @@
 **Endpoints in this file:**
 
 - [PUT /api/v1/fin/allocation-rules/{id}/deactivate](#put-apiv1finallocation-rulesiddeactivate)
-- [POST /api/v1/fin/allocation-rules](#post-apiv1finallocation-rules)
-- [POST /api/v1/fin/allocation-rules/{id}/run](#post-apiv1finallocation-rulesidrun)
-- [POST /api/v1/fin/allocation-rules/search](#post-apiv1finallocation-rulessearch)
+- `API-FIN-016` — [POST /api/v1/fin/allocation-rules](#post-apiv1finallocation-rules)
+- `API-FIN-017` — [POST /api/v1/fin/allocation-rules/{id}/run](#post-apiv1finallocation-rulesidrun)
+- `API-FIN-015` — [POST /api/v1/fin/allocation-rules/search](#post-apiv1finallocation-rulessearch)
 
 ## PUT /api/v1/fin/allocation-rules/{id}/deactivate
 
@@ -84,6 +84,8 @@ _(partial — only fields with a documented example are shown)_
 **Create allocation rule**
 
 إنشاء قاعدة توزيع تكلفة
+
+Contract ID: `API-FIN-016`
 
 Operation ID: `create_4`
 
@@ -179,11 +181,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/allocation-rules/{id}/run
 
 **Run an allocation rule**
 
 تشغيل قاعدة توزيع تكلفة
+
+Contract ID: `API-FIN-017`
 
 Operation ID: `run_1`
 
@@ -287,6 +299,8 @@ _(partial — only fields with a documented example are shown)_
 
 بحث في قواعد التوزيع
 
+Contract ID: `API-FIN-015`
+
 Operation ID: `search_5`
 
 **Authentication**
@@ -371,3 +385,11 @@ _(partial — only fields with a documented example are shown)_
   ]
 }
 ```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |

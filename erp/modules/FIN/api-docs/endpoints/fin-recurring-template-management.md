@@ -4,9 +4,9 @@
 **Endpoints in this file:**
 
 - [PUT /api/v1/fin/recurring-templates/{id}/deactivate](#put-apiv1finrecurring-templatesiddeactivate)
-- [POST /api/v1/fin/recurring-templates](#post-apiv1finrecurring-templates)
-- [POST /api/v1/fin/recurring-templates/{id}/run](#post-apiv1finrecurring-templatesidrun)
-- [POST /api/v1/fin/recurring-templates/search](#post-apiv1finrecurring-templatessearch)
+- `API-FIN-013` — [POST /api/v1/fin/recurring-templates](#post-apiv1finrecurring-templates)
+- `API-FIN-014` — [POST /api/v1/fin/recurring-templates/{id}/run](#post-apiv1finrecurring-templatesidrun)
+- `API-FIN-012` — [POST /api/v1/fin/recurring-templates/search](#post-apiv1finrecurring-templatessearch)
 
 ## PUT /api/v1/fin/recurring-templates/{id}/deactivate
 
@@ -91,6 +91,8 @@ _(partial — only fields with a documented example are shown)_
 **Create recurring template**
 
 إنشاء قالب قيد متكرر
+
+Contract ID: `API-FIN-013`
 
 Operation ID: `create`
 
@@ -197,11 +199,21 @@ _(partial — only fields with a documented example are shown)_
 }
 ```
 
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/fin/recurring-templates/{id}/run
 
 **Run a recurring template**
 
 تشغيل قالب قيد متكرر
+
+Contract ID: `API-FIN-014`
 
 Operation ID: `run`
 
@@ -305,6 +317,8 @@ _(partial — only fields with a documented example are shown)_
 
 بحث في القوالب المتكررة
 
+Contract ID: `API-FIN-012`
+
 Operation ID: `search`
 
 **Authentication**
@@ -396,3 +410,11 @@ _(partial — only fields with a documented example are shown)_
   ]
 }
 ```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
