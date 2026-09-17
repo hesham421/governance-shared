@@ -22,7 +22,7 @@ Counts : 14 tables · 147 DBF · 1 XM (XM-FIN-001 SOFT-READ → MDL). XM-FIN-002
 | DBF-FIN-007 | parent_account_id | BIGINT | ENT-FIN-001.parentAccountId (self) | REQ-FIN-001, REQ-FIN-002 | NULL | — |
 | DBF-FIN-008 | is_leaf_fl | BOOLEAN | ENT-FIN-001.isLeafFl | REQ-FIN-002, REQ-FIN-019 | NOT NULL | TRUE |
 | DBF-FIN-009 | is_active_fl | BOOLEAN | ENT-FIN-001.isActiveFl | REQ-FIN-003, REQ-FIN-019 | NOT NULL | TRUE |
-| DBF-FIN-147 | is_retained_earnings_fl | BOOLEAN | ENT-FIN-001.isRetainedEarningsFl | REQ-FIN-036 | NOT NULL | FALSE |
+| DBF-FIN-147 | is_retained_earnings_fl | BOOLEAN | ENT-FIN-001.isRetainedEarningsFl | REQ-FIN-036 | NOT NULL | FALSE — seeded as data (migration/seed), never through an API; see §6 note |
 | DBF-FIN-010 | created_by | VARCHAR(100) | profile: entity_defaults.master (audit) | REQ-FIN-001 | NOT NULL | — |
 | DBF-FIN-011 | created_at | TIMESTAMPTZ | profile: entity_defaults.master (audit) | REQ-FIN-001 | NOT NULL | now() |
 | DBF-FIN-012 | updated_by | VARCHAR(100) | profile: entity_defaults.master (audit) | REQ-FIN-001 | NULL | — |
@@ -195,6 +195,14 @@ Counts : 14 tables · 147 DBF · 1 XM (XM-FIN-001 SOFT-READ → MDL). XM-FIN-002
 Total: 147 DBF ids across 14 tables (the figure read 146 until ALIGN-BE; it was never bumped
 when DBF-FIN-147, FIN_ACCOUNT.is_retained_earnings_fl, was inserted by migration V23 and added
 to the matrix above — the header's "147 DBF" was the correct half of the contradiction).
+
+DBF-FIN-147 is NOT NULL but has no API writer, by decision, not by gap: `AccountCreateRequest`
+and `AccountUpdateRequest` both deliberately exclude it (`Account.java`'s own javadoc — "letting
+a caller set it would hand back exactly the unaudited ledger decision this column was added to
+remove"); it is seeded as data (migration/seed) and read by `FiscalYearService` at year-end
+close via `AccountRepository.findFirstByIsRetainedEarningsFlTrueOrderByAccountPkAsc()`. A
+governed write endpoint would need a new API id in the API Registry, which no decision
+authorises this version.
 
 PK generation, as built: the matrix rows above describe every PK as
 `GENERATED ALWAYS AS IDENTITY`; migration V22 deliberately built plain `BIGINT NOT NULL` PKs fed
