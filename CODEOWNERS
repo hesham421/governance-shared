@@ -1,0 +1,11 @@
+# One writer per path. This file is the enforcement half of the ownership table
+# in factory/GOVERNANCE-SHARED-DESIGN.md §3 — a shared repo that does not name an
+# owner per path is a place everyone writes, and drift there is invisible.
+#
+# Most specific wins: the backend owns api-docs inside its own partition and
+# nothing else; the factory owns everything it derives.
+
+/platform/                  @hesham421
+/backend/modules/*/api-docs/ @hesham421
+/backend/                   @hesham421
+/frontend/                  @hesham421
