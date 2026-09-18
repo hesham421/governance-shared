@@ -66,7 +66,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -262,7 +262,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -334,6 +334,7 @@ Schema: `UserCreateRequest` (application/json)
 | fullNameAr | string | Yes | maxLength: 200 | Full name (Arabic) - الاسم الكامل بالعربية | أحمد علي |
 | fullNameEn | string | Yes | maxLength: 200 | Full name (English) - الاسم الكامل بالإنجليزية | Ahmed Ali |
 | password | string | Yes | maxLength: 200 | Raw password, hashed server-side - كلمة المرور، تُجزَّأ في الخادم | N3wP@ssw0rd! |
+| roleIds | array<integer> | No |  | Optional role identifiers to assign at creation; omitted or empty creates the user with no roles - معرّفات الأدوار المطلوب إسنادها عند الإنشاء، اختيارية | [1, 2] |
 
 **Request Example**
 
@@ -343,7 +344,11 @@ Schema: `UserCreateRequest` (application/json)
   "email": "u2@example.com",
   "fullNameAr": "أحمد علي",
   "fullNameEn": "Ahmed Ali",
-  "password": "N3wP@ssw0rd!"
+  "password": "N3wP@ssw0rd!",
+  "roleIds": [
+    1,
+    2
+  ]
 }
 ```
 
@@ -361,7 +366,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -463,7 +468,7 @@ Shape: `paginated list of UserResponse (see Pagination Envelope in index.md)`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |

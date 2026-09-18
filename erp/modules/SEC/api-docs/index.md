@@ -34,11 +34,11 @@ Schema: `Page<T>`
 |---|---|---|---|---|
 | totalPages | integer (int32) | No |  |  |
 | totalElements | integer (int64) | No |  |  |
+| pageable | Pageable | No |  |  |
+| sort | Sort | No |  |  |
 | first | boolean | No |  |  |
 | last | boolean | No |  |  |
 | numberOfElements | integer (int32) | No |  |  |
-| pageable | Pageable | No |  |  |
-| sort | Sort | No |  |  |
 | size | integer (int32) | No |  |  |
 | number | integer (int32) | No |  |  |
 | empty | boolean | No |  |  |
