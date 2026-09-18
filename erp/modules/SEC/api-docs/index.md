@@ -112,7 +112,7 @@ Shared, module-independent mapping every business error code's `Status` resolves
 
 ## Contract Traceability
 
-Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 30** served endpoints carry one.
+Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 31** served endpoints carry one.
 
 Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
 
@@ -122,6 +122,7 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 |---|---|---|---|---|
 | undeclared | — | PUT | `/api/v1/sec/roles/{id}` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | POST | `/api/v1/sec/signup-requests/search` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | POST | `/api/v1/sec/auth/logout` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | GET | `/api/v1/sec/roles/{id}/grants` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 
 ## API Catalog
@@ -185,6 +186,7 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 | API-SEC-002 | POST | `/api/v1/sec/auth/signup` | Submit a sign-up request | [signup](endpoints/authentication.md#post-apiv1secauthsignup) |
 | API-SEC-003 | POST | `/api/v1/sec/auth/password-reset/request` | Request a password reset | [requestReset](endpoints/authentication.md#post-apiv1secauthpassword-resetrequest) |
 | API-SEC-004 | POST | `/api/v1/sec/auth/password-reset/complete` | Complete a password reset | [completeReset](endpoints/authentication.md#post-apiv1secauthpassword-resetcomplete) |
+| — | POST | `/api/v1/sec/auth/logout` | Logout | [logout](endpoints/authentication.md#post-apiv1secauthlogout) |
 | API-SEC-001 | POST | `/api/v1/sec/auth/login` | Login | [login](endpoints/authentication.md#post-apiv1secauthlogin) |
 
 ### Audit Log

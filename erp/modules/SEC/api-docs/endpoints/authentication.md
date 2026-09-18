@@ -6,6 +6,7 @@
 - `API-SEC-002` — [POST /api/v1/sec/auth/signup](#post-apiv1secauthsignup)
 - `API-SEC-003` — [POST /api/v1/sec/auth/password-reset/request](#post-apiv1secauthpassword-resetrequest)
 - `API-SEC-004` — [POST /api/v1/sec/auth/password-reset/complete](#post-apiv1secauthpassword-resetcomplete)
+- [POST /api/v1/sec/auth/logout](#post-apiv1secauthlogout)
 - `API-SEC-001` — [POST /api/v1/sec/auth/login](#post-apiv1secauthlogin)
 
 ## POST /api/v1/sec/auth/signup
@@ -193,6 +194,47 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 | HTTP Status | Code | Why |
 |---|---|---|
 | 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
+## POST /api/v1/sec/auth/logout
+
+**Logout**
+
+إنهاء جلسة المستخدم الحالية
+
+Operation ID: `logout`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Authorization rule**: `isAuthenticated()` (found on service:AuthService)
+
+### Response `200` — OK
+
+Shape: `SessionTerminationResponse`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| activeSessionPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| terminatedAt | string (date-time) | No |  | Termination timestamp - تاريخ الإنهاء |  |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "activeSessionPk": 1
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
 ## POST /api/v1/sec/auth/login
 
