@@ -3,8 +3,96 @@
 
 **Endpoints in this file:**
 
+- [PUT /api/v1/sec/roles/{id}](#put-apiv1secrolesid)
 - `API-SEC-013` — [POST /api/v1/sec/roles](#post-apiv1secroles)
 - `API-SEC-012` — [POST /api/v1/sec/roles/search](#post-apiv1secrolessearch)
+
+## PUT /api/v1/sec/roles/{id}
+
+**Update role**
+
+تحديث دور
+
+Operation ID: `update_1`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Required permission(s)**: PERM_SEC_ROLES_UPDATE (found on service:RoleService)
+
+### Path Parameters
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| id | integer | Yes |  |
+
+### Request Body
+
+Schema: `RoleUpdateRequest` (application/json)
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| nameAr | string | Yes | maxLength: 150 | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
+| nameEn | string | Yes | maxLength: 150 | Role name (English) - اسم الدور بالإنجليزية | Security administrator |
+| descriptionAr | string | No | maxLength: 500 | Description (Arabic) - الوصف بالعربية | إدارة المستخدمين والأدوار |
+| descriptionEn | string | No | maxLength: 500 | Description (English) - الوصف بالإنجليزية | Manages users and roles |
+
+**Request Example**
+
+```json
+{
+  "nameAr": "مدير الأمان",
+  "nameEn": "Security administrator",
+  "descriptionAr": "إدارة المستخدمين والأدوار",
+  "descriptionEn": "Manages users and roles"
+}
+```
+
+### Response `200` — OK
+
+Shape: `RoleResponse`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| rolePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| code | string | No |  | Unique role code - رمز الدور الفريد | SEC_ADMIN |
+| nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
+| nameEn | string | No |  | Role name (English) - اسم الدور بالإنجليزية | Security administrator |
+| descriptionAr | string | No |  | Description (Arabic) - الوصف بالعربية | إدارة المستخدمين والأدوار |
+| descriptionEn | string | No |  | Description (English) - الوصف بالإنجليزية | Manages users and roles |
+| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| createdBy | string | No |  | Created by - أنشئ بواسطة | admin |
+| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| updatedBy | string | No |  | Updated by - حُدّث بواسطة | admin |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "rolePk": 1,
+  "code": "SEC_ADMIN",
+  "nameAr": "مدير الأمان",
+  "nameEn": "Security administrator",
+  "descriptionAr": "إدارة المستخدمين والأدوار",
+  "descriptionEn": "Manages users and roles",
+  "isActiveFl": true,
+  "createdBy": "admin",
+  "updatedBy": "admin"
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
 
 ## POST /api/v1/sec/roles
 
@@ -99,7 +187,7 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 
 Contract ID: `API-SEC-012`
 
-Operation ID: `search_2`
+Operation ID: `search_3`
 
 **Authentication**
 

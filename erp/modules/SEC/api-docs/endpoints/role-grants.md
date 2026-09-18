@@ -6,6 +6,7 @@
 - `API-SEC-016` — [POST /api/v1/sec/roles/{id}/screens](#post-apiv1secrolesidscreens)
 - `API-SEC-014` — [POST /api/v1/sec/roles/{id}/modules](#post-apiv1secrolesidmodules)
 - `API-SEC-017` — [POST /api/v1/sec/roles/{id}/actions](#post-apiv1secrolesidactions)
+- [GET /api/v1/sec/roles/{id}/grants](#get-apiv1secrolesidgrants)
 - `API-SEC-015` — [DELETE /api/v1/sec/roles/{id}/modules/{moduleId}](#delete-apiv1secrolesidmodulesmoduleid)
 
 ## POST /api/v1/sec/roles/{id}/screens
@@ -223,6 +224,106 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 |---|---|---|
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 | 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
+## GET /api/v1/sec/roles/{id}/grants
+
+**Get the grants a role holds**
+
+عرض المنح التي يحملها الدور — وحدات وشاشات وإجراءات
+
+Operation ID: `grants`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Required permission(s)**: PERM_SEC_ROLES_VIEW (found on service:RoleGrantService)
+
+### Path Parameters
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| id | integer | Yes |  |
+
+### Response `200` — OK
+
+Shape: `RoleGrantTreeResponse`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| rolePk | integer (int64) | No |  | Role identifier - معرف الدور | 1 |
+| code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
+| nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
+| nameEn | string | No |  | Role name (English) - اسم الدور بالإنجليزية | Security administrator |
+| modules | array<RoleModuleGrantNodeResponse> | No |  | Modules reached by this role's grants - الوحدات التي تصلها منح الدور |  |
+| modules[].moduleRegPk | integer (int64) | No |  | Module registry identifier - معرف الوحدة | 1 |
+| modules[].code | string | No |  | Module code - رمز الوحدة | SEC |
+| modules[].nameAr | string | No |  | Module name (Arabic) - اسم الوحدة بالعربية | الأمان |
+| modules[].nameEn | string | No |  | Module name (English) - اسم الوحدة بالإنجليزية | Security |
+| modules[].granted | boolean | No |  | Module grant held - هل الوحدة ممنوحة | true |
+| modules[].grantedAt | string (date-time) | No |  | Granted timestamp, null when not granted - تاريخ المنح |  |
+| modules[].screens | array<RoleScreenGrantNodeResponse> | No |  | Screen grants held beneath this module - الشاشات الممنوحة ضمن الوحدة |  |
+| modules[].screens[].screenRegPk | integer (int64) | No |  | Screen registry identifier - معرف الشاشة | 1 |
+| modules[].screens[].pageCode | string | No |  | Page code - رمز الصفحة | SEC_USERS |
+| modules[].screens[].nameAr | string | No |  | Screen name (Arabic) - اسم الشاشة بالعربية | المستخدمون |
+| modules[].screens[].nameEn | string | No |  | Screen name (English) - اسم الشاشة بالإنجليزية | Users |
+| modules[].screens[].granted | boolean | No |  | Screen grant held - هل الشاشة ممنوحة | true |
+| modules[].screens[].grantedAt | string (date-time) | No |  | Granted timestamp, null when not granted - تاريخ المنح |  |
+| modules[].screens[].actions | array<RoleActionGrantNodeResponse> | No |  | Action grants held beneath this screen - الإجراءات الممنوحة ضمن الشاشة |  |
+| modules[].screens[].actions[].actionRegPk | integer (int64) | No |  | Action registry identifier - معرف الإجراء | 1 |
+| modules[].screens[].actions[].actionCode | string | No |  | Action code - رمز الإجراء | VIEW |
+| modules[].screens[].actions[].permissionCode | string | No |  | Derived permission code - رمز الصلاحية | PERM_SEC_USERS_VIEW |
+| modules[].screens[].actions[].nameAr | string | No |  | Action name (Arabic) - اسم الإجراء بالعربية | عرض |
+| modules[].screens[].actions[].nameEn | string | No |  | Action name (English) - اسم الإجراء بالإنجليزية | View |
+| modules[].screens[].actions[].grantedAt | string (date-time) | No |  | Granted timestamp - تاريخ المنح |  |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "rolePk": 1,
+  "code": "SEC_ADMIN",
+  "nameAr": "مدير الأمان",
+  "nameEn": "Security administrator",
+  "modules": [
+    {
+      "moduleRegPk": 1,
+      "code": "SEC",
+      "nameAr": "الأمان",
+      "nameEn": "Security",
+      "granted": true,
+      "screens": [
+        {
+          "screenRegPk": 1,
+          "pageCode": "SEC_USERS",
+          "nameAr": "المستخدمون",
+          "nameEn": "Users",
+          "granted": true,
+          "actions": [
+            {
+              "actionRegPk": 1,
+              "actionCode": "VIEW",
+              "permissionCode": "PERM_SEC_USERS_VIEW",
+              "nameAr": "عرض",
+              "nameEn": "View"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
 ## DELETE /api/v1/sec/roles/{id}/modules/{moduleId}
 

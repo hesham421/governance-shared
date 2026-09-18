@@ -34,11 +34,11 @@ Schema: `Page<T>`
 |---|---|---|---|---|
 | totalPages | integer (int32) | No |  |  |
 | totalElements | integer (int64) | No |  |  |
-| pageable | Pageable | No |  |  |
-| sort | Sort | No |  |  |
 | first | boolean | No |  |  |
 | last | boolean | No |  |  |
 | numberOfElements | integer (int32) | No |  |  |
+| pageable | Pageable | No |  |  |
+| sort | Sort | No |  |  |
 | size | integer (int32) | No |  |  |
 | number | integer (int32) | No |  |  |
 | empty | boolean | No |  |  |
@@ -112,9 +112,17 @@ Shared, module-independent mapping every business error code's `Status` resolves
 
 ## Contract Traceability
 
-Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 27** served endpoints carry one.
+Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 30** served endpoints carry one.
 
 Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
+
+### Drift — declared vs served
+
+| Kind | API | Method | Path | What this means |
+|---|---|---|---|---|
+| undeclared | — | PUT | `/api/v1/sec/roles/{id}` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | POST | `/api/v1/sec/signup-requests/search` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | GET | `/api/v1/sec/roles/{id}/grants` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 
 ## API Catalog
 
@@ -129,19 +137,27 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 | API-SEC-006 | POST | `/api/v1/sec/users` | Create user | [create](endpoints/users.md#post-apiv1secusers) |
 | API-SEC-005 | POST | `/api/v1/sec/users/search` | Search users | [search](endpoints/users.md#post-apiv1secuserssearch) |
 
-### Active Sessions
-
-| API | Method | Path | Summary | Doc |
-|---|---|---|---|---|
-| API-SEC-025 | POST | `/api/v1/sec/sessions/search` | List active sessions | [search_1](endpoints/active-sessions.md#post-apiv1secsessionssearch) |
-| API-SEC-026 | DELETE | `/api/v1/sec/sessions/{id}` | Terminate session | [terminate](endpoints/active-sessions.md#delete-apiv1secsessionsid) |
-
 ### Roles
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
+| — | PUT | `/api/v1/sec/roles/{id}` | Update role | [update_1](endpoints/roles.md#put-apiv1secrolesid) |
 | API-SEC-013 | POST | `/api/v1/sec/roles` | Create role | [create_1](endpoints/roles.md#post-apiv1secroles) |
-| API-SEC-012 | POST | `/api/v1/sec/roles/search` | Search roles | [search_2](endpoints/roles.md#post-apiv1secrolessearch) |
+| API-SEC-012 | POST | `/api/v1/sec/roles/search` | Search roles | [search_3](endpoints/roles.md#post-apiv1secrolessearch) |
+
+### Sign-up Requests
+
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| — | POST | `/api/v1/sec/signup-requests/search` | Search sign-up requests | [search_1](endpoints/sign-up-requests.md#post-apiv1secsignup-requestssearch) |
+| API-SEC-011 | PATCH | `/api/v1/sec/signup-requests/{id}` | Approve or reject a sign-up request | [decide](endpoints/sign-up-requests.md#patch-apiv1secsignup-requestsid) |
+
+### Active Sessions
+
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-SEC-025 | POST | `/api/v1/sec/sessions/search` | List active sessions | [search_2](endpoints/active-sessions.md#post-apiv1secsessionssearch) |
+| API-SEC-026 | DELETE | `/api/v1/sec/sessions/{id}` | Terminate session | [terminate](endpoints/active-sessions.md#delete-apiv1secsessionsid) |
 
 ### Role Grants
 
@@ -150,13 +166,14 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 | API-SEC-016 | POST | `/api/v1/sec/roles/{id}/screens` | Grant screen to role | [grantScreen](endpoints/role-grants.md#post-apiv1secrolesidscreens) |
 | API-SEC-014 | POST | `/api/v1/sec/roles/{id}/modules` | Grant module to role | [grantModule](endpoints/role-grants.md#post-apiv1secrolesidmodules) |
 | API-SEC-017 | POST | `/api/v1/sec/roles/{id}/actions` | Grant action to role | [grantAction](endpoints/role-grants.md#post-apiv1secrolesidactions) |
+| — | GET | `/api/v1/sec/roles/{id}/grants` | Get the grants a role holds | [grants](endpoints/role-grants.md#get-apiv1secrolesidgrants) |
 | API-SEC-015 | DELETE | `/api/v1/sec/roles/{id}/modules/{moduleId}` | Revoke module grant | [revokeModule](endpoints/role-grants.md#delete-apiv1secrolesidmodulesmoduleid) |
 
 ### Module Registry
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
-| API-SEC-021 | POST | `/api/v1/sec/registry/search` | Search the registry | [search_3](endpoints/module-registry.md#post-apiv1secregistrysearch) |
+| API-SEC-021 | POST | `/api/v1/sec/registry/search` | Search the registry | [search_4](endpoints/module-registry.md#post-apiv1secregistrysearch) |
 | API-SEC-019 | POST | `/api/v1/sec/registry/screens` | Register a screen | [registerScreen](endpoints/module-registry.md#post-apiv1secregistryscreens) |
 | API-SEC-018 | POST | `/api/v1/sec/registry/modules` | Register a module | [registerModule](endpoints/module-registry.md#post-apiv1secregistrymodules) |
 | API-SEC-020 | POST | `/api/v1/sec/registry/actions` | Register an action | [registerAction](endpoints/module-registry.md#post-apiv1secregistryactions) |
@@ -174,14 +191,8 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
-| API-SEC-023 | POST | `/api/v1/sec/audit-log/search` | Search the audit log | [search_4](endpoints/audit-log.md#post-apiv1secaudit-logsearch) |
+| API-SEC-023 | POST | `/api/v1/sec/audit-log/search` | Search the audit log | [search_5](endpoints/audit-log.md#post-apiv1secaudit-logsearch) |
 | API-SEC-024 | GET | `/api/v1/sec/audit-log/export` | Export the audit log | [export](endpoints/audit-log.md#get-apiv1secaudit-logexport) |
-
-### Sign-up Requests
-
-| API | Method | Path | Summary | Doc |
-|---|---|---|---|---|
-| API-SEC-011 | PATCH | `/api/v1/sec/signup-requests/{id}` | Approve or reject a sign-up request | [decide](endpoints/sign-up-requests.md#patch-apiv1secsignup-requestsid) |
 
 ### Menu
 
