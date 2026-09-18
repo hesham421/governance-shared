@@ -36,6 +36,12 @@
       "backend/test": true,
       "frontend/exec": true,
       "frontend/test": true
+    },
+    "coverage": {
+      "us-req": 100.0,
+      "req-ac": 100.0,
+      "req-api": 91.4,
+      "req-ux": 0.0
     }
   },
   "created_at": "2026-09-10T15:25:46+00:00"
