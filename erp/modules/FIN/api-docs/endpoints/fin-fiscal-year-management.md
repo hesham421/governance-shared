@@ -56,7 +56,7 @@ Shape: `FiscalYearResponse`
 | statusCode | string | No |  | Status, FISCAL_YEAR_STATUS lookup - حالة السنة | OPEN |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
 | periodCount | integer (int32) | No |  | Number of periods - عدد الفترات | 12 |
-| periods | array<FiscalPeriodResponse> | No |  | Generated periods - الفترات المولَّدة |  |
+| periods | array<FiscalPeriodResponse> | No |  | Generated periods. Populated by the create response only; ALWAYS EMPTY on a search row, where the period set is read through the fiscal-period search scoped by fiscalYearId - الفترات المولَّدة، تُملأ في استجابة الإنشاء فقط وتكون فارغة دائمًا في صف البحث |  |
 | periods[].fiscalPeriodPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
 | periods[].fiscalYearId | integer (int64) | No |  | Owning fiscal year id - معرّف السنة المالية | 1 |
 | periods[].periodNo | integer (int32) | No |  | Period number within the year - رقم الفترة | 1 |
@@ -342,7 +342,7 @@ Shape: `paginated list of FiscalYearResponse (see Pagination Envelope in index.m
 | statusCode | string | No |  | Status, FISCAL_YEAR_STATUS lookup - حالة السنة | OPEN |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
 | periodCount | integer (int32) | No |  | Number of periods - عدد الفترات | 12 |
-| periods | array<FiscalPeriodResponse> | No |  | Generated periods - الفترات المولَّدة |  |
+| periods | array<FiscalPeriodResponse> | No |  | Generated periods. Populated by the create response only; ALWAYS EMPTY on a search row, where the period set is read through the fiscal-period search scoped by fiscalYearId - الفترات المولَّدة، تُملأ في استجابة الإنشاء فقط وتكون فارغة دائمًا في صف البحث |  |
 | periods[].fiscalPeriodPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
 | periods[].fiscalYearId | integer (int64) | No |  | Owning fiscal year id - معرّف السنة المالية | 1 |
 | periods[].periodNo | integer (int32) | No |  | Period number within the year - رقم الفترة | 1 |
