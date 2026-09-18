@@ -331,11 +331,11 @@ Schema: `RecurringTemplateSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: nameAr / nameEn (LIKE), scheduleTypeCode (EQUALS - RECURRING_SCHEDULE_TYPE), frequencyCode (EQUALS - RECURRING_FREQUENCY), startDate / nextRunDate / endDate (EQUALS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL - ISO yyyy-MM-dd), isActiveFl (EQUALS), recurringTemplatePk (EQUALS, IN), createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: recurringTemplatePk, nameAr, nameEn, scheduleTypeCode, frequencyCode, startDate, nextRunDate, endDate, isActiveFl, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |

@@ -1406,9 +1406,18 @@ def test_audit_log_entry(client: APIClient) -> dict:
 
     def _export():
         r = client.get("/api/v1/sec/audit-log/export")
-        ok = r.status_code == 200
-        return ok, f"HTTP {r.status_code}, content-type={r.headers.get('Content-Type')} (TC-SEC-026)", (r.text or "")[:400]
-    run("export audit log as CSV (TC-SEC-026)", _export)
+        ctype = (r.headers.get("Content-Type") or "")
+        # The charset and the BOM are both asserted, not merely reported: with either one missing
+        # Excel opens the document as ANSI and renders the Arabic detailsAr column as mojibake,
+        # while the bytes themselves stay valid UTF-8 — so a status-only check passes on a file no
+        # admin can read. Reported by the frontend E2E run of 2026-09-18 and fixed the same day.
+        has_charset = "charset=utf-8" in ctype.lower()
+        has_bom = r.content.startswith(b"\xef\xbb\xbf")
+        ok = r.status_code == 200 and has_charset and has_bom
+        detail = (f"HTTP {r.status_code}, content-type={ctype}, "
+                  f"charset declared={has_charset}, utf-8 BOM={has_bom} (TC-SEC-026)")
+        return ok, detail, (r.text or "")[:400]
+    run("export audit log as CSV, UTF-8 declared and BOM-prefixed (TC-SEC-026)", _export)
 
     # Dashboard is not one of the 13 manifest entities, but its figures are computed live over
     # AuditLogEntry (among others) — checked here for TC-SEC-022 as a happy-path smoke assertion.

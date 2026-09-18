@@ -237,11 +237,11 @@ Schema: `DimensionValueSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: dimensionId (EQUALS - the parent scope), code (LIKE), nameAr / nameEn (LIKE), sortOrder (EQUALS, comparison operators), isActiveFl (EQUALS), dimensionValuePk (EQUALS, IN), createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: dimensionValuePk, code, nameAr, nameEn, sortOrder, isActiveFl, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
@@ -307,7 +307,7 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 
 Contract ID: `API-FIN-005`
 
-Operation ID: `search_4`
+Operation ID: `search_5`
 
 **Authentication**
 
@@ -319,11 +319,11 @@ Schema: `DimensionSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: code (LIKE), nameAr / nameEn (LIKE), isActiveFl (EQUALS), dimensionPk (EQUALS, IN), createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: dimensionPk, code, nameAr, nameEn, isActiveFl, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |

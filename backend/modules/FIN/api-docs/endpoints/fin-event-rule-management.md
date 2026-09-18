@@ -37,6 +37,19 @@ Shape: `EventTypeRuleResponse`
 | nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | فاتورة مبيعات |
 | nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Sales invoice |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| lineCount | integer (int32) | No |  | Number of rule lines - عدد سطور القاعدة | 2 |
+| lines | array<RuleLineResponse> | No |  | Rule lines, ordered by lineNo - سطور القاعدة مرتبة حسب رقم السطر |  |
+| lines[].ruleLinePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| lines[].eventTypeRuleId | integer (int64) | No |  | Parent event-type rule id - معرّف القاعدة الأب | 1 |
+| lines[].lineNo | integer (int32) | No |  | Line position within the rule - رقم السطر | 1 |
+| lines[].accountDerivationTypeCode | string | No |  | Account derivation type, ACCOUNT_DERIVATION_TYPE lookup - نوع اشتقاق الحساب | CONSTANT |
+| lines[].accountDerivationValue | string | No |  | Account derivation value - قيمة اشتقاق الحساب | 1101 |
+| lines[].amountSourceTypeCode | string | No |  | Amount source type, AMOUNT_SOURCE_TYPE lookup - نوع مصدر المبلغ | FIELD |
+| lines[].amountSourceValue | string | No |  | Amount source value - قيمة مصدر المبلغ | netAmount |
+| lines[].directionCode | string | No |  | Direction, DEBIT_CREDIT lookup - الاتجاه | DEBIT |
+| lines[].distributionTypeCode | string | No |  | Distribution type, DISTRIBUTION_TYPE lookup - نوع التوزيع | FIXED |
+| lines[].isRemainderFl | boolean | No |  | Carries the remainder of a percentage distribution - سطر الباقي | false |
+| lines[].createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdBy | string | No |  | Created by - أنشئ بواسطة |  |
 | updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
@@ -52,7 +65,22 @@ _(partial — only fields with a documented example are shown)_
   "eventTypeCode": "SALES_INVOICE",
   "nameAr": "فاتورة مبيعات",
   "nameEn": "Sales invoice",
-  "isActiveFl": true
+  "isActiveFl": true,
+  "lineCount": 2,
+  "lines": [
+    {
+      "ruleLinePk": 1,
+      "eventTypeRuleId": 1,
+      "lineNo": 1,
+      "accountDerivationTypeCode": "CONSTANT",
+      "accountDerivationValue": 1101,
+      "amountSourceTypeCode": "FIELD",
+      "amountSourceValue": "netAmount",
+      "directionCode": "DEBIT",
+      "distributionTypeCode": "FIXED",
+      "isRemainderFl": false
+    }
+  ]
 }
 ```
 
@@ -101,6 +129,19 @@ Shape: `EventTypeRuleResponse`
 | nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | فاتورة مبيعات |
 | nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Sales invoice |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| lineCount | integer (int32) | No |  | Number of rule lines - عدد سطور القاعدة | 2 |
+| lines | array<RuleLineResponse> | No |  | Rule lines, ordered by lineNo - سطور القاعدة مرتبة حسب رقم السطر |  |
+| lines[].ruleLinePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| lines[].eventTypeRuleId | integer (int64) | No |  | Parent event-type rule id - معرّف القاعدة الأب | 1 |
+| lines[].lineNo | integer (int32) | No |  | Line position within the rule - رقم السطر | 1 |
+| lines[].accountDerivationTypeCode | string | No |  | Account derivation type, ACCOUNT_DERIVATION_TYPE lookup - نوع اشتقاق الحساب | CONSTANT |
+| lines[].accountDerivationValue | string | No |  | Account derivation value - قيمة اشتقاق الحساب | 1101 |
+| lines[].amountSourceTypeCode | string | No |  | Amount source type, AMOUNT_SOURCE_TYPE lookup - نوع مصدر المبلغ | FIELD |
+| lines[].amountSourceValue | string | No |  | Amount source value - قيمة مصدر المبلغ | netAmount |
+| lines[].directionCode | string | No |  | Direction, DEBIT_CREDIT lookup - الاتجاه | DEBIT |
+| lines[].distributionTypeCode | string | No |  | Distribution type, DISTRIBUTION_TYPE lookup - نوع التوزيع | FIXED |
+| lines[].isRemainderFl | boolean | No |  | Carries the remainder of a percentage distribution - سطر الباقي | false |
+| lines[].createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdBy | string | No |  | Created by - أنشئ بواسطة |  |
 | updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
@@ -116,7 +157,22 @@ _(partial — only fields with a documented example are shown)_
   "eventTypeCode": "SALES_INVOICE",
   "nameAr": "فاتورة مبيعات",
   "nameEn": "Sales invoice",
-  "isActiveFl": true
+  "isActiveFl": true,
+  "lineCount": 2,
+  "lines": [
+    {
+      "ruleLinePk": 1,
+      "eventTypeRuleId": 1,
+      "lineNo": 1,
+      "accountDerivationTypeCode": "CONSTANT",
+      "accountDerivationValue": 1101,
+      "amountSourceTypeCode": "FIELD",
+      "amountSourceValue": "netAmount",
+      "directionCode": "DEBIT",
+      "distributionTypeCode": "FIXED",
+      "isRemainderFl": false
+    }
+  ]
 }
 ```
 
@@ -229,7 +285,7 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 
 Contract ID: `API-FIN-009`
 
-Operation ID: `search_3`
+Operation ID: `search_4`
 
 **Authentication**
 
@@ -241,11 +297,11 @@ Schema: `EventTypeRuleSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: eventTypeCode (EQUALS, IN - ACCOUNTING_EVENT_TYPE), nameAr / nameEn (LIKE), isActiveFl (EQUALS), eventTypeRulePk (EQUALS, IN), createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: eventTypeRulePk, eventTypeCode, nameAr, nameEn, isActiveFl, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
@@ -272,6 +328,19 @@ Shape: `paginated list of EventTypeRuleResponse (see Pagination Envelope in inde
 | nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | فاتورة مبيعات |
 | nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Sales invoice |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| lineCount | integer (int32) | No |  | Number of rule lines - عدد سطور القاعدة | 2 |
+| lines | array<RuleLineResponse> | No |  | Rule lines, ordered by lineNo - سطور القاعدة مرتبة حسب رقم السطر |  |
+| lines[].ruleLinePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| lines[].eventTypeRuleId | integer (int64) | No |  | Parent event-type rule id - معرّف القاعدة الأب | 1 |
+| lines[].lineNo | integer (int32) | No |  | Line position within the rule - رقم السطر | 1 |
+| lines[].accountDerivationTypeCode | string | No |  | Account derivation type, ACCOUNT_DERIVATION_TYPE lookup - نوع اشتقاق الحساب | CONSTANT |
+| lines[].accountDerivationValue | string | No |  | Account derivation value - قيمة اشتقاق الحساب | 1101 |
+| lines[].amountSourceTypeCode | string | No |  | Amount source type, AMOUNT_SOURCE_TYPE lookup - نوع مصدر المبلغ | FIELD |
+| lines[].amountSourceValue | string | No |  | Amount source value - قيمة مصدر المبلغ | netAmount |
+| lines[].directionCode | string | No |  | Direction, DEBIT_CREDIT lookup - الاتجاه | DEBIT |
+| lines[].distributionTypeCode | string | No |  | Distribution type, DISTRIBUTION_TYPE lookup - نوع التوزيع | FIXED |
+| lines[].isRemainderFl | boolean | No |  | Carries the remainder of a percentage distribution - سطر الباقي | false |
+| lines[].createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
 | createdBy | string | No |  | Created by - أنشئ بواسطة |  |
 | updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
@@ -287,7 +356,22 @@ _(partial — only fields with a documented example are shown)_
   "eventTypeCode": "SALES_INVOICE",
   "nameAr": "فاتورة مبيعات",
   "nameEn": "Sales invoice",
-  "isActiveFl": true
+  "isActiveFl": true,
+  "lineCount": 2,
+  "lines": [
+    {
+      "ruleLinePk": 1,
+      "eventTypeRuleId": 1,
+      "lineNo": 1,
+      "accountDerivationTypeCode": "CONSTANT",
+      "accountDerivationValue": 1101,
+      "amountSourceTypeCode": "FIELD",
+      "amountSourceValue": "netAmount",
+      "directionCode": "DEBIT",
+      "distributionTypeCode": "FIXED",
+      "isRemainderFl": false
+    }
+  ]
 }
 ```
 

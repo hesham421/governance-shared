@@ -3,12 +3,91 @@
 
 **Endpoints in this file:**
 
+- [GET /api/v1/sec/users/{id}](#get-apiv1secusersid)
 - `API-SEC-007` — [PUT /api/v1/sec/users/{id}](#put-apiv1secusersid)
 - `API-SEC-009` — [DELETE /api/v1/sec/users/{id}](#delete-apiv1secusersid)
 - `API-SEC-010` — [PATCH /api/v1/sec/users/{id}](#patch-apiv1secusersid)
 - `API-SEC-008` — [PUT /api/v1/sec/users/{id}/roles](#put-apiv1secusersidroles)
 - `API-SEC-006` — [POST /api/v1/sec/users](#post-apiv1secusers)
 - `API-SEC-005` — [POST /api/v1/sec/users/search](#post-apiv1secuserssearch)
+
+## GET /api/v1/sec/users/{id}
+
+**Get user by ID**
+
+جلب مستخدم بالمعرّف
+
+Operation ID: `getById`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Required permission(s)**: PERM_SEC_USERS_VIEW (found on service:UserService)
+
+### Path Parameters
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| id | integer | Yes |  |
+
+### Response `200` — OK
+
+Shape: `UserResponse`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| userPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| username | string | No |  | Login identity - اسم الدخول | u2 |
+| email | string | No |  | Email address - البريد الإلكتروني | u2@example.com |
+| fullNameAr | string | No |  | Full name (Arabic) - الاسم الكامل بالعربية | أحمد علي |
+| fullNameEn | string | No |  | Full name (English) - الاسم الكامل بالإنجليزية | Ahmed Ali |
+| statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
+| lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
+| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
+| roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
+| roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
+| roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
+| roles[].nameEn | string | No |  | Role name (English) - اسم الدور بالإنجليزية | Security administrator |
+| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| createdBy | string | No |  | Created by - أنشئ بواسطة | admin |
+| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| updatedBy | string | No |  | Updated by - حُدّث بواسطة | admin |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "userPk": 1,
+  "username": "u2",
+  "email": "u2@example.com",
+  "fullNameAr": "أحمد علي",
+  "fullNameEn": "Ahmed Ali",
+  "statusCode": "ACTIVE",
+  "isActiveFl": true,
+  "roles": [
+    {
+      "roleId": 1,
+      "code": "SEC_ADMIN",
+      "nameAr": "مدير الأمان",
+      "nameEn": "Security administrator"
+    }
+  ],
+  "createdBy": "admin",
+  "updatedBy": "admin"
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
 ## PUT /api/v1/sec/users/{id}
 
@@ -66,7 +145,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -262,7 +341,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -334,6 +413,7 @@ Schema: `UserCreateRequest` (application/json)
 | fullNameAr | string | Yes | maxLength: 200 | Full name (Arabic) - الاسم الكامل بالعربية | أحمد علي |
 | fullNameEn | string | Yes | maxLength: 200 | Full name (English) - الاسم الكامل بالإنجليزية | Ahmed Ali |
 | password | string | Yes | maxLength: 200 | Raw password, hashed server-side - كلمة المرور، تُجزَّأ في الخادم | N3wP@ssw0rd! |
+| roleIds | array<integer> | No |  | Optional role identifiers to assign at creation; omitted or empty creates the user with no roles - معرّفات الأدوار المطلوب إسنادها عند الإنشاء، اختيارية | [1, 2] |
 
 **Request Example**
 
@@ -343,7 +423,11 @@ Schema: `UserCreateRequest` (application/json)
   "email": "u2@example.com",
   "fullNameAr": "أحمد علي",
   "fullNameEn": "Ahmed Ali",
-  "password": "N3wP@ssw0rd!"
+  "password": "N3wP@ssw0rd!",
+  "roleIds": [
+    1,
+    2
+  ]
 }
 ```
 
@@ -361,7 +445,7 @@ Shape: `UserResponse`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |
@@ -463,7 +547,7 @@ Shape: `paginated list of UserResponse (see Pagination Envelope in index.md)`
 | statusCode | string | No |  | USER_STATUS code - رمز الحالة | ACTIVE |
 | lastLoginAt | string (date-time) | No |  | Last login timestamp - تاريخ آخر دخول |  |
 | isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| roles | array<RoleSummaryResponse> | No |  | Assigned roles, returned by the role-assignment API - الأدوار المُسندة |  |
+| roles | array<RoleSummaryResponse> | No |  | Assigned roles; empty when the user holds none - الأدوار المُسندة، ومصفوفة فارغة إن لم يحمل المستخدم أي دور |  |
 | roles[].roleId | integer (int64) | No |  | Role identifier - معرّف الدور | 1 |
 | roles[].code | string | No |  | Role code - رمز الدور | SEC_ADMIN |
 | roles[].nameAr | string | No |  | Role name (Arabic) - اسم الدور بالعربية | مدير الأمان |

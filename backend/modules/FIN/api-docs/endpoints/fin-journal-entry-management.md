@@ -289,11 +289,11 @@ Schema: `JournalEntrySearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: docNo (LIKE), docDate (EQUALS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL - ISO yyyy-MM-dd, send both bounds for a range), periodId (EQUALS), fiscalYearId (EQUALS), statusCode (EQUALS, IN - JOURNAL_STATUS), journalTypeCode (EQUALS, IN - JOURNAL_TYPE), eventReference (EQUALS), journalEntryPk (EQUALS, IN), postedAt / createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: journalEntryPk, docNo, docDate, journalTypeCode, statusCode, eventReference, postedAt, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |

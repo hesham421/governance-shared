@@ -125,7 +125,7 @@ Shared, module-independent mapping every business error code's `Status` resolves
 
 ## Contract Traceability
 
-Contract ids joined from `backend-execution-plan-fin.md` (API REGISTRY): **32 of 37** served endpoints carry one.
+Contract ids joined from `backend-execution-plan-fin.md` (API REGISTRY): **32 of 38** served endpoints carry one.
 
 Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
 
@@ -137,6 +137,7 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 | undeclared | — | PUT | `/api/v1/fin/event-rules/{id}/deactivate` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | PUT | `/api/v1/fin/dimensions/values/{id}/deactivate` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | PUT | `/api/v1/fin/allocation-rules/{id}/deactivate` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | POST | `/api/v1/fin/fiscal-years/search` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | POST | `/api/v1/fin/fiscal-periods/search` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 
 ## API Catalog
@@ -157,7 +158,7 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 | — | PUT | `/api/v1/fin/event-rules/{id}/deactivate` | Deactivate event-type rule | [deactivate_1](endpoints/fin-event-rule-management.md#put-apiv1finevent-rulesiddeactivate) |
 | API-FIN-010 | POST | `/api/v1/fin/event-rules` | Create event-type rule | [create_2](endpoints/fin-event-rule-management.md#post-apiv1finevent-rules) |
 | API-FIN-011 | POST | `/api/v1/fin/event-rules/{id}/lines` | Add rule line | [createRuleLine](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulesidlines) |
-| API-FIN-009 | POST | `/api/v1/fin/event-rules/search` | Search event-type rules | [search_3](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulessearch) |
+| API-FIN-009 | POST | `/api/v1/fin/event-rules/search` | Search event-type rules | [search_4](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulessearch) |
 
 ### FIN Dimension Management
 
@@ -167,7 +168,7 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 | API-FIN-006 | POST | `/api/v1/fin/dimensions` | Create dimension | [create_3](endpoints/fin-dimension-management.md#post-apiv1findimensions) |
 | API-FIN-007 | POST | `/api/v1/fin/dimensions/{id}/values` | Create dimension value | [createDimensionValue](endpoints/fin-dimension-management.md#post-apiv1findimensionsidvalues) |
 | API-FIN-008 | POST | `/api/v1/fin/dimensions/values/search` | Search dimension values | [searchDimensionValues](endpoints/fin-dimension-management.md#post-apiv1findimensionsvaluessearch) |
-| API-FIN-005 | POST | `/api/v1/fin/dimensions/search` | Search dimensions | [search_4](endpoints/fin-dimension-management.md#post-apiv1findimensionssearch) |
+| API-FIN-005 | POST | `/api/v1/fin/dimensions/search` | Search dimensions | [search_5](endpoints/fin-dimension-management.md#post-apiv1findimensionssearch) |
 
 ### FIN Allocation Rule Management
 
@@ -176,7 +177,7 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 | — | PUT | `/api/v1/fin/allocation-rules/{id}/deactivate` | Deactivate allocation rule | [deactivate_2](endpoints/fin-allocation-rule-management.md#put-apiv1finallocation-rulesiddeactivate) |
 | API-FIN-016 | POST | `/api/v1/fin/allocation-rules` | Create allocation rule | [create_4](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rules) |
 | API-FIN-017 | POST | `/api/v1/fin/allocation-rules/{id}/run` | Run an allocation rule | [run_1](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulesidrun) |
-| API-FIN-015 | POST | `/api/v1/fin/allocation-rules/search` | Search allocation rules | [search_5](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulessearch) |
+| API-FIN-015 | POST | `/api/v1/fin/allocation-rules/search` | Search allocation rules | [search_6](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulessearch) |
 
 ### FIN Account Management
 
@@ -185,7 +186,7 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 | API-FIN-003 | PUT | `/api/v1/fin/accounts/{id}` | Update account | [update](endpoints/fin-account-management.md#put-apiv1finaccountsid) |
 | API-FIN-004 | PUT | `/api/v1/fin/accounts/{id}/deactivate` | Deactivate account | [deactivate_3](endpoints/fin-account-management.md#put-apiv1finaccountsiddeactivate) |
 | API-FIN-002 | POST | `/api/v1/fin/accounts` | Create account | [create_5](endpoints/fin-account-management.md#post-apiv1finaccounts) |
-| API-FIN-001 | POST | `/api/v1/fin/accounts/search` | Search accounts | [search_6](endpoints/fin-account-management.md#post-apiv1finaccountssearch) |
+| API-FIN-001 | POST | `/api/v1/fin/accounts/search` | Search accounts | [search_7](endpoints/fin-account-management.md#post-apiv1finaccountssearch) |
 
 ### FIN Journal Entry Management
 
@@ -203,12 +204,13 @@ Resolve a contract id (`API-FIN-003`, ...) to a path **here** — the API column
 |---|---|---|---|---|
 | API-FIN-023 | POST | `/api/v1/fin/fiscal-years` | Create fiscal year and generate its periods | [create_1](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-years) |
 | API-FIN-027 | POST | `/api/v1/fin/fiscal-years/{id}/year-end-close` | Run year-end close | [yearEndClose](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-yearsidyear-end-close) |
+| — | POST | `/api/v1/fin/fiscal-years/search` | Search fiscal years | [search_2](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-yearssearch) |
 
 ### FIN Fiscal Period Management
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
-| — | POST | `/api/v1/fin/fiscal-periods/search` | Search fiscal periods | [search_2](endpoints/fin-fiscal-period-management.md#post-apiv1finfiscal-periodssearch) |
+| — | POST | `/api/v1/fin/fiscal-periods/search` | Search fiscal periods | [search_3](endpoints/fin-fiscal-period-management.md#post-apiv1finfiscal-periodssearch) |
 | API-FIN-025 | PATCH | `/api/v1/fin/fiscal-periods/{id}/soft-close` | Soft-close a fiscal period | [softClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidsoft-close) |
 | API-FIN-024 | PATCH | `/api/v1/fin/fiscal-periods/{id}/open` | Open a fiscal period | [open](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidopen) |
 | API-FIN-026 | PATCH | `/api/v1/fin/fiscal-periods/{id}/hard-close` | Hard-close a fiscal period (approval) | [hardClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidhard-close) |
