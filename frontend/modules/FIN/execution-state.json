@@ -338,8 +338,8 @@
       "phase": "F1",
       "sub": "F1-SCR-FIN-001",
       "endpoint": "where api-docs belong on this profile — no profile key declares the destination",
-      "detail": "origin/main carries FIN's api-docs on the old erp/ tree, while the v7 tree holding the FIN plan, its split packages and this partition was never pushed. The two halves never meet: a plan cannot be implemented without its api-docs. The backend filed the same finding as HUMAN (governance-shared@cb75bde) — the fix is a declared key in profile-summary.json, which gov.py publish generates and neither track can write.",
-      "resolution": "HUMAN — needs the factory to declare the key and the v7 tree to be published or retired."
+      "detail": "The two halves never met: origin/main carried FIN's api-docs on the old erp/ tree while the plan, its split packages and this partition lived on a branch origin had never seen. MERGED and pushed as governance-shared@34ffe0c — main merged into the v7 layout, 689 renames resolved by git, one file-location conflict (SEC dev-support.md) resolved, verified blob-by-blob with no content lost and the backend partition byte-identical. What the merge did NOT fix: platform/profile-summary.json still declares no key stating where api-docs belong, so the generator keeps inferring the destination — the inference that misfiled FIN's docs twice on 2026-09-19. The backend filed the same finding (governance-shared@cb75bde).",
+      "resolution": "HUMAN — the tree split is RESOLVED at 34ffe0c; what remains needs gov.py publish to emit a declared api-docs destination key in profile-summary.json, which neither track can write."
     }
   ]
 }
