@@ -34,9 +34,9 @@ Schema: `Page<T>`
 |---|---|---|---|---|
 | totalPages | integer (int32) | No |  |  |
 | totalElements | integer (int64) | No |  |  |
+| numberOfElements | integer (int32) | No |  |  |
 | first | boolean | No |  |  |
 | last | boolean | No |  |  |
-| numberOfElements | integer (int32) | No |  |  |
 | pageable | Pageable | No |  |  |
 | sort | Sort | No |  |  |
 | size | integer (int32) | No |  |  |
@@ -112,7 +112,7 @@ Shared, module-independent mapping every business error code's `Status` resolves
 
 ## Contract Traceability
 
-Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 31** served endpoints carry one.
+Contract ids joined from `backend-execution-plan-sec.md` (API REGISTRY): **27 of 34** served endpoints carry one.
 
 Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
 
@@ -120,8 +120,11 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 
 | Kind | API | Method | Path | What this means |
 |---|---|---|---|---|
+| undeclared | — | GET | `/api/v1/sec/users/{id}` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | GET | `/api/v1/sec/roles/{id}` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | PUT | `/api/v1/sec/roles/{id}` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | POST | `/api/v1/sec/signup-requests/search` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
+| undeclared | — | POST | `/api/v1/sec/dev/password-reset-token` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | POST | `/api/v1/sec/auth/logout` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 | undeclared | — | GET | `/api/v1/sec/roles/{id}/grants` | implemented but absent from the API REGISTRY — it has no contract id any other artifact can refer to |
 
@@ -131,6 +134,7 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
+| — | GET | `/api/v1/sec/users/{id}` | Get user by ID | [getById](endpoints/users.md#get-apiv1secusersid) |
 | API-SEC-007 | PUT | `/api/v1/sec/users/{id}` | Update user | [update](endpoints/users.md#put-apiv1secusersid) |
 | API-SEC-009 | DELETE | `/api/v1/sec/users/{id}` | Deactivate user | [deactivate](endpoints/users.md#delete-apiv1secusersid) |
 | API-SEC-010 | PATCH | `/api/v1/sec/users/{id}` | Reactivate user | [reactivate](endpoints/users.md#patch-apiv1secusersid) |
@@ -142,6 +146,7 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 
 | API | Method | Path | Summary | Doc |
 |---|---|---|---|---|
+| — | GET | `/api/v1/sec/roles/{id}` | Get role by ID | [getById_1](endpoints/roles.md#get-apiv1secrolesid) |
 | — | PUT | `/api/v1/sec/roles/{id}` | Update role | [update_1](endpoints/roles.md#put-apiv1secrolesid) |
 | API-SEC-013 | POST | `/api/v1/sec/roles` | Create role | [create_1](endpoints/roles.md#post-apiv1secroles) |
 | API-SEC-012 | POST | `/api/v1/sec/roles/search` | Search roles | [search_3](endpoints/roles.md#post-apiv1secrolessearch) |
@@ -178,6 +183,12 @@ Resolve a contract id (`API-SEC-007`, ...) to a path **here** — the API column
 | API-SEC-019 | POST | `/api/v1/sec/registry/screens` | Register a screen | [registerScreen](endpoints/module-registry.md#post-apiv1secregistryscreens) |
 | API-SEC-018 | POST | `/api/v1/sec/registry/modules` | Register a module | [registerModule](endpoints/module-registry.md#post-apiv1secregistrymodules) |
 | API-SEC-020 | POST | `/api/v1/sec/registry/actions` | Register an action | [registerAction](endpoints/module-registry.md#post-apiv1secregistryactions) |
+
+### Dev support
+
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| — | POST | `/api/v1/sec/dev/password-reset-token` | Issue a raw password-reset token (Dev only) | [issueToken](endpoints/dev-support.md#post-apiv1secdevpassword-reset-token) |
 
 ### Authentication
 
