@@ -268,5 +268,78 @@
     }
   ],
   "blocked": [],
-  "api_doc_gaps": []
+  "api_doc_gaps": [
+    {
+      "type": "ABSENT",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-003",
+      "endpoint": "read path for an event-type rule's lines (API-FIN-009/010 response, or GET /fin/event-rules/{id})",
+      "detail": "EventTypeRuleResponse carried no lines[] and no by-id read existed, so SCR-FIN-003's Detail pane had no data source; F1-SCR-FIN-003 asserted 'RuleLine (embedded in response)', which the published shape did not support.",
+      "resolution": "RESOLVED — lines[] + lineCount added on all three event-rule endpoints; verified field-by-field in governance-shared@9939077 on 2026-09-19."
+    },
+    {
+      "type": "ABSENT",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-007",
+      "endpoint": "POST /api/v1/fin/fiscal-years/search",
+      "detail": "FiscalPeriodResponse carries only a numeric fiscalYearId, so SCR-FIN-007's year master could render no attribute, and API-FIN-030/031 (fiscalYearId required) had no selector source.",
+      "resolution": "RESOLVED — endpoint served, returning code, startDate, endDate, statusCode, isActiveFl, periodCount; verified in governance-shared@9939077 on 2026-09-19."
+    },
+    {
+      "type": "UNDOCUMENTED",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-001",
+      "endpoint": "filters[].field / sortField on all nine FIN search endpoints",
+      "detail": "The generic SearchFilter DSL published no whitelist, so no client could know which field names were honoured; a dropped filter is indistinguishable from one that matched everything (the SEC sessions/search failure mode).",
+      "resolution": "RESOLVED — 'Supported fields:' and 'Supported:' published per endpoint, including the three structural filters parentAccountId, dimensionId and fiscalYearId; verified in governance-shared@9939077 on 2026-09-19."
+    },
+    {
+      "type": "DOC_CONTRADICTION",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-001",
+      "endpoint": "filters[].operator on lifted fields (parentAccountId, fiscalYearId, periodId, dimensionId, sourceAccountId)",
+      "detail": "HANDOVER-FE-fin-blockers-2026-09-19.md §6 states a non-EQUALS operator on these fields is silently coerced to EQUALS, not rejected. api-docs@9939077 states on every search that an operator a field does not list is rejected as 400 VALIDATION_ERROR naming it. Both cannot hold; error handling is being written against one of them.",
+      "resolution": "OPEN — asked in backend-prompt-fin-round2-2026-09-19.md §1."
+    },
+    {
+      "type": "CONTRACT_ID_ABSENT",
+      "phase": "F1",
+      "sub": "F1-SCR-FIN-001",
+      "endpoint": "six served endpoints: fiscal-years/search, fiscal-periods/search, and the four deactivates",
+      "detail": "registry-exec-be-fin.md still declares API-FIN-001..032, so six served endpoints carry no contract id and every api-docs regeneration drops them again. The frontend resolves them only through _inputs/api-docs-binding-fin.md (ADR-FIN-002), which is a workaround, not a contract. Neither track can edit the registry; the factory must issue the ids.",
+      "resolution": "OPEN — also reported from the backend side in erp/modules/FIN/backend/execution-state.json (governance-shared@0862bc7)."
+    },
+    {
+      "type": "ENV_PREREQUISITE",
+      "phase": "SEC-FE",
+      "sub": "SEC-FE",
+      "endpoint": "SEC module/screen/action registration for FIN (REQ-FIN-044), read back through API-SEC-027",
+      "detail": "Every FIN route is guarded by its page code being present in the effective menu (ADR-FIN-005, screen-level only per ADR-SEC-005). Until FIN registers its twelve page codes into SEC, no FIN route is reachable for any caller including an admin, so no built screen can be verified in a browser.",
+      "resolution": "OPEN — asked in backend-prompt-fin-frontend-blockers-2026-09-19.md §6(a), unanswered; re-asked in round-2 §4(a)."
+    },
+    {
+      "type": "ENV_PREREQUISITE",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-001",
+      "endpoint": "MDL seeding of FIN's eleven non-host lookup keys (REQ-FIN-045)",
+      "detail": "All twelve UXD-FIN-* resolve through GET /api/v1/mdl/lookups?type=. An unseeded key renders an empty select on a required field, and no client-side default is invented (ADR-FIN-004). Confirmation that V26 covers the eleven on a fresh database has not been given.",
+      "resolution": "OPEN — asked in backend-prompt-fin-frontend-blockers-2026-09-19.md §6(b), unanswered; re-asked in round-2 §4(b)."
+    },
+    {
+      "type": "CONTRACT_ID_ABSENT",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-001",
+      "endpoint": "GET /api/v1/mdl/lookups (API-MDL-011)",
+      "detail": "MDL's api-docs publishes this endpoint with no contract id, yet twelve UXD-FIN-* dependencies resolve through it. Same class of gap as the six FIN ids, in another module.",
+      "resolution": "OPEN — asked in backend-prompt-fin-frontend-blockers-2026-09-19.md §6(c)."
+    },
+    {
+      "type": "LAYOUT",
+      "phase": "F1",
+      "sub": "F1-SCR-FIN-001",
+      "endpoint": "where api-docs belong on this profile — no profile key declares the destination",
+      "detail": "origin/main carries FIN's api-docs on the old erp/ tree, while the v7 tree holding the FIN plan, its split packages and this partition was never pushed. The two halves never meet: a plan cannot be implemented without its api-docs. The backend filed the same finding as HUMAN (governance-shared@cb75bde) — the fix is a declared key in profile-summary.json, which gov.py publish generates and neither track can write.",
+      "resolution": "HUMAN — needs the factory to declare the key and the v7 tree to be published or retired."
+    }
+  ]
 }
