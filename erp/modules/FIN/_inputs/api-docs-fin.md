@@ -126,89 +126,95 @@ Shared, module-independent mapping every business error code's `Status` resolves
 | UPDATED | 200 OK |
 | VALIDATION_ERROR | 400 BAD_REQUEST |
 
+## Contract Traceability
+
+Contract ids joined from `backend-execution-plan-fin.md` (API REGISTRY): **37 of 37** served endpoints carry one.
+
+Resolve a contract id (`API-FIN-023`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
+
 ## API Catalog
 
 ### FIN Recurring Template Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/fin/recurring-templates/{id}/deactivate` | Deactivate recurring template | [deactivate](endpoints/fin-recurring-template-management.md#put-apiv1finrecurring-templatesiddeactivate) |
-| POST | `/api/v1/fin/recurring-templates` | Create recurring template | [create](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templates) |
-| POST | `/api/v1/fin/recurring-templates/{id}/run` | Run a recurring template | [run](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templatesidrun) |
-| POST | `/api/v1/fin/recurring-templates/search` | Search recurring templates | [search](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templatessearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-036 | PUT | `/api/v1/fin/recurring-templates/{id}/deactivate` | Deactivate recurring template | [deactivate](endpoints/fin-recurring-template-management.md#put-apiv1finrecurring-templatesiddeactivate) |
+| API-FIN-013 | POST | `/api/v1/fin/recurring-templates` | Create recurring template | [create](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templates) |
+| API-FIN-014 | POST | `/api/v1/fin/recurring-templates/{id}/run` | Run a recurring template | [run](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templatesidrun) |
+| API-FIN-012 | POST | `/api/v1/fin/recurring-templates/search` | Search recurring templates | [search](endpoints/fin-recurring-template-management.md#post-apiv1finrecurring-templatessearch) |
 
 ### FIN Event Rule Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/fin/event-rules/{id}/deactivate` | Deactivate event-type rule | [deactivate_1](endpoints/fin-event-rule-management.md#put-apiv1finevent-rulesiddeactivate) |
-| POST | `/api/v1/fin/event-rules` | Create event-type rule | [create_2](endpoints/fin-event-rule-management.md#post-apiv1finevent-rules) |
-| POST | `/api/v1/fin/event-rules/{id}/lines` | Add rule line | [createRuleLine](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulesidlines) |
-| POST | `/api/v1/fin/event-rules/search` | Search event-type rules | [search_3](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulessearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-034 | PUT | `/api/v1/fin/event-rules/{id}/deactivate` | Deactivate event-type rule | [deactivate_1](endpoints/fin-event-rule-management.md#put-apiv1finevent-rulesiddeactivate) |
+| API-FIN-010 | POST | `/api/v1/fin/event-rules` | Create event-type rule | [create_2](endpoints/fin-event-rule-management.md#post-apiv1finevent-rules) |
+| API-FIN-011 | POST | `/api/v1/fin/event-rules/{id}/lines` | Add rule line | [createRuleLine](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulesidlines) |
+| API-FIN-009 | POST | `/api/v1/fin/event-rules/search` | Search event-type rules | [search_3](endpoints/fin-event-rule-management.md#post-apiv1finevent-rulessearch) |
 
 ### FIN Dimension Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/fin/dimensions/values/{id}/deactivate` | Deactivate dimension value | [deactivateDimensionValue](endpoints/fin-dimension-management.md#put-apiv1findimensionsvaluesiddeactivate) |
-| POST | `/api/v1/fin/dimensions` | Create dimension | [create_3](endpoints/fin-dimension-management.md#post-apiv1findimensions) |
-| POST | `/api/v1/fin/dimensions/{id}/values` | Create dimension value | [createDimensionValue](endpoints/fin-dimension-management.md#post-apiv1findimensionsidvalues) |
-| POST | `/api/v1/fin/dimensions/values/search` | Search dimension values | [searchDimensionValues](endpoints/fin-dimension-management.md#post-apiv1findimensionsvaluessearch) |
-| POST | `/api/v1/fin/dimensions/search` | Search dimensions | [search_4](endpoints/fin-dimension-management.md#post-apiv1findimensionssearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-035 | PUT | `/api/v1/fin/dimensions/values/{id}/deactivate` | Deactivate dimension value | [deactivateDimensionValue](endpoints/fin-dimension-management.md#put-apiv1findimensionsvaluesiddeactivate) |
+| API-FIN-006 | POST | `/api/v1/fin/dimensions` | Create dimension | [create_3](endpoints/fin-dimension-management.md#post-apiv1findimensions) |
+| API-FIN-007 | POST | `/api/v1/fin/dimensions/{id}/values` | Create dimension value | [createDimensionValue](endpoints/fin-dimension-management.md#post-apiv1findimensionsidvalues) |
+| API-FIN-008 | POST | `/api/v1/fin/dimensions/values/search` | Search dimension values | [searchDimensionValues](endpoints/fin-dimension-management.md#post-apiv1findimensionsvaluessearch) |
+| API-FIN-005 | POST | `/api/v1/fin/dimensions/search` | Search dimensions | [search_4](endpoints/fin-dimension-management.md#post-apiv1findimensionssearch) |
 
 ### FIN Allocation Rule Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/fin/allocation-rules/{id}/deactivate` | Deactivate allocation rule | [deactivate_2](endpoints/fin-allocation-rule-management.md#put-apiv1finallocation-rulesiddeactivate) |
-| POST | `/api/v1/fin/allocation-rules` | Create allocation rule | [create_4](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rules) |
-| POST | `/api/v1/fin/allocation-rules/{id}/run` | Run an allocation rule | [run_1](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulesidrun) |
-| POST | `/api/v1/fin/allocation-rules/search` | Search allocation rules | [search_5](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulessearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-037 | PUT | `/api/v1/fin/allocation-rules/{id}/deactivate` | Deactivate allocation rule | [deactivate_2](endpoints/fin-allocation-rule-management.md#put-apiv1finallocation-rulesiddeactivate) |
+| API-FIN-016 | POST | `/api/v1/fin/allocation-rules` | Create allocation rule | [create_4](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rules) |
+| API-FIN-017 | POST | `/api/v1/fin/allocation-rules/{id}/run` | Run an allocation rule | [run_1](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulesidrun) |
+| API-FIN-015 | POST | `/api/v1/fin/allocation-rules/search` | Search allocation rules | [search_5](endpoints/fin-allocation-rule-management.md#post-apiv1finallocation-rulessearch) |
 
 ### FIN Account Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/fin/accounts/{id}` | Update account | [update](endpoints/fin-account-management.md#put-apiv1finaccountsid) |
-| PUT | `/api/v1/fin/accounts/{id}/deactivate` | Deactivate account | [deactivate_3](endpoints/fin-account-management.md#put-apiv1finaccountsiddeactivate) |
-| POST | `/api/v1/fin/accounts` | Create account | [create_5](endpoints/fin-account-management.md#post-apiv1finaccounts) |
-| POST | `/api/v1/fin/accounts/search` | Search accounts | [search_6](endpoints/fin-account-management.md#post-apiv1finaccountssearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-003 | PUT | `/api/v1/fin/accounts/{id}` | Update account | [update](endpoints/fin-account-management.md#put-apiv1finaccountsid) |
+| API-FIN-004 | PUT | `/api/v1/fin/accounts/{id}/deactivate` | Deactivate account | [deactivate_3](endpoints/fin-account-management.md#put-apiv1finaccountsiddeactivate) |
+| API-FIN-002 | POST | `/api/v1/fin/accounts` | Create account | [create_5](endpoints/fin-account-management.md#post-apiv1finaccounts) |
+| API-FIN-001 | POST | `/api/v1/fin/accounts/search` | Search accounts | [search_6](endpoints/fin-account-management.md#post-apiv1finaccountssearch) |
 
 ### FIN Journal Entry Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| POST | `/api/v1/fin/journal-entries` | Create manual journal entry | [createManual](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entries) |
-| POST | `/api/v1/fin/journal-entries/{id}/reverse` | Reverse a posted journal entry | [reverse](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriesidreverse) |
-| POST | `/api/v1/fin/journal-entries/search` | Search journal entries | [search_1](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriessearch) |
-| POST | `/api/v1/fin/journal-entries/from-event` | Build and post a journal entry from an accounting event | [buildFromEvent](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriesfrom-event) |
-| GET | `/api/v1/fin/journal-entries/{id}` | Read a journal entry with its lines | [read](endpoints/fin-journal-entry-management.md#get-apiv1finjournal-entriesid) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-019 | POST | `/api/v1/fin/journal-entries` | Create manual journal entry | [createManual](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entries) |
+| API-FIN-021 | POST | `/api/v1/fin/journal-entries/{id}/reverse` | Reverse a posted journal entry | [reverse](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriesidreverse) |
+| API-FIN-018 | POST | `/api/v1/fin/journal-entries/search` | Search journal entries | [search_1](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriessearch) |
+| API-FIN-020 | POST | `/api/v1/fin/journal-entries/from-event` | Build and post a journal entry from an accounting event | [buildFromEvent](endpoints/fin-journal-entry-management.md#post-apiv1finjournal-entriesfrom-event) |
+| API-FIN-022 | GET | `/api/v1/fin/journal-entries/{id}` | Read a journal entry with its lines | [read](endpoints/fin-journal-entry-management.md#get-apiv1finjournal-entriesid) |
 
 ### FIN Fiscal Year Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| POST | `/api/v1/fin/fiscal-years` | Create fiscal year and generate its periods | [create_1](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-years) |
-| POST | `/api/v1/fin/fiscal-years/{id}/year-end-close` | Run year-end close | [yearEndClose](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-yearsidyear-end-close) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-023 | POST | `/api/v1/fin/fiscal-years` | Create fiscal year and generate its periods | [create_1](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-years) |
+| API-FIN-027 | POST | `/api/v1/fin/fiscal-years/{id}/year-end-close` | Run year-end close | [yearEndClose](endpoints/fin-fiscal-year-management.md#post-apiv1finfiscal-yearsidyear-end-close) |
 
 ### FIN Fiscal Period Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| POST | `/api/v1/fin/fiscal-periods/search` | Search fiscal periods | [search_2](endpoints/fin-fiscal-period-management.md#post-apiv1finfiscal-periodssearch) |
-| PATCH | `/api/v1/fin/fiscal-periods/{id}/soft-close` | Soft-close a fiscal period | [softClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidsoft-close) |
-| PATCH | `/api/v1/fin/fiscal-periods/{id}/open` | Open a fiscal period | [open](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidopen) |
-| PATCH | `/api/v1/fin/fiscal-periods/{id}/hard-close` | Hard-close a fiscal period (approval) | [hardClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidhard-close) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-033 | POST | `/api/v1/fin/fiscal-periods/search` | Search fiscal periods | [search_2](endpoints/fin-fiscal-period-management.md#post-apiv1finfiscal-periodssearch) |
+| API-FIN-025 | PATCH | `/api/v1/fin/fiscal-periods/{id}/soft-close` | Soft-close a fiscal period | [softClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidsoft-close) |
+| API-FIN-024 | PATCH | `/api/v1/fin/fiscal-periods/{id}/open` | Open a fiscal period | [open](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidopen) |
+| API-FIN-026 | PATCH | `/api/v1/fin/fiscal-periods/{id}/hard-close` | Hard-close a fiscal period (approval) | [hardClose](endpoints/fin-fiscal-period-management.md#patch-apiv1finfiscal-periodsidhard-close) |
 
 ### FIN Financial Reports
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| GET | `/api/v1/fin/reports/trial-balance` | Trial balance | [trialBalance](endpoints/fin-financial-reports.md#get-apiv1finreportstrial-balance) |
-| GET | `/api/v1/fin/reports/income-statement` | Income statement | [incomeStatement](endpoints/fin-financial-reports.md#get-apiv1finreportsincome-statement) |
-| GET | `/api/v1/fin/reports/dimension` | Dimension report | [dimensionReport](endpoints/fin-financial-reports.md#get-apiv1finreportsdimension) |
-| GET | `/api/v1/fin/reports/balance-sheet` | Balance sheet | [balanceSheet](endpoints/fin-financial-reports.md#get-apiv1finreportsbalance-sheet) |
-| GET | `/api/v1/fin/reports/account-ledger` | Account ledger | [accountLedger](endpoints/fin-financial-reports.md#get-apiv1finreportsaccount-ledger) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-FIN-029 | GET | `/api/v1/fin/reports/trial-balance` | Trial balance | [trialBalance](endpoints/fin-financial-reports.md#get-apiv1finreportstrial-balance) |
+| API-FIN-031 | GET | `/api/v1/fin/reports/income-statement` | Income statement | [incomeStatement](endpoints/fin-financial-reports.md#get-apiv1finreportsincome-statement) |
+| API-FIN-032 | GET | `/api/v1/fin/reports/dimension` | Dimension report | [dimensionReport](endpoints/fin-financial-reports.md#get-apiv1finreportsdimension) |
+| API-FIN-030 | GET | `/api/v1/fin/reports/balance-sheet` | Balance sheet | [balanceSheet](endpoints/fin-financial-reports.md#get-apiv1finreportsbalance-sheet) |
+| API-FIN-028 | GET | `/api/v1/fin/reports/account-ledger` | Account ledger | [accountLedger](endpoints/fin-financial-reports.md#get-apiv1finreportsaccount-ledger) |
 
 <!-- fetched-from: endpoints/fin-account-management.md -->
 <!-- AUTO-GENERATED by api-doc-generator — do not edit manually -->
@@ -226,6 +232,8 @@ Shared, module-independent mapping every business error code's `Status` resolves
 **Update account**
 
 تعديل حساب
+
+Contract ID: `API-FIN-003`
 
 Operation ID: `update`
 
@@ -305,6 +313,8 @@ _(partial — only fields with a documented example are shown)_
 
 إلغاء تفعيل حساب
 
+Contract ID: `API-FIN-004`
+
 Operation ID: `deactivate_3`
 
 **Authentication**
@@ -362,6 +372,8 @@ _(partial — only fields with a documented example are shown)_
 **Create account**
 
 إنشاء حساب في دليل الحسابات
+
+Contract ID: `API-FIN-002`
 
 Operation ID: `create_5`
 
@@ -442,6 +454,8 @@ _(partial — only fields with a documented example are shown)_
 **Search accounts**
 
 بحث في دليل الحسابات
+
+Contract ID: `API-FIN-001`
 
 Operation ID: `search_6`
 
@@ -532,6 +546,8 @@ _(partial — only fields with a documented example are shown)_
 
 إلغاء تفعيل قاعدة توزيع تكلفة
 
+Contract ID: `API-FIN-037`
+
 Operation ID: `deactivate_2`
 
 **Authentication**
@@ -602,6 +618,8 @@ _(partial — only fields with a documented example are shown)_
 **Create allocation rule**
 
 إنشاء قاعدة توزيع تكلفة
+
+Contract ID: `API-FIN-016`
 
 Operation ID: `create_4`
 
@@ -702,6 +720,8 @@ _(partial — only fields with a documented example are shown)_
 **Run an allocation rule**
 
 تشغيل قاعدة توزيع تكلفة
+
+Contract ID: `API-FIN-017`
 
 Operation ID: `run_1`
 
@@ -804,6 +824,8 @@ _(partial — only fields with a documented example are shown)_
 **Search allocation rules**
 
 بحث في قواعد التوزيع
+
+Contract ID: `API-FIN-015`
 
 Operation ID: `search_5`
 
@@ -908,6 +930,8 @@ _(partial — only fields with a documented example are shown)_
 
 إلغاء تفعيل قيمة ضمن بُعد تحليلي
 
+Contract ID: `API-FIN-035`
+
 Operation ID: `deactivateDimensionValue`
 
 **Authentication**
@@ -959,6 +983,8 @@ _(partial — only fields with a documented example are shown)_
 **Create dimension**
 
 إنشاء بُعد تحليلي
+
+Contract ID: `API-FIN-006`
 
 Operation ID: `create_3`
 
@@ -1021,6 +1047,8 @@ _(partial — only fields with a documented example are shown)_
 **Create dimension value**
 
 إنشاء قيمة ضمن بُعد تحليلي
+
+Contract ID: `API-FIN-007`
 
 Operation ID: `createDimensionValue`
 
@@ -1096,6 +1124,8 @@ _(partial — only fields with a documented example are shown)_
 
 بحث في قيم البُعد التحليلي — معرّف البُعد يُرسَل ضمن مرشِّحات الطلب
 
+Contract ID: `API-FIN-008`
+
 Operation ID: `searchDimensionValues`
 
 **Authentication**
@@ -1167,6 +1197,8 @@ _(partial — only fields with a documented example are shown)_
 **Search dimensions**
 
 بحث في الأبعاد التحليلية
+
+Contract ID: `API-FIN-005`
 
 Operation ID: `search_4`
 
@@ -1247,6 +1279,8 @@ _(partial — only fields with a documented example are shown)_
 
 إلغاء تفعيل قاعدة نوع حدث محاسبي
 
+Contract ID: `API-FIN-034`
+
 Operation ID: `deactivate_1`
 
 **Authentication**
@@ -1294,6 +1328,8 @@ _(partial — only fields with a documented example are shown)_
 **Create event-type rule**
 
 إنشاء قاعدة نوع حدث محاسبي
+
+Contract ID: `API-FIN-010`
 
 Operation ID: `create_2`
 
@@ -1356,6 +1392,8 @@ _(partial — only fields with a documented example are shown)_
 **Add rule line**
 
 إضافة سطر إلى قاعدة نوع الحدث
+
+Contract ID: `API-FIN-011`
 
 Operation ID: `createRuleLine`
 
@@ -1440,6 +1478,8 @@ _(partial — only fields with a documented example are shown)_
 
 بحث في قواعد أنواع الأحداث
 
+Contract ID: `API-FIN-009`
+
 Operation ID: `search_3`
 
 **Authentication**
@@ -1520,6 +1560,8 @@ _(partial — only fields with a documented example are shown)_
 
 ميزان المراجعة المُشتق حيًا
 
+Contract ID: `API-FIN-029`
+
 Operation ID: `trialBalance`
 
 **Authentication**
@@ -1589,6 +1631,8 @@ Shape: `TrialBalanceResponse`
 **Income statement**
 
 قائمة الدخل
+
+Contract ID: `API-FIN-031`
 
 Operation ID: `incomeStatement`
 
@@ -1672,6 +1716,8 @@ Shape: `IncomeStatementResponse`
 
 تقرير الأبعاد حسب تركيبة الحساب وقيمة البُعد
 
+Contract ID: `API-FIN-032`
+
 Operation ID: `dimensionReport`
 
 **Authentication**
@@ -1742,6 +1788,8 @@ Shape: `DimensionReportResponse`
 **Balance sheet**
 
 الميزانية العمومية
+
+Contract ID: `API-FIN-030`
 
 Operation ID: `balanceSheet`
 
@@ -1815,6 +1863,8 @@ Shape: `BalanceSheetResponse`
 **Account ledger**
 
 دفتر الحساب المُشتق حيًا من القيود المُرحَّلة
+
+Contract ID: `API-FIN-028`
 
 Operation ID: `accountLedger`
 
@@ -1920,6 +1970,8 @@ Shape: `AccountLedgerResponse`
 
 البحث في الفترات المحاسبية
 
+Contract ID: `API-FIN-033`
+
 Operation ID: `search_2`
 
 **Authentication**
@@ -1997,6 +2049,8 @@ _(partial — only fields with a documented example are shown)_
 
 إغلاق ناعم لفترة محاسبية
 
+Contract ID: `API-FIN-025`
+
 Operation ID: `softClose`
 
 **Authentication**
@@ -2054,6 +2108,8 @@ _(partial — only fields with a documented example are shown)_
 
 فتح فترة محاسبية
 
+Contract ID: `API-FIN-024`
+
 Operation ID: `open`
 
 **Authentication**
@@ -2110,6 +2166,8 @@ _(partial — only fields with a documented example are shown)_
 **Hard-close a fiscal period (approval)**
 
 إغلاق صارم لفترة محاسبية باعتماد
+
+Contract ID: `API-FIN-026`
 
 Operation ID: `hardClose`
 
@@ -2176,6 +2234,8 @@ _(partial — only fields with a documented example are shown)_
 **Create fiscal year and generate its periods**
 
 إنشاء سنة مالية وتوليد فتراتها
+
+Contract ID: `API-FIN-023`
 
 Operation ID: `create_1`
 
@@ -2272,6 +2332,8 @@ _(partial — only fields with a documented example are shown)_
 **Run year-end close**
 
 تشغيل إقفال نهاية السنة وتوليد قيدي الإقفال والافتتاح
+
+Contract ID: `API-FIN-027`
 
 Operation ID: `yearEndClose`
 
@@ -2461,6 +2523,8 @@ _(partial — only fields with a documented example are shown)_
 
 إنشاء وترحيل قيد يومية يدوي
 
+Contract ID: `API-FIN-019`
+
 Operation ID: `createManual`
 
 **Authentication**
@@ -2607,6 +2671,8 @@ _(partial — only fields with a documented example are shown)_
 
 عكس قيد يومية مُرحَّل
 
+Contract ID: `API-FIN-021`
+
 Operation ID: `reverse`
 
 **Authentication**
@@ -2708,6 +2774,8 @@ _(partial — only fields with a documented example are shown)_
 **Search journal entries**
 
 بحث في قيود اليومية
+
+Contract ID: `API-FIN-018`
 
 Operation ID: `search_1`
 
@@ -2830,6 +2898,8 @@ _(partial — only fields with a documented example are shown)_
 **Build and post a journal entry from an accounting event**
 
 بناء وترحيل قيد يومية من حدث محاسبي
+
+Contract ID: `API-FIN-020`
 
 Operation ID: `buildFromEvent`
 
@@ -2957,6 +3027,8 @@ _(partial — only fields with a documented example are shown)_
 
 عرض قيد يومية مع سطوره وأبعاده
 
+Contract ID: `API-FIN-022`
+
 Operation ID: `read`
 
 **Authentication**
@@ -3070,6 +3142,8 @@ _(partial — only fields with a documented example are shown)_
 
 إلغاء تفعيل قالب قيد متكرر
 
+Contract ID: `API-FIN-036`
+
 Operation ID: `deactivate`
 
 **Authentication**
@@ -3147,6 +3221,8 @@ _(partial — only fields with a documented example are shown)_
 **Create recurring template**
 
 إنشاء قالب قيد متكرر
+
+Contract ID: `API-FIN-013`
 
 Operation ID: `create`
 
@@ -3259,6 +3335,8 @@ _(partial — only fields with a documented example are shown)_
 
 تشغيل قالب قيد متكرر
 
+Contract ID: `API-FIN-014`
+
 Operation ID: `run`
 
 **Authentication**
@@ -3360,6 +3438,8 @@ _(partial — only fields with a documented example are shown)_
 **Search recurring templates**
 
 بحث في القوالب المتكررة
+
+Contract ID: `API-FIN-012`
 
 Operation ID: `search`
 
