@@ -1,44 +1,40 @@
-# governance-shared
+# governance-shared — the ERP project repo
 
-The single copy of everything that crosses repository boundaries between
-`factory`, `backend` and `frontend`. Consumed as a **git submodule**, so each
-repository still holds inside its own checkout everything it reads.
+The project repo of the **ERP Platform**, driven by the governance factory
+(`hesham421/factory`, a pure tool that carries no project). Everything generated
+or project-variable lives here; every consumer (backend, frontend) mounts this
+repo as a **git submodule** and pins a commit, so each still reads inside its
+own checkout what the factory wrote once.
 
 ## Layout
 
-One module, one place: everything about a module sits under one folder, and
-inside it each writer has its own sub-path. `{profile_id}` is the factory's
-active profile (`erp` today) — the factory resolves it from `factory.yaml →
-paths`, so the tree carries no product name the tools would have to know.
-
 ```
-platform/                          written by factory  · read by all
-  modules-registry.json                the module registry (derived from the filesystem)
-  profile-summary.json                 every factory fact a consumer needs to set a module up
-  rules/                               governance rules, atom definitions, contracts
-{profile_id}/                      the analysis partition — the factory's governance output
-  domain-profile.md                    written by factory · read by all
-  project-registry.md                  written by factory · read by all
-  system-test-*.md                     written by factory · read by all
-  decisions/{MOD}/                     written by factory · ADR stream (incl. dialogue decisions)
-  modules/{MOD}/
-    P0/ P0_5/ P1/ P2/ P3_1/ P3_2/      written by factory · the stage artifacts
-    test_gen/  api_verify/             written by factory · standalone stages
-    _state/  _inputs/                  written by factory · generated state, fetched inputs (+ .meta.json: the commit each input was read at)
-    packages/                          written by factory · split output — the delivery each track reads
-    manifest.json                      written by factory · the module's index + the factory's own execution state
-    api-docs/                          written by BACKEND  · read by factory + frontend (generated from the running app)
-    backend/                           written by BACKEND  · execution-state.json, test-api/
-    frontend/                          written by FRONTEND · execution-state.json
+project.yaml                    this project's facts: the active profile id, the consumer repos (user-edited; the factory never writes it)
+profiles/                       the domain profile(s) — <id>.yaml + <id>/knowledge/ (validated by the factory's schema)
+analysis/                       written by the factory
+  domain/domain-profile.md          the entry gate
+  platform/                         project-registry.md · system tests · PROJECT-OVERVIEW.md (rendered: profile summary + phase tables)
+  modules/{MOD}/[vN/]               every stage artifact · _state/ (generated current state, gate + analyze records, briefs) · _inputs/ (+ .meta.json: the commit each input was read at) · manifest.json (the module's index + the factory's execution state)
+  decisions/{MOD}/                  the ADR stream, dialogue decisions included
+backend/modules/{MOD}/
+  api-docs/                     written by BACKEND  · read by factory + frontend (generated from the running app, never edited)
+  packages/                     written by factory  · the delivered backend execution + test packages, versioned like the module
+  execution-state.json, …       written by BACKEND  · its own execution progress (the factory reads it: gov.py feedback)
+frontend/modules/{MOD}/
+  packages/                     written by factory  · the delivered frontend packages
+  execution-state.json, …       written by FRONTEND
+platform/                       written by factory  · rules, modules-registry.json, profile-summary.json (read by all)
+history/  _archive-v5/          this project's history (pre-v6 artefacts, loaded by nothing)
 ```
 
 ## Two rules that make this work
 
-**One writer per path.** `CODEOWNERS` enforces it. A path with two writers is a
-path where drift is invisible.
+**One writer per path.** `CODEOWNERS` enforces it, most specific wins — the
+same reading the factory uses when it decides what a regeneration may delete.
+A path with two writers is a path where drift is invisible.
 
 **api-docs exist once.** The frontend holds no copy — it reads
-`{profile_id}/modules/{MOD}/api-docs/` directly, read-only. Two copies cannot diverge
+`backend/modules/{MOD}/api-docs/` directly, read-only. Two copies cannot diverge
 if there is only one. The isolation between partitions governs *writing*, not
 reading, and two copies is the problem being solved.
 
@@ -51,12 +47,16 @@ regenerate. A hand edit here is erased by the next generation.
 ## Pinned on purpose
 
 Each consumer pins a commit rather than tracking a branch, so a frozen module
-version keeps the exact api-docs it was built against, and every upgrade is a
-deliberate, reviewable change.
+version (`{mod}-vN`, tagged **here**) keeps the exact api-docs it was built
+against, and every upgrade is a deliberate, reviewable change. `gov.py
+fetch-inputs` records which commit it read a track's publication at.
 
 Each consumer narrows what it *sees* with `gov.py sparse --track <t>`: the
-patterns are derived from the same declarations (`factory.yaml → repos.shared.partitions`,
-`tracks`, the stages' `track`), never listed by hand.
+patterns are derived from the factory's declarations (`factory.yaml →
+project.partitions`, `tracks`, the stages' `track`), never listed by hand.
+
+Driving it: `export GOV_PROJECT_CHECKOUT=/path/to/this/repo` in the shell the
+factory runs from (the factory's README has the operator steps).
 
 Design: `factory/GOVERNANCE-SHARED-DESIGN.md` — the partitions, the one-writer
 table (§3, enforced by `CODEOWNERS`) and the pinned-pointer rule (§4).

@@ -1,15 +1,18 @@
 {
   "profile": "erp",
+  "project_file": "project.yaml",
   "paths": {
-    "domain": "erp",
-    "platform": "erp",
-    "modules": "erp/modules",
-    "decisions": "erp/decisions"
+    "profiles": "profiles",
+    "domain": "analysis/domain",
+    "platform": "analysis/platform",
+    "modules": "analysis/modules",
+    "decisions": "analysis/decisions",
+    "overview": "analysis/platform/PROJECT-OVERVIEW.md"
   },
   "module_dirs": {
     "state_dir": "_state",
     "inputs_dir": "_inputs",
-    "packages_dir": "packages",
+    "input_meta": "{file}.meta.json",
     "manifest_file": "manifest.json",
     "analyze_report": "_state/analyze-{stage}.md",
     "gate_record": "_state/gate-pass-{pass}.md",
@@ -19,7 +22,8 @@
     "backend": {
       "repo": "backend",
       "exec_stage": "P3.1",
-      "partition": "erp/modules/{MOD}/backend",
+      "partition": "backend/modules/{MOD}",
+      "delivery": "backend/modules/{MOD}/packages",
       "plans": {
         "exec": {
           "package": "backend-execution",
@@ -170,7 +174,8 @@
     "frontend": {
       "repo": "frontend",
       "exec_stage": "P3.2",
-      "partition": "erp/modules/{MOD}/frontend",
+      "partition": "frontend/modules/{MOD}",
+      "delivery": "frontend/modules/{MOD}/packages",
       "plans": {
         "exec": {
           "package": "frontend-execution",

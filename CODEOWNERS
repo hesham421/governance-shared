@@ -1,17 +1,11 @@
-# Ownership is the mechanism, not the convention: a write outside an owned path
-# is refused at review, not noticed in a diff a week later. The table this
-# enforces is GOVERNANCE-SHARED-DESIGN.md §3 — change them together.
-#
-# Most specific wins. The factory owns everything except three sub-paths per
-# module, because it is the only party that reconciles both sides.
+# One writer per path — derived from factory.yaml → project.partitions by gov.py new-project.
+# Most specific wins. Replace the placeholders with the maintainers of each writer.
 
-*                               @hesham421
+*                                   @hesham421
+/backend/modules/*/                 @hesham421
+/analysis/modules/*/                @hesham421
+/frontend/modules/*/                @hesham421
+/backend/modules/*/api-docs/        @hesham421
+/backend/modules/*/packages/        @hesham421
+/frontend/modules/*/packages/       @hesham421
 
-# The backend authors api-docs from the running app, and records its own
-# execution progress. The factory READS both; it never writes them.
-/erp/modules/*/api-docs/        @hesham421
-/erp/modules/*/backend/         @hesham421
-
-# The frontend records its own execution progress. It reads api-docs and
-# packages; it writes neither.
-/erp/modules/*/frontend/        @hesham421
