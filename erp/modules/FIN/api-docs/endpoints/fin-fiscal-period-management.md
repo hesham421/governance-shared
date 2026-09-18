@@ -14,7 +14,7 @@
 
 البحث في الفترات المحاسبية
 
-Operation ID: `search_2`
+Operation ID: `search_3`
 
 **Authentication**
 
@@ -26,11 +26,11 @@ Schema: `FiscalPeriodSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: fiscalYearId (EQUALS - the parent scope), statusCode (EQUALS, IN - PERIOD_STATE), periodNo (EQUALS, comparison operators), nameAr / nameEn (LIKE), startDate / endDate (EQUALS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL - ISO yyyy-MM-dd), fiscalPeriodPk (EQUALS, IN), createdAt (comparison operators). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortField | string | No |  | Sort field. Supported: fiscalPeriodPk, periodNo, nameAr, nameEn, startDate, endDate, statusCode, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
 | sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
 | page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
 | size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |

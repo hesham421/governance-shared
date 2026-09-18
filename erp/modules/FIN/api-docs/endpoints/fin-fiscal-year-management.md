@@ -5,6 +5,7 @@
 
 - `API-FIN-023` — [POST /api/v1/fin/fiscal-years](#post-apiv1finfiscal-years)
 - `API-FIN-027` — [POST /api/v1/fin/fiscal-years/{id}/year-end-close](#post-apiv1finfiscal-yearsidyear-end-close)
+- [POST /api/v1/fin/fiscal-years/search](#post-apiv1finfiscal-yearssearch)
 
 ## POST /api/v1/fin/fiscal-years
 
@@ -289,3 +290,111 @@ _(partial — only fields with a documented example are shown)_
   }
 }
 ```
+
+## POST /api/v1/fin/fiscal-years/search
+
+**Search fiscal years**
+
+بحث في السنوات المالية
+
+Operation ID: `search_2`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+### Request Body
+
+Schema: `FiscalYearSearchRequest` (application/json)
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| filters | array<SearchFilter> | No |  | Filter criteria. Supported fields: code (LIKE), statusCode (EQUALS, IN - FISCAL_YEAR_STATUS), startDate / endDate (EQUALS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL - ISO yyyy-MM-dd), isActiveFl (EQUALS), fiscalYearPk (EQUALS, IN), createdAt (EQUALS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL). Any other field, or an operator a field does not list, is rejected as 400 VALIDATION_ERROR naming it - معايير التصفية |  |
+| filters[].field | string | No |  |  |  |
+| filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
+| filters[].value | object | No |  |  |  |
+| sortField | string | No |  | Sort field. Supported: fiscalYearPk, code, startDate, endDate, statusCode, isActiveFl, createdAt. Any other value is rejected as 400 FIN-400-INVALID-SORT - حقل الترتيب |  |
+| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
+| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
+| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
+
+**Request Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "page": 0,
+  "size": 20
+}
+```
+
+### Response `200` — OK
+
+Shape: `paginated list of FiscalYearResponse (see Pagination Envelope in index.md)`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| fiscalYearPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| code | string | No |  | Fiscal year code - رمز السنة المالية | 2026 |
+| startDate | string (date) | No |  | First day of the fiscal year - أول أيام السنة المالية | 2026-01-01 |
+| endDate | string (date) | No |  | Last day of the fiscal year - آخر أيام السنة المالية | 2026-12-31 |
+| statusCode | string | No |  | Status, FISCAL_YEAR_STATUS lookup - حالة السنة | OPEN |
+| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| periodCount | integer (int32) | No |  | Number of periods - عدد الفترات | 12 |
+| periods | array<FiscalPeriodResponse> | No |  | Generated periods - الفترات المولَّدة |  |
+| periods[].fiscalPeriodPk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| periods[].fiscalYearId | integer (int64) | No |  | Owning fiscal year id - معرّف السنة المالية | 1 |
+| periods[].periodNo | integer (int32) | No |  | Period number within the year - رقم الفترة | 1 |
+| periods[].nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | الفترة 1 |
+| periods[].nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Period 1 |
+| periods[].startDate | string (date) | No |  | First day of the period - أول أيام الفترة | 2026-01-01 |
+| periods[].endDate | string (date) | No |  | Last day of the period - آخر أيام الفترة | 2026-01-31 |
+| periods[].statusCode | string | No |  | Status, PERIOD_STATE lookup - حالة الفترة | OPEN |
+| periods[].closedBy | string | No |  | Close-approval principal - معتمد الإغلاق | finance.approver |
+| periods[].closedAt | string (date-time) | No |  | Close-approval moment - وقت اعتماد الإغلاق |  |
+| periods[].createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| periods[].createdBy | string | No |  | Created by - أنشئ بواسطة |  |
+| periods[].updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| periods[].updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
+| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| createdBy | string | No |  | Created by - أنشئ بواسطة |  |
+| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "fiscalYearPk": 1,
+  "code": 2026,
+  "startDate": "2026-01-01",
+  "endDate": "2026-12-31",
+  "statusCode": "OPEN",
+  "isActiveFl": true,
+  "periodCount": 12,
+  "periods": [
+    {
+      "fiscalPeriodPk": 1,
+      "fiscalYearId": 1,
+      "periodNo": 1,
+      "nameAr": "الفترة 1",
+      "nameEn": "Period 1",
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-31",
+      "statusCode": "OPEN",
+      "closedBy": "finance.approver"
+    }
+  ]
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
