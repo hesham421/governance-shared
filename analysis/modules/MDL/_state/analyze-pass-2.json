@@ -4,7 +4,7 @@
   "scope": "pass:2",
   "counts": {
     "CRITICAL": 1,
-    "MAJOR": 29,
+    "MAJOR": 18,
     "MINOR": 14
   },
   "clean": false,
@@ -251,94 +251,6 @@
     },
     {
       "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-001` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-002` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-003` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-004` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-005` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-006` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-007` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-008` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-009` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-010` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
-      "clause": "C8.3",
-      "check": "registry-agree",
-      "message": "`API-MDL-011` registered in `registry-exec-be` but not defined in `api-docs`",
-      "artifact": "registry-exec-be",
-      "line": 0
-    },
-    {
-      "severity": "MAJOR",
       "clause": "C8.4",
       "check": "endpoint-agrees",
       "message": "`API-MDL-001` is stated as `GET /lookup-types`, which `api-docs` does not publish \u2014 the published surface serves `POST /api/v1/mdl/lookup-types`. The published surface is the authority; correct the row, or record the divergence at the row rather than only in an ADR",
@@ -502,7 +414,7 @@
       "ui-ux-spec"
     ],
     "inputs": {
-      "api-docs": "04a2363844bc923624c6b8a8344a522e1be3f683c09f394d8112a0d3268de55f",
+      "api-docs": "d2b1266bf81aefa9f4c4f63f9ebf3ea787c31c7061798cb7b318a333315cf802",
       "backend-execution-plan": "11f8e2a64752c75b2d63e4d0d4f0b46b45a587e6af537c41cdfaa0abecf10bfa",
       "backend-test-plan": "3be5c3fb603c9cab7b16d1623282e0789109d30dc10f98d949bce43c456b6f14",
       "business-policies": "a24f602bf4a6d363ef4ae9707c7ad02d2613f675262ec0643d52b6e19ae07610",
@@ -520,8 +432,8 @@
       "registry-srs": "2ca257f9002cc2cccf8a74c8f4c5608b56a54166fd02efe04dddd12e622661bb",
       "srs": "c5920de1f783587b574b9d2fd92b13de9e6cd78be203555810ac060e82447321",
       "system-test-index": "67d6136b3df1bf00744f47bfd9cc34af944ee01ea67fd14d1999655c0af389b9",
-      "ui-ux-spec": "ff6aad930a70ef0de1c1d147e60e9c7c1bbd72d7727485a4a8b47c16d075611b"
+      "ui-ux-spec": "2617c0e9e142761b4b5350be1330446c9c856807113a8091b6c3451bc4bc5279"
     },
-    "at": "2026-09-19T11:19:11+00:00"
+    "at": "2026-09-19T11:25:56+00:00"
   }
 }
