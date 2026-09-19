@@ -7,6 +7,8 @@
 
 قراءة قيم اللوكب حسب مفتاح النوع
 
+Contract ID: `API-MDL-011`
+
 Operation ID: `readByKey`
 
 **Authentication**

@@ -34,11 +34,11 @@ Schema: `PageLookup<T>`
 |---|---|---|---|---|
 | totalPages | integer (int32) | No |  |  |
 | totalElements | integer (int64) | No |  |  |
+| pageable | Pageable | No |  |  |
+| sort | Sort | No |  |  |
 | first | boolean | No |  |  |
 | last | boolean | No |  |  |
 | numberOfElements | integer (int32) | No |  |  |
-| pageable | Pageable | No |  |  |
-| sort | Sort | No |  |  |
 | size | integer (int32) | No |  |  |
 | number | integer (int32) | No |  |  |
 | empty | boolean | No |  |  |
@@ -65,6 +65,7 @@ Source: `com/erp/common/search/PageableBuilder.java`
 | MDL_400_REORDER_MISMATCH | `MDL-400-REORDER-MISMATCH` | exception/MdlErrorCodes.java | VALIDATION_ERROR | 400 BAD_REQUEST |
 | MDL_404_TYPE_KEY | `MDL-404-TYPE-KEY` | exception/MdlErrorCodes.java | NOT_FOUND | 404 NOT_FOUND |
 | VALIDATION_ERROR | `VALIDATION_ERROR` | com/erp/common/web/GlobalExceptionHandler.java |  | 400 BAD_REQUEST |
+| METHOD_NOT_ALLOWED | `METHOD_NOT_ALLOWED` | com/erp/common/web/GlobalExceptionHandler.java |  | 405 METHOD_NOT_ALLOWED |
 | DATA_INTEGRITY_VIOLATION | `DATA_INTEGRITY_VIOLATION` | com/erp/common/web/GlobalExceptionHandler.java |  | 409 CONFLICT |
 | ACCESS_DENIED | `ACCESS_DENIED` | com/erp/common/web/GlobalExceptionHandler.java |  | 403 FORBIDDEN |
 | INTERNAL_ERROR | `INTERNAL_ERROR` | com/erp/common/web/GlobalExceptionHandler.java |  | 500 INTERNAL_SERVER_ERROR |
@@ -89,30 +90,36 @@ Shared, module-independent mapping every business error code's `Status` resolves
 | UPDATED | 200 OK |
 | VALIDATION_ERROR | 400 BAD_REQUEST |
 
+## Contract Traceability
+
+Contract ids joined from `backend-execution-plan-mdl.md` (API REGISTRY): **11 of 11** served endpoints carry one.
+
+Resolve a contract id (`API-MDL-007`, ...) to a path **here** — the API column of the catalog below, and the `Contract ID` line of each endpoint. A planning document states the path that was proposed, not the one that is served.
+
 ## API Catalog
 
 ### Lookup Value Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/mdl/lookup-values/{id}` | Update lookup value | [update](endpoints/lookup-value-management.md#put-apiv1mdllookup-valuesid) |
-| DELETE | `/api/v1/mdl/lookup-values/{id}` | Deactivate lookup value | [deactivate](endpoints/lookup-value-management.md#delete-apiv1mdllookup-valuesid) |
-| POST | `/api/v1/mdl/lookup-types/values/search` | Search lookup values of a type | [search_1](endpoints/lookup-value-management.md#post-apiv1mdllookup-typesvaluessearch) |
-| POST | `/api/v1/mdl/lookup-types/{id}/values` | Create lookup value | [create_1](endpoints/lookup-value-management.md#post-apiv1mdllookup-typesidvalues) |
-| PATCH | `/api/v1/mdl/lookup-types/{id}/values/reorder` | Reorder lookup values | [reorder](endpoints/lookup-value-management.md#patch-apiv1mdllookup-typesidvaluesreorder) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-MDL-007 | PUT | `/api/v1/mdl/lookup-values/{id}` | Update lookup value | [update](endpoints/lookup-value-management.md#put-apiv1mdllookup-valuesid) |
+| API-MDL-008 | DELETE | `/api/v1/mdl/lookup-values/{id}` | Deactivate lookup value | [deactivate](endpoints/lookup-value-management.md#delete-apiv1mdllookup-valuesid) |
+| API-MDL-006 | POST | `/api/v1/mdl/lookup-types/{id}/values` | Create lookup value | [create_1](endpoints/lookup-value-management.md#post-apiv1mdllookup-typesidvalues) |
+| API-MDL-005 | POST | `/api/v1/mdl/lookup-types/values/search` | Search lookup values of a type | [search](endpoints/lookup-value-management.md#post-apiv1mdllookup-typesvaluessearch) |
+| API-MDL-009 | PATCH | `/api/v1/mdl/lookup-types/{id}/values/reorder` | Reorder lookup values | [reorder](endpoints/lookup-value-management.md#patch-apiv1mdllookup-typesidvaluesreorder) |
 
 ### Lookup Type Management
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| PUT | `/api/v1/mdl/lookup-types/{id}` | Update lookup type | [update_1](endpoints/lookup-type-management.md#put-apiv1mdllookup-typesid) |
-| DELETE | `/api/v1/mdl/lookup-types/{id}` | Deactivate lookup type | [deactivate_1](endpoints/lookup-type-management.md#delete-apiv1mdllookup-typesid) |
-| POST | `/api/v1/mdl/lookup-types/search` | Search lookup types | [search](endpoints/lookup-type-management.md#post-apiv1mdllookup-typessearch) |
-| POST | `/api/v1/mdl/lookup-types` | Create lookup type | [create](endpoints/lookup-type-management.md#post-apiv1mdllookup-types) |
-| POST | `/api/v1/mdl/lookup-types/by-owner/search` | Browse lookup type registry by owner | [browseByOwner](endpoints/lookup-type-management.md#post-apiv1mdllookup-typesby-ownersearch) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-MDL-003 | PUT | `/api/v1/mdl/lookup-types/{id}` | Update lookup type | [update_1](endpoints/lookup-type-management.md#put-apiv1mdllookup-typesid) |
+| API-MDL-004 | DELETE | `/api/v1/mdl/lookup-types/{id}` | Deactivate lookup type | [deactivate_1](endpoints/lookup-type-management.md#delete-apiv1mdllookup-typesid) |
+| API-MDL-002 | POST | `/api/v1/mdl/lookup-types` | Create lookup type | [create](endpoints/lookup-type-management.md#post-apiv1mdllookup-types) |
+| API-MDL-001 | POST | `/api/v1/mdl/lookup-types/search` | Search lookup types | [search_1](endpoints/lookup-type-management.md#post-apiv1mdllookup-typessearch) |
+| API-MDL-010 | POST | `/api/v1/mdl/lookup-types/by-owner/search` | Browse lookup type registry by owner | [browseByOwner](endpoints/lookup-type-management.md#post-apiv1mdllookup-typesby-ownersearch) |
 
 ### Lookup Consumer API
 
-| Method | Path | Summary | Doc |
-|---|---|---|---|
-| GET | `/api/v1/mdl/lookups` | Read lookup values by type key | [readByKey](endpoints/lookup-consumer-api.md#get-apiv1mdllookups) |
+| API | Method | Path | Summary | Doc |
+|---|---|---|---|---|
+| API-MDL-011 | GET | `/api/v1/mdl/lookups` | Read lookup values by type key | [readByKey](endpoints/lookup-consumer-api.md#get-apiv1mdllookups) |
