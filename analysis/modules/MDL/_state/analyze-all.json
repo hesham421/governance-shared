@@ -64,7 +64,7 @@
     "C9.2": 14,
     "C9.3": 1,
     "C9.4": 2,
-    "C9.5": 0,
+    "C9.5": 11,
     "C9.6": 1,
     "C9.7": 2,
     "C9.8": 3,
@@ -74,9 +74,7 @@
     "C10.1": 14,
     "C10.2": 13
   },
-  "vacuous": [
-    "C9.5"
-  ],
+  "vacuous": [],
   "metrics": [
     {
       "id": "us-req",
@@ -116,8 +114,8 @@
         "UXD"
       ],
       "total": 13,
-      "covered": 13,
-      "pct": 100.0
+      "covered": 11,
+      "pct": 84.6
     }
   ],
   "findings": [
@@ -180,20 +178,20 @@
       "business-policies": "a24f602bf4a6d363ef4ae9707c7ad02d2613f675262ec0643d52b6e19ae07610",
       "db-script": "48282888a62dcd262d37897c40a2efd090f34ab7b13b393d4acbfe0c7eb4bf15",
       "domain-profile": "a34a15da38fa0ea53becec281b6072c51844ff4b9a96581af3a85a7d9b1e6822",
-      "flow-diagram": "00b9cc0bfba7f8d7071ae5585b681760a6f0bf072f758adbfb420a4c94a2df26",
-      "frontend-execution-plan": "d14bd76d08c2c0f1e5e8747bb2ae8fa5a99526e0e485abe9a990e08c0fd55dd9",
+      "flow-diagram": "742c883a618a2742a6299f4930459ff7d311d055776f7085f2d12165b577aca5",
+      "frontend-execution-plan": "d285af5fa46f271b487bdf67f0b189e555d9112d13a4b3a20e5ea2bcd8d01d7b",
       "module-registry": "00c50cdcb36d25d8d01b1ffe59601983321f5185c2cfbe8e273b393ad29462fd",
       "platform-summary": "f34badb101d03d55af07076d04fee4c2647627707292b246f7bc78c449dfc649",
       "prd": "1d14a3ab6d7e190f06748a56be0cd23d633f82ef3b2f802f31badbc54be24d58",
       "project-registry": "ec44d4ec4c0be792eb2f477865e2a6df963f279dca2bee9752896f03bcc8a4ec",
       "registry-db": "996c980be5b2cdd2208a18644eebd0ccd860a35d2840afa81c84102f476af807",
       "registry-exec-be": "f8686a688a2012ddfa4c9d68736b9b26850cfc66c25f2cecec55e81834443329",
-      "registry-exec-fe": "bb3f81bb0712f1ab6b6999c0d6dd22c27579b4b917a8d3d7216641b408c501c5",
+      "registry-exec-fe": "61e118209a1f663fddfa6306e621b3bcf0e53f80e2c4664c065eead846724e3e",
       "registry-srs": "933699b39a44ee63666445a77b1335379203a066fef7ac00dab8493c90a8b702",
       "srs": "c793e9173b82193d278cb74cd68a46102892e5adb7d9da764b875eca80d21ace",
       "system-test-index": "67d6136b3df1bf00744f47bfd9cc34af944ee01ea67fd14d1999655c0af389b9",
-      "ui-ux-spec": "2617c0e9e142761b4b5350be1330446c9c856807113a8091b6c3451bc4bc5279"
+      "ui-ux-spec": "044b0c7df1a69dc3b30fc1af66e5f3fb63c9a0cd366f9272cd4a06482b3dd02f"
     },
-    "at": "2026-09-19T11:54:27+00:00"
+    "at": "2026-09-19T12:02:30+00:00"
   }
 }

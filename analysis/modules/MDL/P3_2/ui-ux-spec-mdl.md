@@ -1,219 +1,172 @@
-# UI / UX SPEC — البيانات المرجعية / Master Data Lookup (MDL)
+# UI/UX SPEC — البيانات المرجعية / Master Data Lookup (MDL)
 ══════════════════════════════════════════════════════════════════
 Module : MDL   Version : v1   Profile : erp   Stage : P3.2 (Part A — UX design)
-Screens: 2 — SCR-MDL-001..002 · UXD : 1 — UXD-MDL-001 (the owner module, owned by SEC)
-Fields : copied from SRS A3 per owning ENT, reconciled against the published DTOs
-ADRs   : ADR-MDL-002 … ADR-MDL-008 (all ACCEPTED, all non-breaking; ADR-MDL-001 superseded
-         by ADR-MDL-008)
+Sources: srs-mdl.md (fields, rules, permissions — the functional ceiling) · prd-mdl.md (intent)
+Mints  : SCR-MDL-001, SCR-MDL-002 · UXD-MDL-001
+Scope  : design intent — final component names, routes and code are Part B's
 ══════════════════════════════════════════════════════════════════
 
-كل كتلة أدناه تصف شاشة واحدة: حقولها وصلاحياتها منسوخة من SRS بلا إضافة ولا حذف، ونمط
-الحاوية وموضع التفصيل الثانوي مقرَّران هنا. «نيّة التصميم» اقتراح مُعلَّم بوضوح ولا يُقرأ
-كقاعدة.
-
-Each block below is one screen. Fields and permissions are copied from the SRS; the container
-pattern and the placement of any secondary detail are decided here; `Design intent` is a
-clearly marked proposal, never a rule.
-
-**Error states** are stated generically per §A.3; the catalog codes and their routing belong to
-Part B (`frontend-execution-plan-mdl.md` → F2).
-
-**No lookup of MDL's own.** SRS §A6 records it: MDL introduces no domain-specific coded list,
-because it *is* the mechanism every other module's lists run on. So no field on either screen
-below is a lookup-backed code, and the `UXD-*` this module mints is not a lookup dependency —
-it is the owner-module field, whose valid set the security module owns.
-
----
-
-## CROSS-MODULE DISPLAY DEPENDENCIES — UXD-MDL-001
-
-### UXD-MDL-001 — الوحدة المالكة / Owner module
-Traces      : REQ-MDL-002, AC-MDL-002, REQ-MDL-013, AC-MDL-013
-Owner       : SEC — `ModuleRegistry` (ENT-SEC-004), the authoritative list of registered
-              modules · resolved through `API-SEC-021`
-              (`POST /api/v1/sec/registry/search`, `registry-exec-be-sec.md`)
-Screens     : SCR-MDL-001 (the owner select on the type form, the owner filter, and the owner
-              column) · SCR-MDL-002 (the group heading every type is listed under)
-Field       : `ENT-MDL-001.ownerModuleCode`
-Display     : MDL stores and sends the module **code**; the set of valid codes, and any label
-              shown beside one, come from the security module's registry. MDL owns no module
-              list and holds no copy of one
-Why it is a UXD and not a lookup : SRS §A8 records `ModuleRegistry` as the one entity MDL
-              consumes, through XM-MDL-001 (SOFT-READ, application layer). RULE-MDL-001 refuses
-              a type whose owner module has no registry row, so the field's valid set is
-              literally another module's data — §A.5's definition exactly. It is not
-              `ACCOUNT_TYPE`-style lookup data, and it is not read through the consumer
-              read-by-key endpoint
-Behaviour   : the control is a **select** over registered module codes, never free text — a
-              free-text field would let a user type a code the server is certain to refuse when
-              the valid set is readable (ADR-MDL-004). One shared hook, long-lived cache,
-              serving both screens. If the registry read is unreachable the select renders
-              empty and the create affordance says so; no module code is invented and no
-              fallback to free text is offered
-Placement   : one control inside the type form's own field group — a bounded list of module
-              codes, shorter than the fields beside it and carrying no save of its own. It is
-              therefore `inline`, and is *not* the "entity picker" §A.4 sends to a second level
-
-`frontend-execution-plan-mdl.md` cites `UXD-MDL-001` and never a foreign path or a foreign
-`API-*` id: C9.5 requires every `API-*` cited in that plan to be defined in MDL's own api-docs,
-and another module's id is by construction not. The endpoint is named here, once, where the
-dependency is defined.
-
-The same applies to the screen gate: a caller's effective menu is the security module's to
-serve, and MDL publishes no permission-read endpoint. That is an authorization gate, not a
-displayed field — no screen renders its content as data — so it is recorded in the plan's
-SEC-FE phase rather than minted here. §A.5 mints on a displayed field.
-
----
+هذه المواصفة لا تضيف حقلًا ولا قاعدة ولا صلاحية ليست في SRS، ولا تُسقط شيئًا منها؛ كل سطر أدناه
+منقول عن مصدره ومنسوب إليه / This spec adds no field, rule or permission the SRS does not have and
+omits none of them: every line below is copied from its source and attributed to it.
 
 ## SCR-MDL-001 — اللوكبات العامة / Generic Lookups
 Traces            : REQ-MDL-001, REQ-MDL-002, REQ-MDL-003, REQ-MDL-004, REQ-MDL-005, REQ-MDL-006, REQ-MDL-007, REQ-MDL-008, REQ-MDL-009, REQ-MDL-010, AC-MDL-001, AC-MDL-002, AC-MDL-003, AC-MDL-004, AC-MDL-005, AC-MDL-006, AC-MDL-007, AC-MDL-008, AC-MDL-009, AC-MDL-010, UXD-MDL-001
-UI pattern        : header + repeating lines — SRS SCR-REQ-MDL-001 B1 "رئيسي (أنواع) + تفصيلي
-                    (قيم) قابل لإعادة الترتيب" (master types + reorderable detail values)
-Container pattern : TREE_MASTER_DETAIL (§A.4 rule 1 — a lookup type and its values are
-                    parent–child data; the type list beside the selected type's values, with
-                    the entry form permanently visible in the detail pane)
-Sub-views         : Search (the type list) · Detail (that type's values, with their own search
-                    and entry) · Entry (the type form, and the value form) — all under this ONE
-                    SCR, per the composite-screen rule
-Composition       : owner-module select — inline · type entry — none beyond that select · value collection — second level (its own route under the selected type, never an editor inside the type form) · submits: one per entry sub-view, never two on one surface
-                    Read it part by part: this screen's parts answer differently, and §A.4
-                    asks each one to answer for itself.
-                    · **owner-module select — `inline`.** One control over a bounded list of
-                      registered module codes (UXD-MDL-001), shorter than the four fields
-                      beside it and with no save of its own. It is part of the type form's
-                      field group, not a second job.
-                    · **the type entry — no other secondary detail (`none`).** `key`,
-                      `ownerModuleCode`, `nameAr`, `nameEn` and nothing else; the published
-                      `LookupTypeCreateRequest` / `LookupTypeUpdateRequest` carry exactly that
-                      and no child collection travels with them.
-                    · **the value collection — `second level`.** The values of the selected
-                      type are their own records with their own published endpoints, so they
-                      are never a repeating child-row editor inside the type form: the type
-                      form saves the type alone, and a value is created or edited in the value
-                      entry of the detail pane. That second level satisfies §A.4's four
-                      properties, with its first one read for an entry rather than a picker:
-                      (1) it writes its OWN record through its own endpoint and never a
-                      fragment of the type form's state — no save made anywhere on this screen
-                      can be lost by pressing the other one, because neither form holds the
-                      other's data; (2) it is opened from the route
-                      (`…/:typeId/values/new`, `…/:typeId/values/:valueId/edit`), so browser
-                      back closes it, dismissing closes only it, and the address is shareable;
-                      (3) it carries no scroll region of its own — it scrolls with the detail
-                      pane it sits in; (4) it renders as a sibling of the value list, never
-                      inside a row element.
-                    · **submits: one per entry sub-view.** The type form writes the type; the
-                      value form writes one value; drag-to-reorder is its own explicit ordered
-                      submit on the value list and belongs to no form. No surface ever carries
-                      two save affordances, and no save on this screen owns two calls — so the
-                      ordered-calls rule of §A.4 has nothing to order here, which is stated
-                      because its absence is a decision and not an omission.
-Fields shown      : from ENT-MDL-001 (type) —
-                    lookupTypePk — معرّف نوع اللوكب / LookupType id (read-only, system, not
-                    rendered as a field) ·
-                    key — المفتاح / Key (required; editable on create, **read-only on edit** —
-                    RULE-MDL-003, and `LookupTypeUpdateRequest` does not carry it) ·
-                    ownerModuleCode — رمز الوحدة المالكة / Owner module code (required;
-                    editable on create, read-only on edit — not in the update request; a select
-                    over registered modules, UXD-MDL-001) ·
-                    nameAr — الاسم (عربي) / Name (Arabic) (required, editable) ·
-                    nameEn — الاسم (إنجليزي) / Name (English) (required, editable) ·
-                    isActiveFl — نشط / Active (read-only — changed only by the deactivate
-                    affordance; ADR-MDL-006) ·
-                    createdBy, createdAt, updatedBy, updatedAt — audit fields (read-only)
-                    from ENT-MDL-002 (value) —
-                    lookupValuePk — معرّف قيمة اللوكب / LookupValue id (read-only, system) ·
-                    lookupTypeId — نوع اللوكب / Lookup type (read-only — taken from the
-                    selected parent, never typed) ·
-                    code — الرمز / Code (required; editable on create, **read-only on edit** —
-                    `LookupValueUpdateRequest` does not carry it; unique within the type —
-                    RULE-MDL-002) ·
-                    nameAr — الاسم (عربي) / Name (Arabic) (required, editable) ·
-                    nameEn — الاسم (إنجليزي) / Name (English) (required, editable) ·
-                    sortOrder — ترتيب العرض / Sort order (required, editable — and also what
-                    the drag-to-reorder gesture writes) ·
-                    isActiveFl — نشط / Active (read-only — changed only by the deactivate
-                    affordance; SRS B3 lists it as an input and no write DTO accepts it —
-                    ADR-MDL-006) ·
-                    audit fields (read-only)
-                    Search filters, per SRS B2: master — key (LIKE), ownerModuleCode (EXACT),
-                    isActiveFl (EXACT); detail — code (LIKE). Each corresponds to a result
-                    column.
-Permissions       : MDL_LOOKUPS — VIEW (both lists), CREATE (a type, and a value under it),
-                    UPDATE (edit either level, and reorder the values), DELETE (deactivate at
-                    either level — the SRS Access summary's DELETE column is the deactivate,
-                    and no hard delete exists). Names as the backend declares them:
-                    `PERM_MDL_LOOKUPS_VIEW`, `PERM_MDL_LOOKUPS_CREATE`,
-                    `PERM_MDL_LOOKUPS_UPDATE`, `PERM_MDL_LOOKUPS_DELETE`. Reference only —
-                    enforcement is the server's. The screen-level grant is the whole
-                    granularity: per-type permissions are an explicit SRS scope exception
-Cross-module data : ownerModuleCode → UXD-MDL-001 (owner module: SEC)
-States            : empty · loading · error · offline — empty has two readings the screen keeps apart (no type matches the filters, and no type registered on the platform at all, which names creating the first one) and a third in the detail pane (a type with no values yet); loading is per pane, the two load independently; error is generic here, its catalog codes and routing being Part B's; offline is unspecified because the SRS states no offline behaviour
-Design intent     : PROPOSAL — the values are the working surface, so the selected type's
-                    values fill the detail pane immediately rather than behind a second click,
-                    and the type list stays visible so a manager moving between lists never
-                    loses the set. The key sits first on the type form with its immutability
-                    stated beside it rather than discovered on edit. Inactive values stay
-                    visible in the detail pane, marked — a manager needs to see what consumers
-                    no longer receive, which is exactly what the consumer read hides.
-                    Deactivate confirms at both levels and names the consequence in the SRS's
-                    own terms: consumer reads stop returning the row (RULE-MDL-004 for a type,
-                    REQ-MDL-009 for a value), and there is no activate affordance to undo it
-                    (ADR-MDL-005). Reordering is a drag on the value rows, submitted as one
-                    ordered list rather than as a per-row edit.
-Mockup            : not produced this run (optional per §A.7)
+Screen requirement: SCR-REQ-MDL-001 · page code MDL_LOOKUPS
+UI pattern        : header + repeating lines — رئيسي (أنواع) + تفصيلي (قيم) قابل لإعادة الترتيب / master (types) + detail (values), reorderable — من SRS §B1 حرفيًا، غير مُبدَّل / verbatim from the SRS screen entry, not changed here
+Sub-views         : Search (الأنواع / the types, مُرقَّم الصفحات على الخادم / server-paged) · Entry (نوع / a type) · Detail (قيم النوع المختار / the selected type's values) · Entry (قيمة / a value) — أربعة سطوح تحت SCR واحد / four surfaces under ONE SCR
+Fields shown      : كل حقول ENT-MDL-001 وENT-MDL-002 كما في SRS §A3 — الجدولان أدناه، بتسمية لكل لغة وبعلم القراءة فقط / every field of ENT-MDL-001 and ENT-MDL-002 as SRS §A3 states them — the two tables below, label per language, read-only flags marked
+Composition       : جزء القيم ليس تفصيلًا ثانويًا داخل نموذج النوع / the values are not secondary detail inside the type's form — inline: none · summary row + second level: صفّ لكل قيمة في جزء القيم، ومحرّرها يُفتح من ذلك الصفّ / a row per value in the values pane, its editor opened from that row · submits: one per open form, never two open at once
+Permissions       : SRS §B4 — MDL_LOOKUPS: VIEW (بوابة / gateway) · CREATE · UPDATE · DELETE (تعطيل ناعم / soft deactivate) — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
+Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC)
+States            : empty — لا نوع يطابق المرشِّحات / no type matches the filters · النوع المختار بلا قيم / the selected type has no values (رسالتان مختلفتان / two distinct messages) · loading — هيكل عظمي للقائمة، ومؤشّر موضعي لجزء القيم / a list skeleton and a local indicator on the values pane · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message (الرموز نفسها من نصيب الجزء ب / the codes themselves are Part B's) · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
+
+**حقول ENT-MDL-001 — نوع اللوكب / LookupType**
+
+| Field | التسمية (ar) | Label (en) | Read-only | من / from |
+|---|---|---|---|---|
+| lookupTypePk | معرّف نوع اللوكب | LookupType id | نعم / yes — لا يُعرض كمرجع عمل / never shown as a business reference | SRS §A3 |
+| key | المفتاح | Key | عند التعديل / on edit — RULE-MDL-003 | SRS §A3, §B3 |
+| ownerModuleCode | رمز الوحدة المالكة | Owner module code | عند التعديل / on edit | SRS §A3, §B3 |
+| nameAr | الاسم (عربي) | Name (Arabic) | لا / no | SRS §A3 |
+| nameEn | الاسم (إنجليزي) | Name (English) | لا / no | SRS §A3 |
+| isActiveFl | نشط | Active | نعم / yes — يتغيّر بإجراء التعطيل وحده / changed by the deactivate action alone | SRS §B3 |
+| createdBy · createdAt · updatedBy · updatedAt | أنشأه · تاريخ الإنشاء · عدّله · تاريخ التعديل | Created by · Created at · Updated by · Updated at | نعم / yes — يملؤها النظام / system-filled | SRS §A3 |
+
+**حقول ENT-MDL-002 — قيمة اللوكب / LookupValue**
+
+| Field | التسمية (ar) | Label (en) | Read-only | من / from |
+|---|---|---|---|---|
+| lookupValuePk | معرّف القيمة | LookupValue id | نعم / yes | SRS §A3 |
+| lookupTypeId | نوع اللوكب | Lookup type | نعم / yes — يُحدَّد باختيار النوع لا بكتابته / set by selecting the type, never typed | SRS §A3 |
+| code | الرمز | Code | عند التعديل / on edit — RULE-MDL-002 يحرس تفرّده ضمن النوع / its uniqueness within the type | SRS §A3, §B3 |
+| nameAr | الاسم (عربي) | Name (Arabic) | لا / no | SRS §A3 |
+| nameEn | الاسم (إنجليزي) | Name (English) | لا / no | SRS §A3 |
+| sortOrder | الترتيب | Sort order | لا / no — يُضبط بالتحرير أو بإعادة الترتيب / set by editing or by reordering | SRS §A3, §B3 |
+| isActiveFl | نشط | Active | نعم / yes — يتغيّر بإجراء التعطيل وحده / changed by the deactivate action alone | SRS §B3 |
+| createdBy · createdAt · updatedBy · updatedAt | أنشأها · تاريخ الإنشاء · عدّلها · تاريخ التعديل | Created by · Created at · Updated by · Updated at | نعم / yes — يملؤها النظام / system-filled | SRS §A3 |
+
+**المرشِّحات وأعمدة النتيجة / filters and result columns** — SRS §B2, one column per filter:
+المفتاح (LIKE) · الوحدة المالكة (EXACT) · الاسم في اللغتين معًا (LIKE) · الحالة (EXACT) على القائمة
+الرئيسية؛ ورمز القيمة (LIKE) على الجزء التفصيلي، محصورًا بالنوع المختار (REQ-MDL-005). القائمة
+الرئيسية مُرقَّمة الصفحات على الخادم، والجزء التفصيلي يُعرض كاملًا مرتَّبًا بـ`sortOrder` لأنه محصور
+بنوع واحد / the master list is server-paged; the detail is shown whole, ordered by `sortOrder`,
+because it is confined to one type.
+
+**الإجراءات / actions** — SRS §B3: حفظ نوع · حفظ تعديل النوع · تعطيل النوع · حفظ قيمة · حفظ تعديل
+القيمة · تعطيل القيمة · إعادة الترتيب / save type · save type changes · deactivate type · save
+value · save value changes · deactivate value · reorder. لا إجراء تفعيل ولا محو نهائي على أي من
+المستويين / no activate and no hard delete at either level — SRS §B3 and §A2 (re-activation is out
+of scope), which is why deactivation is stated as one-way where it is offered.
+
+**لماذا هذا التوزيع / why this composition.** الشاشة تحرّر سجلّين من كيانين مختلفين، لا سجلًّا واحدًا
+ذا مجموعة أبناء / this screen edits records of two different entities, not one record with a child
+set: `LookupTypeCreateRequest` لا يحمل قيمًا أصلًا، وكل قيمة سجلّ قائم بذاته له عملياته / a type's
+write carries no values at all, and each value is a record of its own. فالنوع لا "يحفظ قيمه" ولا
+يمكن أن يحفظها / a type therefore does not — and cannot — save its values. جزء القيم صفّ ملخَّص لكل
+قيمة (الرمز، التسميتان، الترتيب، الحالة) ومحرّر يُفتح منه كمستوى ثانٍ فوقه، وهو:
+1. **يحفظ سجلّه هو بحفظ واحد** — القيمة كيان مستقل، لا حقل في نموذج النوع؛ ولا يُفتح محرّر قيمة ونموذج
+   نوع معًا أبدًا، فلا يرى المستخدم زرَّي حفظ في وقت واحد / it saves its OWN record with ONE submit,
+   and a value editor and a type form are never open at once, so two Save buttons never face the
+   user together;
+2. **حالة فتحه في حالة التنقّل** حيث تعيش بقية حالة التنقّل، فالرجوع يغلقه، والصرف يغلقه وحده،
+   والرابط العميق يفتحه / its open state lives in navigation state: back closes it, dismissing
+   closes only it, and a deep link opens it;
+3. **لا منطقة تمرير خاصة به** — القائمة تتمرّر مع الجسم الذي تسكنه / it carries no scroll region of
+   its own; the list scrolls with the body it sits in;
+4. **يُرسم شقيقًا للمستوى الأول** لا داخل عنصره / it renders as a SIBLING of the first level, never
+   inside its element.
+إعادة الترتيب إجراء واحد على القائمة كلها — المجموعة المرتَّبة تُرسل مرة واحدة — لا تحريرًا لحقل في
+نموذج / reordering is one action over the whole list: the ordered set is submitted once, not
+edited field by field. ولا إجراء على هذه الشاشة يملك نداءين / no action of this screen owns two
+calls, so nothing here needs an ordered pair.
+
+## SCR-MDL-002 — سجل أنواع اللوكب حسب المالك / Lookup-type registry by owner
+Traces            : REQ-MDL-013, AC-MDL-013, UXD-MDL-001
+Screen requirement: SCR-REQ-MDL-002 · page code MDL_TYPE_REGISTRY
+UI pattern        : true hierarchy (parent/child) — وحدة مالكة → أنواعها / owner module → its types — من SRS §B1 حرفيًا / verbatim from the SRS screen entry
+Sub-views         : Search (مرشِّحان / two filters) · Browse (المجموعات / the groups) — لا سطح إدخال البتة / no entry surface at all (SRS §B3: read-only browse)
+Fields shown      : حقول ENT-MDL-001 المعروضة بالإشارة، كلها للقراءة / the displayed fields of ENT-MDL-001, every one read-only — الجدول أدناه / the table below
+Composition       : none — سجل للقراءة فقط بلا تفصيل ثانوي ولا مُنتقٍ ولا مجموعة أبناء تُحرَّر / a read-only browse with no secondary detail, no picker and no editable child set · submits: none — الشاشة لا تكتب شيئًا / the screen writes nothing
+Permissions       : SRS §B4 — MDL_TYPE_REGISTRY: VIEW (بوابة / gateway) وحدها؛ لا CREATE ولا UPDATE ولا DELETE / VIEW alone — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
+Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC) — هنا عنوان المجموعة نفسه / here it is the group heading itself
+States            : empty — لا وحدة مالكة تطابق المرشِّحات / no owner module matches the filters (مجموعة بلا أنواع لا تُعاد أصلًا / a group with no types is not returned at all) · loading — هيكل عظمي للمجموعات / a skeleton over the groups · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
+
+| Field | التسمية (ar) | Label (en) | Read-only | من / from |
+|---|---|---|---|---|
+| ownerModuleCode | الوحدة المالكة | Owner module | نعم / yes — عنوان المجموعة / the group heading | SRS §B2, AC-MDL-013 |
+| key | المفتاح | Key | نعم / yes | SRS §B2, AC-MDL-013 |
+| nameAr | الاسم (عربي) | Name (Arabic) | نعم / yes | AC-MDL-013 |
+| nameEn | الاسم (إنجليزي) | Name (English) | نعم / yes | AC-MDL-013 |
+
+**المرشِّحان / the two filters** — SRS §B2: الوحدة المالكة (EXACT، وهو عنوان المجموعة نفسه) والمفتاح
+(LIKE)، ولكلٍّ عمود نتيجة. المجموعة تُعاد كاملة بلا ترقيم صفحات، والأنواع الفعّالة وحدها تدخل السجل
+(REQ-MDL-013)، فلا مرشِّح حالة هنا / the groups come back whole with no paging, and only active
+types enter the registry, so there is no active-state filter on this screen.
+
+**الإجراء الوحيد / the only action** — فتح النوع في الشاشة العامة / open the type in Generic
+Lookups (SRS §B3): انتقال إلى SCR-MDL-001 بالنوع مختارًا، بحارس تلك الشاشة نفسه / a navigation to
+SCR-MDL-001 with that type selected, under that screen's own guard.
 
 ---
 
-## SCR-MDL-002 — سجل أنواع اللوكب حسب المالك / Lookup-type registry by owner
-Traces            : REQ-MDL-011, REQ-MDL-012, REQ-MDL-013, AC-MDL-011, AC-MDL-012, AC-MDL-013, UXD-MDL-001
-UI pattern        : true hierarchy (parent/child) — SRS SCR-REQ-MDL-002 B1 "وحدة مالكة →
-                    أنواعها" (owner module → its types)
-Container pattern : FULL_PAGE (no entry sub-view — ADR-MDL-003; the screen is a read-only
-                    browse, so §A.4's decision order, which chooses where a form lives, has
-                    nothing to place. The hierarchy is rendered as the grouped list the
-                    endpoint returns)
-Sub-views         : none — a single grouped browse (SRS B3 "read-only browse; no create/update
-                    here")
-Composition       : none — no form, no picker, no child-row editor, no attachment list: a read-only grouped browse has no secondary detail to place · submits: none, this screen writes nothing (SRS SCR-REQ-MDL-002 B3; ADR-MDL-003)
-                    `none` is the honest answer here and it is still an answer: the grouping
-                    arrives from the server as groups and is not composed on the client, the
-                    filters live in the route's search params, and the one affordance the
-                    screen offers — a link into SCR-MDL-001 with that type selected — is a
-                    route change, not a second job growing inside this one.
-Fields shown      : the group, from the response —
-                    ownerModuleCode — رمز الوحدة المالكة / Owner module code (the group
-                    heading; UXD-MDL-001)
-                    per type in the group, from ENT-MDL-001 —
-                    lookupTypePk (read-only, system, not rendered as a field) ·
-                    key — المفتاح / Key (read-only) ·
-                    nameAr — الاسم (عربي) / Name (Arabic) (read-only) ·
-                    nameEn — الاسم (إنجليزي) / Name (English) (read-only) ·
-                    isActiveFl — نشط / Active (read-only) ·
-                    audit fields (read-only)
-                    Search filters, per SRS B2: ownerModuleCode (EXACT), key (LIKE) — both
-                    correspond to result columns. There is no paging: the endpoint takes
-                    filters alone and returns the whole grouped set, and `isActiveFl` is not a
-                    client filter here — the service always restricts to active types.
-                    All fields are read-only: this screen writes nothing.
-Permissions       : MDL_TYPE_REGISTRY — VIEW only (`PERM_MDL_TYPE_REGISTRY_VIEW`). The SRS
-                    Access summary gives this screen no CREATE, UPDATE or DELETE, which is the
-                    same statement as B3's "management happens on SCR-REQ-MDL-001"
-Cross-module data : ownerModuleCode → UXD-MDL-001 (owner module: SEC) — here it is the grouping
-                    itself, not a field of a form
-States            : empty · loading · error · offline — empty has two readings kept apart (no type matches the filters, and no owner has registered a type yet); loading covers the one grouped read; error is generic here, the catalog codes being Part B's; offline is unspecified, the SRS stating no offline behaviour
-Design intent     : PROPOSAL — the grouping is the screen, so each owner module is a heading
-                    with its types beneath it and the count of types beside it; a reader's
-                    first question is which module registered what. Every type row links to
-                    SCR-MDL-001 with that type selected, because reviewing and managing are
-                    two steps of one task and this screen deliberately does neither half of the
-                    second. The filters live in the route's search params so a narrowed
-                    registry view is shareable, which is the only state this screen has.
-                    The consumer read (REQ-MDL-011, REQ-MDL-012) has no representation on this
-                    screen at all: its caller is another module's backend (ADR-MDL-007). What a
-                    user sees of it is indirect — a type deactivated on SCR-MDL-001 stops
-                    appearing in this registry's active set, and stops being served to
-                    consumers, for the same reason.
-Mockup            : not produced this run
+## التبعيات العابرة للوحدات في طبقة العرض / Cross-module display dependencies
 
+### UXD-MDL-001 — الوحدة المالكة تُقرأ من سجل وحدات الأمان / The owner module is read from the security module's registry
+Traces      : REQ-MDL-001, REQ-MDL-002, REQ-MDL-013, AC-MDL-001, AC-MDL-002, AC-MDL-013
+Screens     : SCR-MDL-001 (حقل إدخال عند الإنشاء، وعمود، ومرشِّح / an input on create, a column and a filter) · SCR-MDL-002 (عنوان المجموعة / the group heading)
+Field       : `ENT-MDL-001.ownerModuleCode`
+Owner       : SEC — `ModuleRegistry` (ENT-SEC-004)، وهو الكيان الوحيد الذي تستهلكه MDL (SRS §A8) / the one entity MDL consumes
+Real API    : `POST /api/v1/sec/registry/search` (API-SEC-021) — سجل وحدات الأمان، شكله ومعرّفه من مواصفة تلك الوحدة لا من هنا / the security module's registry search; its shape and its id belong to that module's own artifacts
+Grant       : كل دور يُمنح `PERM_MDL_LOOKUPS_CREATE` يلزمه `PERM_SEC_MODULE_REGISTRY_VIEW` أيضًا / every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold `PERM_SEC_MODULE_REGISTRY_VIEW` — منحٌ تملكه وحدة الأمان، يُسمّى هنا ولا يُنشأ (ADR-MDL-013) / SEC's grant to make; named here, minted nowhere
+Control     : قائمة اختيار على رموز الوحدات المسجَّلة، لا حقل نصّ حرّ (ADR-MDL-004) / a select over the registered module codes, never a free-text field
+Degraded    : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or failed read leaves the select empty and disabled with a message naming the missing read, and the create action disabled behind it — never a fall back to free text (ADR-MDL-013)
+
+`UXD-MDL-001` هو حاجة في طبقة التطبيق لا قيد قاعدة بيانات: شاشة تملكها هذه الوحدة تعرض بيانات
+مرجعها الموثوق وحدةٌ أخرى / an application-layer need, not a DB constraint: a screen this module
+owns displays data whose authoritative source is another module's real API. لا يشترك في شيء مع
+`XM-MDL-001` (وهو فحص السلامة المرجعية في الخادم عند الإنشاء — RULE-MDL-001) ولا يظهر في أي أثر
+خلفي / it shares nothing with the backend's cross-module record, which is the server-side
+existence check behind RULE-MDL-001, and it appears in no backend artifact.
+
+واحد لا اثنان: التبعية نفسها والخطّاف نفسه يخدمان الشاشتين، فلا يُمنت `UXD-*` لكل شاشة / ONE, not
+one per screen: the same dependency and the same shared hook serve both screens.
+
+**لا تبعية عرض ثانية** / no second display dependency: MDL لا تملك مفتاح قائمة قيم ولا تستهلك أيًّا
+منه (SRS §A6)، فلا حقل على أي من الشاشتين مسنود بقائمة قيم، ولا قيمة مُرمَّزة تُقرأ من وحدة أخرى /
+MDL owns no lookup key and consumes none, so no field on either screen is backed by a list of
+values and no coded value is read from another module.
+
+---
+
+## RECONCILIATION — MDL v1
+
+```
+RECONCILIATION — MDL v1
+B1 every US-* used in a flow has an SRS counterpart (REQ/AC/screen)
+   ✓ US-MDL-001, US-MDL-002, US-MDL-004, US-MDL-005 — each named by the flow that uses it and
+     each carried by a REQ and a screen requirement of the SRS. US-MDL-003 is used by no flow:
+     its caller has no screen (ADR-MDL-007), so no screen was invented for it.
+B2 no RULE-* contradicts a flow or a spec outcome
+   ✓ RULE-MDL-001 (owner module registered) → the create form's owner-module field and its
+     server message · RULE-MDL-002 (no duplicate code within a type) → the value form's code
+     field · RULE-MDL-003 (the key is immutable) → `key` read-only on edit, stated beside it ·
+     RULE-MDL-004 (an inactive type hides its values from consumers) → said in the deactivate
+     confirmation, and NOT applied to this screen's own value list, which is the manager's view
+     and shows inactive rows (AC-MDL-005, AC-MDL-009). No contradiction; no ADR needed.
+B3 every field and permission on a screen exists in the SRS
+   ✓ extra: none — every field above is an SRS §A3 field of the owning entity and every
+     permission is an SRS §B4 row. missing: none — no field of either entity is dropped, the
+     audit four included, and they are marked system-filled rather than hidden.
+B4 every screen entry of the SRS has exactly one SCR-* block
+   ✓ SCR-REQ-MDL-001 → SCR-MDL-001 · SCR-REQ-MDL-002 → SCR-MDL-002. Two screen requirements,
+     two SCR blocks, and the sub-views of each stay under their one SCR.
+RESULT  reconciled 2 · reworked 0 · ADRs ADR-MDL-013 (new, the grant that travels with
+        UXD-MDL-001); applied unchanged: ADR-MDL-003, ADR-MDL-004, ADR-MDL-005, ADR-MDL-006,
+        ADR-MDL-007
+```
+
+لا سؤال في هذه المرحلة ولا قرار بحالة BLOCKED / no question is raised at this stage and no ADR is
+BLOCKED: كل نقطة احتملت وجهين حسمها مدخلٌ قائم أو قرار مُسجَّل / every two-sided point was settled
+by an existing input or a recorded decision.
 ══════════════════════════════════════════════════════════════════

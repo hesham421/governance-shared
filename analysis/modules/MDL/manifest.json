@@ -16,8 +16,8 @@
     "api-verify": "api_verify"
   },
   "plans": {
-    "backend/test": "test_gen/backend-test-plan-mdl.md",
-    "frontend/exec": "P3_2/frontend-execution-plan-mdl.md"
+    "backend/exec": "P3_1/backend-execution-plan-mdl.md",
+    "backend/test": "test_gen/backend-test-plan-mdl.md"
   },
   "packages": {
     "backend/exec": "../../../backend/modules/MDL/packages/backend-execution",
@@ -48,7 +48,7 @@
       "us-req": 100.0,
       "req-ac": 100.0,
       "req-api": 100.0,
-      "req-ux": 100.0
+      "req-ux": 84.6
     }
   },
   "created_at": "2026-09-10T16:04:50+00:00"
