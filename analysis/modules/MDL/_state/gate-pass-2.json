@@ -17,19 +17,29 @@
       "severity": "MAJOR",
       "artifact": "frontend-execution-plan-mdl.md",
       "line": null,
-      "clause": "C9.17 screen-composition / consistency",
-      "problem": "F2 · SCR-MDL-001 → F2-SCREEN-INIT names two controls on the UXD-MDL-001 hook — the create-form owner-module select AND the master list's read-only ownerModuleCode search filter — then states a degraded behaviour for only one of them: 'A refused read leaves the select empty and disabled, and the create action disabled behind it (ADR-MDL-013).' ui-ux-spec-mdl.md → UXD-MDL-001 → Degraded (SCR-MDL-001) repeats the same single-control wording, so the search filter's behaviour on a refused read is unspecified and the only nearby stated behaviour is empty-and-disabled. The grant behind the failure, PERM_SEC_MODULE_REGISTRY_VIEW, is tied by ADR-MDL-013 and SEC-FE to PERM_MDL_LOOKUPS_CREATE alone, so a VIEW-only caller (SRS §B4's consuming-module service account, or a reviewer holding the screen without CREATE) is expected not to hold it: the degraded path is that caller's normal path, and as written it costs them a filter their own permissions never gated. The sibling screen decided the opposite for the identical failure — ADR-MDL-015 falls back to the distinct ownerModuleCode values in the current response so that 'browsing is never blocked by the degraded source' — and API-MDL-001 returns ownerModuleCode on every row (F1-MODEL, LookupTypeResponse), so the same fallback data is already in hand. ADR-MDL-013's own reasoning ('a code typed blind is a code the server is certain to refuse, RULE-MDL-001') is a write-path argument and does not reach a filter over rows the server itself just returned.",
-      "fix": "Extend ADR-MDL-015's fallback to SCR-MDL-001's master-list search filter: when the UXD-MDL-001 read is refused or fails, derive that filter's option set from the distinct ownerModuleCode values present in the current API-MDL-001 response, leaving ONLY the create-form select empty-and-disabled per ADR-MDL-013. Split the F2-SCREEN-INIT 'Foreign data' line in frontend-execution-plan-mdl.md into the two controls' separate degraded behaviours instead of one shared sentence, and make the matching split in ui-ux-spec-mdl.md → UXD-MDL-001 → Degraded (SCR-MDL-001). Both files are in this pass's writable set.",
+      "clause": "C5.16 / complete (P1 invert-every-check, P4 error-vs-pattern)",
+      "problem": "Round 1 found this and I confirm it, at the level of the rule that allowed it rather than the one form that shows it. No artifact of this pass states what happens to a WRITE beneath an inactive lookup type. The orchestration of API-MDL-006 confirms only that the parent type exists (backend-execution-plan-mdl.md, the create-value block) and QR-MDL-006 carries no state predicate; API-MDL-007 and API-MDL-009 likewise write rows whose parent may be inactive. Only the consumer read consults the parent's flag (QR-MDL-015). On the client, the master list shows inactive types by requirement (AC-MDL-005), the values pane opens over one, and neither F2-QUERY VALUE CREATE nor F4 SCR-MDL-001 conditions any affordance on the parent's state. Because v1 publishes no activate endpoint (ADR-MDL-005) and RULE-MDL-004 excludes an inactive type's values from every consumer read, a value created this way is unreachable for the life of the platform and permanently reserves its code under that type (ui-ux-spec-mdl.md, the reserved-code statement). AC-MDL-004 does not cover it: it speaks only of the three values that already existed when the type was deactivated.",
+      "fix": "Best-practice choice, proposed rather than asked: forbid the CREATE and leave UPDATE and REORDER legal — a create adds a row that can never be reached, while the other two only maintain rows AC-MDL-004 already guarantees survive deactivation. Inside this pass's writable set: in frontend-execution-plan-mdl.md F2-QUERY VALUE CREATE and F4 SCR-MDL-001, disable the add-value affordance whenever the selected parent type is inactive and show the reason in RULE-MDL-004's own wording (ar «هذا النوع معطّل حاليًا» / en \"This lookup type is currently inactive\"), mirroring the G3 reorder-handle treatment; and mirror the line in ui-ux-spec-mdl.md under SCR-MDL-001. Outside it, file one platform-findings row (next free id, owner MDL backend track P3.1): the orchestration of API-MDL-006 must confirm the parent is active before QR-MDL-014 runs, refusing with a catalog row of its own — broadening MDL-404-TYPE is wrong, since the type exists — and the SRS owes RULE-MDL-004 the write-side half of its scope. A client-only guard is not the fix; a direct call still bypasses it.",
       "adr": true
     },
     {
       "id": "G2",
       "severity": "MINOR",
-      "artifact": "frontend-execution-plan-mdl.md",
+      "artifact": "frontend-execution-plan-mdl.md / registry-exec-fe-mdl.md",
       "line": null,
-      "clause": "traceable / rubric-clarity (ADR-MDL-014)",
-      "problem": "The F4-SCREEN 'Cold-load hydration' block and ADR-MDL-014 group the value-create route (/reference-data/lookups/:typeId/values/new, which creates a record and so has no row to hydrate) with the two true edit routes under one 'hydrate a row from cache or redirect' rule. The redirect target /reference-data/lookups/:typeId renders its values pane from API-MDL-005, whose cache key is [lookup-values, {lookupTypeId, code}] and which needs no type row at all — so the only thing that route's redirect protects is the parent type's display context. The behaviour is correct; the description overstates the constraint.",
-      "fix": "Reword the F4-SCREEN Cold-load hydration paragraph and the corresponding line in ADR-MDL-014 to state that /values/new's redirect protects parent-type display context rather than a value record, keeping the two edit routes' record-hydration rule as written. Documentation-only; no behaviour change.",
+      "clause": "section 7 platform findings",
+      "problem": "Confirmed as round 1 states it. The finding row for the retargeted backend test is carried OPEN in the frontend plan's Platform findings table and in the registry's PLATFORM FINDINGS table, and its evidence column still quotes the Preconditions line of the test as it read before the change. The test-gen stage already performed exactly the change the row requested — the test keeps its id and now exercises the create-only limit of RULE-MDL-001 — and the decision recording that is on disk. A finding that is carried OPEN after it has been answered costs the next reader the work of re-deriving that it is closed.",
+      "fix": "Set the row's status to RESOLVED in both tables with a note naming the decision that answered it and the revised test, and update its evidence column so it no longer quotes text the artifact no longer carries. The other five rows are correctly OPEN and were re-checked: the two deactivate endpoints still require UPDATE in the api-docs, the precision divergence is unresolved, no by-id read is published, the reorder invariant is still unguarded server-side, and SEC's own artifacts still register one exposed surface.",
+      "adr": false
+    },
+    {
+      "id": "G3",
+      "severity": "MINOR",
+      "artifact": "analysis/decisions/MDL/",
+      "line": null,
+      "clause": "section 7 decisions to review",
+      "problem": "Thirteen files of this module's decision stream carry no decision. Each has a full paragraph of review prose as its title line, a status of RESOLVED-IN-DIALOGUE that is none of ACCEPTED, BLOCKED or SUPERSEDED, and a Decision body reading '(the dialogue recorded the title alone)'. A reader of the stream cannot tell what was decided without opening the brief response they were minted from, and two of them state substantive choices — the LIKE-not-EQUALS uniqueness check and the dropped free sort field — that the plans now depend on. None is BLOCKED, so no escalation follows, but the stream no longer answers the question section 7 asks of it.",
+      "fix": "The dialogue-to-ADR writer should take the first sentence as the title and the remainder as the Decision body, and should stamp a status from the accepted set. These files are generated and sit outside this pass's writable set, so file it as a platform-findings row owned by the factory's own dialogue recorder rather than editing them here; the two substantive ones should additionally be restated as ordinary ADRs so the plans cite a decision and not a transcript.",
       "adr": false
     }
   ],
@@ -76,5 +86,5 @@
       "pct": 84.6
     }
   ],
-  "at": "2026-09-19T12:45:27+00:00"
+  "at": "2026-09-19T12:57:32+00:00"
 }
