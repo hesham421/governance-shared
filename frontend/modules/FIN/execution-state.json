@@ -305,8 +305,8 @@
       "type": "CONTRACT_ID_ABSENT",
       "phase": "F1",
       "sub": "F1-SCR-FIN-001",
-      "endpoint": "six served endpoints: fiscal-years/search, fiscal-periods/search, and the four deactivates",
-      "detail": "registry-exec-be-fin.md still declares API-FIN-001..032, so six served endpoints carry no contract id and every api-docs regeneration drops them again. The frontend resolves them only through _inputs/api-docs-binding-fin.md (ADR-FIN-002), which is a workaround, not a contract. Neither track can edit the registry; the factory must issue the ids.",
+      "endpoint": "six served endpoints carry no contract id: fiscal-years/search, fiscal-periods/search, and the four deactivates",
+      "detail": "registry-exec-be-fin.md declares API-FIN-001..032 while 38 endpoints are served. Measured this run: the frontend plan cites 37 API-FIN-* ids and the api-docs publish 32, so five of the plan's own citations (API-FIN-033..037) resolve through no published artifact — only through the hand-maintained binding annex _inputs/api-docs-binding-fin.md (ADR-FIN-002), which every regeneration drops. The sixth, the new fiscal-year search, has no id at all and is therefore uncitable by the plan that now needs it.",
       "resolution": "OPEN — also reported from the backend side in erp/modules/FIN/backend/execution-state.json (governance-shared@0862bc7)."
     },
     {
@@ -314,16 +314,16 @@
       "phase": "SEC-FE",
       "sub": "SEC-FE",
       "endpoint": "SEC module/screen/action registration for FIN (REQ-FIN-044), read back through API-SEC-027",
-      "detail": "Every FIN route is guarded by its page code being present in the effective menu (ADR-FIN-005, screen-level only per ADR-SEC-005). Until FIN registers its twelve page codes into SEC, no FIN route is reachable for any caller including an admin, so no built screen can be verified in a browser.",
-      "resolution": "OPEN — asked in backend-prompt-fin-frontend-blockers-2026-09-19.md §6(a), unanswered; re-asked in round-2 §4(a)."
+      "detail": "VERIFIED LIVE 2026-09-19 against the running backend: GET /api/v1/sec/menu as admin returns modules ['MDL','SEC'] — FIN is absent entirely, so no FIN page code is in the effective menu and every FIN route is a 403 for every caller. Confirmed twice: POST /api/v1/fin/accounts/search as the same admin answers FIN-403-FORBIDDEN, so FIN's endpoints are unreachable too, not only its routes. This also blocks VERIFYING the operator-handling contradiction recorded separately — that test cannot run until FIN is granted.",
+      "resolution": "OPEN — asked in backend-prompt-fin-round2-2026-09-19.md §4(a); now with live evidence, and it gates the §1 test as well."
     },
     {
       "type": "ENV_PREREQUISITE",
       "phase": "F2",
       "sub": "F2-SCR-FIN-001",
       "endpoint": "MDL seeding of FIN's eleven non-host lookup keys (REQ-FIN-045)",
-      "detail": "All twelve UXD-FIN-* resolve through GET /api/v1/mdl/lookups?type=. An unseeded key renders an empty select on a required field, and no client-side default is invented (ADR-FIN-004). Confirmation that V26 covers the eleven on a fresh database has not been given.",
-      "resolution": "OPEN — asked in backend-prompt-fin-frontend-blockers-2026-09-19.md §6(b), unanswered; re-asked in round-2 §4(b)."
+      "detail": "All twelve UXD-FIN-* resolve through GET /api/v1/mdl/lookups?type=. VERIFIED LIVE against the running backend on 2026-09-19: all eleven non-host keys are seeded with exactly the value counts srs-fin.md §A6 declares — ACCOUNT_TYPE 5, DEBIT_CREDIT 2, PERIOD_STATE 4, FISCAL_YEAR_STATUS 2, JOURNAL_TYPE 5, JOURNAL_STATUS 3, ACCOUNT_DERIVATION_TYPE 3, AMOUNT_SOURCE_TYPE 3, DISTRIBUTION_TYPE 3, RECURRING_SCHEDULE_TYPE 2, RECURRING_FREQUENCY 4. ACCOUNTING_EVENT_TYPE and PAYMENT_METHOD return 0, which is correct — both are host-defined and legitimately unseeded.",
+      "resolution": "RESOLVED — verified live 2026-09-19 via GET /api/v1/mdl/lookups on the running backend, not from a handover."
     },
     {
       "type": "CONTRACT_ID_ABSENT",
@@ -340,6 +340,14 @@
       "endpoint": "where api-docs belong on this profile — no profile key declares the destination",
       "detail": "The two halves never met: origin/main carried FIN's api-docs on the old erp/ tree while the plan, its split packages and this partition lived on a branch origin had never seen. MERGED and pushed as governance-shared@34ffe0c — main merged into the v7 layout, 689 renames resolved by git, one file-location conflict (SEC dev-support.md) resolved, verified blob-by-blob with no content lost and the backend partition byte-identical. What the merge did NOT fix: platform/profile-summary.json still declares no key stating where api-docs belong, so the generator keeps inferring the destination — the inference that misfiled FIN's docs twice on 2026-09-19. The backend filed the same finding (governance-shared@cb75bde).",
       "resolution": "HUMAN — the tree split is RESOLVED at 34ffe0c; what remains needs gov.py publish to emit a declared api-docs destination key in profile-summary.json, which neither track can write."
+    },
+    {
+      "type": "PLAN_STALE",
+      "phase": "F2",
+      "sub": "F2-SCR-FIN-007",
+      "endpoint": "POST /api/v1/fin/fiscal-years/search — served, bound by no plan block",
+      "detail": "The endpoint was built on 2026-09-19, after the plan was written. Six governed artifacts still reason from its absence: ui-ux-spec SCR-FIN-007 ('no fiscal-year search — known gap'), F2-SCR-FIN-007 (one read hook, facade state 'year list derived from period rows' fiscalYearId'), F4-SCR-FIN-007 ('no fiscal-year search'), ALIGN-FE's coverage table (a '✗ not published' row), ADR-FIN-006's discovery clause, and the binding annex's 37-id count. Implementing the plan as written would rebuild the retired workaround, which yields year ids and no displayable attribute — leaving SCR-FIN-007's Master pane rendering a raw integer. Full corrected text per artifact: governance/project-artifacts/analysis-amendments-fin-2026-09-19.md. Not patched here: analysis/** and the delivered packages are the factory's.",
+      "resolution": "OPEN — amendments proposed 2026-09-19; F2/F4 for SCR-FIN-007 must not be implemented as written."
     }
   ]
 }
