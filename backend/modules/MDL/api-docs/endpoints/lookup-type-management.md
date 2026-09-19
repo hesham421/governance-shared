@@ -3,17 +3,19 @@
 
 **Endpoints in this file:**
 
-- [PUT /api/v1/mdl/lookup-types/{id}](#put-apiv1mdllookup-typesid)
-- [DELETE /api/v1/mdl/lookup-types/{id}](#delete-apiv1mdllookup-typesid)
-- [POST /api/v1/mdl/lookup-types/search](#post-apiv1mdllookup-typessearch)
-- [POST /api/v1/mdl/lookup-types](#post-apiv1mdllookup-types)
-- [POST /api/v1/mdl/lookup-types/by-owner/search](#post-apiv1mdllookup-typesby-ownersearch)
+- `API-MDL-003` — [PUT /api/v1/mdl/lookup-types/{id}](#put-apiv1mdllookup-typesid)
+- `API-MDL-004` — [DELETE /api/v1/mdl/lookup-types/{id}](#delete-apiv1mdllookup-typesid)
+- `API-MDL-002` — [POST /api/v1/mdl/lookup-types](#post-apiv1mdllookup-types)
+- `API-MDL-001` — [POST /api/v1/mdl/lookup-types/search](#post-apiv1mdllookup-typessearch)
+- `API-MDL-010` — [POST /api/v1/mdl/lookup-types/by-owner/search](#post-apiv1mdllookup-typesby-ownersearch)
 
 ## PUT /api/v1/mdl/lookup-types/{id}
 
 **Update lookup type**
 
 تعديل أسماء نوع اللوكب
+
+Contract ID: `API-MDL-003`
 
 Operation ID: `update_1`
 
@@ -94,6 +96,8 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 
 إلغاء تفعيل نوع اللوكب
 
+Contract ID: `API-MDL-004`
+
 Operation ID: `deactivate_1`
 
 **Authentication**
@@ -148,93 +152,13 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 |---|---|---|
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
-## POST /api/v1/mdl/lookup-types/search
-
-**Search lookup types**
-
-بحث في أنواع اللوكب
-
-Operation ID: `search`
-
-**Authentication**
-
-Not determined from the OpenAPI document.
-
-**Required permission(s)**: PERM_MDL_LOOKUPS_VIEW (found on service:LookupTypeService)
-
-### Request Body
-
-Schema: `LookupTypeSearchRequest` (application/json)
-
-| Field | Type | Required | Constraints | Description | Example |
-|---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
-| filters[].field | string | No |  |  |  |
-| filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
-| filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب |  |
-| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
-| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
-| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
-
-**Request Example**
-
-_(partial — only fields with a documented example are shown)_
-
-```json
-{
-  "page": 0,
-  "size": 20,
-  "filters": [{"field": "key", "operator": "LIKE", "value": "ORDER_STATUS"}]
-}
-```
-
-### Response `200` — OK
-
-Shape: `paginated list of LookupTypeResponse (see Pagination Envelope in index.md)`
-
-| Field | Type | Required | Constraints | Description | Example |
-|---|---|---|---|---|---|
-| lookupTypePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
-| key | string | No |  | Unique lookup type key - مفتاح نوع اللوكب الفريد | ORDER_STATUS |
-| ownerModuleCode | string | No |  | Owner module code - رمز الوحدة المالكة | FIN |
-| nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | حالة الطلب |
-| nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Order Status |
-| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
-| createdBy | string | No |  | Created by - أنشئ بواسطة |  |
-| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
-| updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
-
-**Response Example**
-
-_(partial — only fields with a documented example are shown)_
-
-```json
-{
-  "lookupTypePk": 1,
-  "key": "ORDER_STATUS",
-  "ownerModuleCode": "FIN",
-  "nameAr": "حالة الطلب",
-  "nameEn": "Order Status",
-  "isActiveFl": true
-}
-```
-
-### Other Possible Responses
-
-Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
-
-| HTTP Status | Code | Why |
-|---|---|---|
-| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
-| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
-
 ## POST /api/v1/mdl/lookup-types
 
 **Create lookup type**
 
 إنشاء نوع لوكب جديد
+
+Contract ID: `API-MDL-002`
 
 Operation ID: `create`
 
@@ -307,11 +231,96 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 | 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
 
+## POST /api/v1/mdl/lookup-types/search
+
+**Search lookup types**
+
+بحث في أنواع اللوكب
+
+Contract ID: `API-MDL-001`
+
+Operation ID: `search_1`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Required permission(s)**: PERM_MDL_LOOKUPS_VIEW (found on service:LookupTypeService)
+
+### Request Body
+
+Schema: `LookupTypeSearchRequest` (application/json)
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters[].field | string | No |  |  |  |
+| filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
+| filters[].value | object | No |  |  |  |
+| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
+| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
+| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
+
+**Request Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "page": 0,
+  "size": 20
+}
+```
+
+### Response `200` — OK
+
+Shape: `paginated list of LookupTypeResponse (see Pagination Envelope in index.md)`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| lookupTypePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| key | string | No |  | Unique lookup type key - مفتاح نوع اللوكب الفريد | ORDER_STATUS |
+| ownerModuleCode | string | No |  | Owner module code - رمز الوحدة المالكة | FIN |
+| nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | حالة الطلب |
+| nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Order Status |
+| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| createdBy | string | No |  | Created by - أنشئ بواسطة |  |
+| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "lookupTypePk": 1,
+  "key": "ORDER_STATUS",
+  "ownerModuleCode": "FIN",
+  "nameAr": "حالة الطلب",
+  "nameEn": "Order Status",
+  "isActiveFl": true
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## POST /api/v1/mdl/lookup-types/by-owner/search
 
 **Browse lookup type registry by owner**
 
 استعراض سجل أنواع اللوكب حسب المالك
+
+Contract ID: `API-MDL-010`
 
 Operation ID: `browseByOwner`
 
@@ -327,18 +336,23 @@ Schema: `LookupTypeByOwnerSearchRequest` (application/json)
 
 | Field | Type | Required | Constraints | Description | Example |
 |---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية (`isActiveFl` is not a valid client filter here — the service always restricts to active types) |  |
+| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
 | filters[].field | string | No |  |  |  |
 | filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
 | filters[].value | object | No |  |  |  |
+| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
+| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
+| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
 
 **Request Example**
 
-_(partial — only fields with a documented example are shown; `page`/`size`/`sortField` are inherited but unused — this response is not paginated)_
+_(partial — only fields with a documented example are shown)_
 
 ```json
 {
-  "filters": [{"field": "ownerModuleCode", "operator": "EQUALS", "value": "SEC"}]
+  "page": 0,
+  "size": 20
 }
 ```
 

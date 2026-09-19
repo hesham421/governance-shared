@@ -3,17 +3,19 @@
 
 **Endpoints in this file:**
 
-- [PUT /api/v1/mdl/lookup-values/{id}](#put-apiv1mdllookup-valuesid)
-- [DELETE /api/v1/mdl/lookup-values/{id}](#delete-apiv1mdllookup-valuesid)
-- [POST /api/v1/mdl/lookup-types/values/search](#post-apiv1mdllookup-typesvaluessearch)
-- [POST /api/v1/mdl/lookup-types/{id}/values](#post-apiv1mdllookup-typesidvalues)
-- [PATCH /api/v1/mdl/lookup-types/{id}/values/reorder](#patch-apiv1mdllookup-typesidvaluesreorder)
+- `API-MDL-007` — [PUT /api/v1/mdl/lookup-values/{id}](#put-apiv1mdllookup-valuesid)
+- `API-MDL-008` — [DELETE /api/v1/mdl/lookup-values/{id}](#delete-apiv1mdllookup-valuesid)
+- `API-MDL-006` — [POST /api/v1/mdl/lookup-types/{id}/values](#post-apiv1mdllookup-typesidvalues)
+- `API-MDL-005` — [POST /api/v1/mdl/lookup-types/values/search](#post-apiv1mdllookup-typesvaluessearch)
+- `API-MDL-009` — [PATCH /api/v1/mdl/lookup-types/{id}/values/reorder](#patch-apiv1mdllookup-typesidvaluesreorder)
 
 ## PUT /api/v1/mdl/lookup-values/{id}
 
 **Update lookup value**
 
 تعديل قيمة لوكب
+
+Contract ID: `API-MDL-007`
 
 Operation ID: `update`
 
@@ -98,6 +100,8 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 
 إلغاء تفعيل قيمة لوكب
 
+Contract ID: `API-MDL-008`
+
 Operation ID: `deactivate`
 
 **Authentication**
@@ -154,98 +158,13 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 |---|---|---|
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 
-## POST /api/v1/mdl/lookup-types/values/search
-
-**Search lookup values of a type**
-
-بحث في قيم نوع لوكب
-
-Operation ID: `search_1`
-
-**Authentication**
-
-Not determined from the OpenAPI document.
-
-**Required permission(s)**: PERM_MDL_LOOKUPS_VIEW (found on service:LookupValueService)
-
-### Request Body
-
-Schema: `LookupValueSearchRequest` (application/json)
-
-| Field | Type | Required | Constraints | Description | Example |
-|---|---|---|---|---|---|
-| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية (the parent `lookupTypeId` travels here too, e.g. `{"field":"lookupTypeId","operator":"EQUALS","value":1}` — never a path variable) |  |
-| filters[].field | string | No |  |  |  |
-| filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
-| filters[].value | object | No |  |  |  |
-| sortField | string | No |  | Sort field - حقل الترتيب (defaults to `sortOrder` server-side when omitted) |  |
-| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
-| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
-| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
-
-**Request Example**
-
-_(partial — only fields with a documented example are shown)_
-
-```json
-{
-  "page": 0,
-  "size": 20,
-  "filters": [
-    {"field": "lookupTypeId", "operator": "EQUALS", "value": 1},
-    {"field": "code", "operator": "LIKE", "value": "PEND"}
-  ]
-}
-```
-
-### Response `200` — OK
-
-Shape: `paginated list of LookupValueResponse (see Pagination Envelope in index.md)`
-
-| Field | Type | Required | Constraints | Description | Example |
-|---|---|---|---|---|---|
-| lookupValuePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
-| lookupTypeId | integer (int64) | No |  | Parent lookup type id - معرّف نوع اللوكب الأب | 1 |
-| code | string | No |  | Unique code within the parent lookup type - الرمز الفريد ضمن النوع | PENDING |
-| nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | قيد الانتظار |
-| nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Pending |
-| sortOrder | integer (int32) | No |  | Display sort order - ترتيب العرض | 10 |
-| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
-| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
-| createdBy | string | No |  | Created by - أنشئ بواسطة |  |
-| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
-| updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
-
-**Response Example**
-
-_(partial — only fields with a documented example are shown)_
-
-```json
-{
-  "lookupValuePk": 1,
-  "lookupTypeId": 1,
-  "code": "PENDING",
-  "nameAr": "قيد الانتظار",
-  "nameEn": "Pending",
-  "sortOrder": 10,
-  "isActiveFl": true
-}
-```
-
-### Other Possible Responses
-
-Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
-
-| HTTP Status | Code | Why |
-|---|---|---|
-| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
-| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
-
 ## POST /api/v1/mdl/lookup-types/{id}/values
 
 **Create lookup value**
 
 إنشاء قيمة لوكب جديدة ضمن نوع
+
+Contract ID: `API-MDL-006`
 
 Operation ID: `create_1`
 
@@ -326,11 +245,98 @@ Structurally guaranteed by this endpoint's own shape (auth requirement, permissi
 | 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
 | 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
 
+## POST /api/v1/mdl/lookup-types/values/search
+
+**Search lookup values of a type**
+
+بحث في قيم نوع لوكب
+
+Contract ID: `API-MDL-005`
+
+Operation ID: `search`
+
+**Authentication**
+
+Not determined from the OpenAPI document.
+
+**Required permission(s)**: PERM_MDL_LOOKUPS_VIEW (found on service:LookupValueService)
+
+### Request Body
+
+Schema: `LookupValueSearchRequest` (application/json)
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| filters | array<SearchFilter> | No |  | Filter criteria - معايير التصفية |  |
+| filters[].field | string | No |  |  |  |
+| filters[].operator | string | No | enum: EQUALS, NOT_EQUALS, LIKE, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN |  |  |
+| filters[].value | object | No |  |  |  |
+| sortField | string | No |  | Sort field - حقل الترتيب |  |
+| sortDirection | string | No | enum: ASC, DESC | Sort direction - اتجاه الترتيب |  |
+| page | integer (int32) | No |  | Page number, zero-based - رقم الصفحة | 0 |
+| size | integer (int32) | No |  | Page size - حجم الصفحة | 20 |
+
+**Request Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "page": 0,
+  "size": 20
+}
+```
+
+### Response `200` — OK
+
+Shape: `paginated list of LookupValueResponse (see Pagination Envelope in index.md)`
+
+| Field | Type | Required | Constraints | Description | Example |
+|---|---|---|---|---|---|
+| lookupValuePk | integer (int64) | No |  | Unique identifier - المعرف الفريد | 1 |
+| lookupTypeId | integer (int64) | No |  | Parent lookup type id - معرّف نوع اللوكب الأب | 1 |
+| code | string | No |  | Unique code within the parent lookup type - الرمز الفريد ضمن النوع | PENDING |
+| nameAr | string | No |  | Name (Arabic) - الاسم بالعربية | قيد الانتظار |
+| nameEn | string | No |  | Name (English) - الاسم بالإنجليزية | Pending |
+| sortOrder | integer (int32) | No |  | Display sort order - ترتيب العرض | 10 |
+| isActiveFl | boolean | No |  | Active status - حالة التفعيل | true |
+| createdAt | string (date-time) | No |  | Created timestamp - تاريخ الإنشاء |  |
+| createdBy | string | No |  | Created by - أنشئ بواسطة |  |
+| updatedAt | string (date-time) | No |  | Updated timestamp - تاريخ التحديث |  |
+| updatedBy | string | No |  | Updated by - حُدّث بواسطة |  |
+
+**Response Example**
+
+_(partial — only fields with a documented example are shown)_
+
+```json
+{
+  "lookupValuePk": 1,
+  "lookupTypeId": 1,
+  "code": "PENDING",
+  "nameAr": "قيد الانتظار",
+  "nameEn": "Pending",
+  "sortOrder": 10,
+  "isActiveFl": true
+}
+```
+
+### Other Possible Responses
+
+Structurally guaranteed by this endpoint's own shape (auth requirement, permission check, request body) combined with the shared framework's exception handling — not specific business errors.
+
+| HTTP Status | Code | Why |
+|---|---|---|
+| 403 FORBIDDEN | ACCESS_DENIED | An authorization check was found for this endpoint (@PreAuthorize/@Secured); GlobalExceptionHandler maps AccessDeniedException to this status. |
+| 400 BAD_REQUEST | VALIDATION_ERROR | Endpoint accepts a JSON request body; GlobalExceptionHandler maps a malformed or invalid body (HttpMessageNotReadableException / MethodArgumentNotValidException) to this status. |
+
 ## PATCH /api/v1/mdl/lookup-types/{id}/values/reorder
 
 **Reorder lookup values**
 
 إعادة ترتيب قيم نوع اللوكب
+
+Contract ID: `API-MDL-009`
 
 Operation ID: `reorder`
 
