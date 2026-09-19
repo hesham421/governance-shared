@@ -115,6 +115,17 @@ the consumer read (G11). None outstanding within this stage's scope; G8 and G9 r
 against `analysis/decisions/MDL/ADR-MDL-008.md` and `ADR-MDL-005.md`, which this pass's writable
 file set does not include.
 
+Findings fixed in this later revision (gate `pass-2`, second round): a server-side reorder
+invariant gap settled client-side instead of filed (this round's G1, PF-MDL-004), a backend test
+naming the wrong surface and an unconstructible failure mode (this round's G2, PF-MDL-005), an
+undisclosed cross-module registration gap on SEC's side carried as ACTIVE with no outstanding
+condition (this round's G3, PF-MDL-006), the UNIQUE_CHECK line requesting an EQUALS filter the
+backend never honours (this round's G6), and a `sortField` modelled for an ordering the backend
+cannot produce (this round's G7). This round's G4 and G5 land outside this stage's writable
+files (srs-mdl.md and ADR-MDL-008.md respectively) and are carried, not applied here — the same
+posture G8/G9 already state above. No new ADR was raised: every fix corrects against an input
+already on record, not a two-sided choice.
+
 ADRs
 analysis/decisions/MDL/ADR-MDL-002.md (ACCEPTED — three reads are POST `…/search`; the backend
 contract summary is what lags) ·
@@ -164,9 +175,14 @@ PLATFORM FINDINGS (frontend track, this run)
 | PF-MDL-001 | OPEN | deactivate-endpoint permission (UPDATE vs DELETE) divergence — G5 |
 | PF-MDL-002 | OPEN (conditional) | api-docs field-precision divergence from the db-script — G1 |
 | PF-MDL-003 | OPEN | no by-id read published for either entity, blocking cold-load hydration — G4 |
+| PF-MDL-004 | OPEN | QR-MDL-009 checks only type membership per id, never that the submitted set is the type's complete, non-duplicated value set — this round's G1, owner MDL backend track (P3.1) |
+| PF-MDL-005 | OPEN | TC-MDL-014 names the wrong surface (API-SEC-021, a frontend HTTP read) for an unconstructible in-process failure mode — this round's G2, owner MDL backend track (P3.1) |
+| PF-MDL-006 | OPEN | SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, leaving XM-MDL-001's module-registry read unregistered on SEC's side while the XM is carried ACTIVE — this round's G3, owner SEC / P3.1 track |
 Full text of each in frontend-execution-plan-mdl.md, API SURFACE.
 
 Event
-"P3.2 revised (gate pass-2): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10 called), 2 new ADRs
-(ADR-MDL-014, ADR-MDL-015), 3 platform-findings rows filed, 11 findings (G1-G11) applied"
+"P3.2 revised (gate pass-2, second round): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10
+called), 0 new ADRs, 3 additional platform-findings rows filed (PF-MDL-004..006), 5 findings
+(G1, G2, G3, G6, G7 of this round) applied — G4 and G5 of this round land outside this stage's
+writable files and are carried forward"
 ══════════════════════════════════════════════════════════════════

@@ -19,132 +19,92 @@ for files you do not change. The files you may write:
 {
   "verdict": "REVISE",
   "scores": {
-    "unambiguous": 2,
-    "verifiable": 2,
-    "complete": 1,
-    "consistent": 1,
+    "unambiguous": 3,
+    "verifiable": 3,
+    "complete": 2,
+    "consistent": 2,
     "singular": 3,
-    "feasible": 2,
+    "feasible": 3,
     "traceable": 3
   },
   "findings": [
     {
       "id": "G1",
       "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "artifact": "frontend-execution-plan-mdl.md (API SURFACE / platform findings)",
       "line": null,
-      "clause": "GOVERNANCE-CORE.md §1 (upstream wins)",
-      "problem": "The client field constraints contradict the deployed precisions in six places: F1 and F3 state `key : maxLength 80` (SCR-MDL-001 create and the SCR-MDL-002 key filter) and `nameAr/nameEn : maxLength 150` on both entities, while db-script §1 and ADR-MDL-010 declare VARCHAR(50) for `key` and `code` and VARCHAR(200) for every name column, and backend-execution-plan API-MDL-002/003/006/007 state maximum 50 and maximum 200 on every Request line. The consequence runs both ways: a 51-80 character key passes client validation and is refused by the database, and a 151-200 character label the platform accepts is refused by the client. This is one rule breached six times, not six defects — F3's own preamble says the constraints are 'the field constraints the published DTOs state', and the numbers state something else.",
-      "fix": "Set `key` and `code` to maxLength 50 and every `nameAr`/`nameEn` to maxLength 200 in F1-MODEL (both entities), F3-FIELD (all four blocks) and the SCR-MDL-002 key filter, sourcing each from ADR-MDL-010 by citation rather than a restated number. If `_inputs/api-docs-mdl.md` genuinely publishes 80/150, the numbers are a backend-repo defect: record an OPEN platform-findings row against the MDL api-doc generator with the db-script column widths as evidence, and bind the plan to the db-script meanwhile.",
+      "clause": "P1 adversarial inversion · C7.20 operation-resolves · §7 platform findings",
+      "problem": "QR-MDL-009 enforces only that each submitted id belongs to the type (lookup_type_id = :typeId). Nothing verifies the submitted set is the type's complete value set, contains no duplicate, and is non-empty. A subset re-ranks 1..n and collides with the ranks of every value left out; [A,A,B] on a 3-value type writes A twice. The frontend disables the drag affordance when the pane is filtered (G3) precisely because 'the server cannot distinguish a partial submission from a deliberate whole-set one' — so this pass identified a server-side invariant gap and settled it with a client-side convention instead of filing it, contrary to the PF-MDL-001 precedent it set for exactly this class.",
+      "fix": "File a platform-findings row (PF-MDL-004) in frontend-execution-plan-mdl.md, owner MDL backend track (P3.1). Evidence: QR-MDL-009's statement and Result-shape lines, against frontend-execution-plan-mdl.md F2-QUERY VALUE REORDER's submission rule. Required backend change: reject in the API-MDL-009 orchestration, before the UPDATE loop and inside the same transaction, when the DISTINCT submitted id count does not equal the count of rows under lookup_type_id = :typeId (active and inactive both, matching QR-MDL-005's scope) — and broaden MDL-400-REORDER-MISMATCH's catalog trigger, which today reads only 'a submitted id does not belong to the type in the path', to cover an incomplete or duplicated set.",
       "adr": false
     },
     {
       "id": "G2",
       "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-test-plan-mdl.md TC-MDL-014",
       "line": null,
-      "clause": "C9.2 / GOVERNANCE-CORE.md §1",
-      "problem": "The detail read is modelled as paginated and no upstream artifact says it is. F1-SCREEN gives the detail search model `page, size, sortField, sortDirection`; F2 heads API-MDL-005 'paginated response' and puts page and size in its cache key; registry-exec-fe lists API-MDL-005 under 'paginated (PageLookup<T>)'. Against that, SRS B2 states the detail is shown whole because it is confined to one type, backend-execution-plan API-MDL-005 states 'No paging: the result is bounded by one type and returned whole, ordered', and QR-MDL-005 records `Pagination: NO`. ADR-MDL-002 shows this pass knows how to record a divergence between the published surface and a plan; this one is recorded nowhere, so a reader cannot tell whether the api-docs page this endpoint or whether the shape was assumed from API-MDL-001's neighbour.",
-      "fix": "Resolve against `_inputs/api-docs-mdl.md` and state the answer once. If the endpoint is unpaged, drop page/size/sort from the F1 detail search model, from the F2 cache key and from the registry's RESPONSE SHAPES table, and move API-MDL-005 to the bare-array row. If it is paged, record the divergence as an ADR in the form ADR-MDL-002 uses, naming SRS B2 and backend-execution-plan API-MDL-005 as the artifacts that lag, so the gate sees a declared diff rather than a silent one.",
+      "clause": "P3 read the seams · XM-PROTOCOL §4-5 · consistency",
+      "problem": "TC-MDL-014 makes 'SEC's registry-search endpoint (API-SEC-021) unreachable/times out' and expects a controlled non-500. Three artifacts under review contradict it: backend-execution-plan INT-R states 'there is no HTTP-level way to simulate \"SEC unreachable\", and no test should try to'; ALIGN-BE struck the 503 row for that same impossibility; and API-SEC-021 is the FRONTEND's HTTP read behind UXD-MDL-001, not the backend XM path at all, which is an injected in-process call. The test names the wrong surface AND an unconstructible failure mode, and duplicates TC-MDL-002's coverage.",
+      "fix": "File a platform-findings row (PF-MDL-005) in frontend-execution-plan-mdl.md, owner MDL backend track. Evidence: TC-MDL-014's Preconditions line against backend-execution-plan-mdl.md PHASE 6 (INT-R) and the ALIGN-BE strike note. Required change: retarget TC-MDL-014 to the SOFT-READ's real untested edge — a module deregistered from SEC after its types were accepted must not invalidate them (RULE-MDL-001's own Test-Hint) — and drop the API-SEC-021 citation, which belongs to the frontend's UXD-MDL-001 read.",
       "adr": false
     },
     {
       "id": "G3",
       "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-execution-plan-mdl.md XM-MDL-001",
       "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 complete",
-      "problem": "The reorder can submit a partial set, and the plan asserts the opposite is impossible. F2 says 'The whole ordered set is submitted, never one row's new position: the endpoint takes `orderedValueIds[]`, and the mismatch code exists precisely because a partial set is wrong.' MDL-400-REORDER-MISMATCH does not mean that: QR-MDL-009's predicate is `lookup_value_pk = :id AND lookup_type_id = :typeId`, so the code fires only when a submitted id belongs to another type. A subset of the correct type is accepted, each submitted id is written its position in the submitted list, and those ranks collide with the ranks of the values that were not submitted. The screen can produce exactly that subset: the detail pane carries a `code` LIKE filter (F1, F3) and, per G2, a page and size, so dragging inside a filtered or paged pane submits part of the type's values and re-ranks them from 1.",
-      "fix": "State in F2-QUERY VALUE REORDER and in F4 that the submitted list is the type's complete value set, and disable the drag affordance whenever the pane shows less than that — a non-empty `code` filter, or a page other than the whole result — with the reason shown on the list. Add the counter-case as its own line: a reorder submitted from a filtered pane is refused by the client, because the server cannot distinguish it from a deliberate whole-set submission.",
+      "clause": "§7 platform findings · XM-PROTOCOL §4-5",
+      "problem": "XM-MDL-001's contract states that SEC's P3.1 artifacts register only SecUserDirectoryApi, so the module-registry read this XM consumes is written down nowhere on SEC's side, and defers it to 'SEC's own re-run'. registry-exec-be repeats it. It is disclosed only as prose inside MDL's own artifacts and filed as no platform-findings row anywhere — the 'not mine to settle into the void' pattern §7 exists to stop. Meanwhile the XM is carried ACTIVE with 'Unblock condition: none outstanding', which is the claim the prose two paragraphs above contradicts.",
+      "fix": "File a platform-findings row (PF-MDL-006) in frontend-execution-plan-mdl.md, owner SEC / P3.1 track. Evidence: registry-exec-be-mdl.md XM STATUS and backend-execution-plan-mdl.md INT-C XM-MDL-001 Interface paragraph. Statement: SEC v1's P3.1 artifacts must register SecModuleRegistryApi as an exposed cross-module surface alongside SecUserDirectoryApi. Distinct from API-SEC-021, which is the published HTTP read UXD-MDL-001 uses — the gap is specifically the in-process backend contract.",
       "adr": false
     },
     {
       "id": "G4",
-      "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "severity": "MINOR",
+      "artifact": "srs-mdl.md REQ-MDL-013",
       "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 feasible",
-      "problem": "The deep-linked entry routes cannot be built as specified. F4 registers `/reference-data/lookups/:typeId/edit`, `/values/new` and `/values/:valueId/edit` and states 'a deep link opens it'; ADR-MDL-005 states both entry sub-views 'hydrate from the row the search query already holds' and that no by-id read is published. On a cold load there is no search result in cache, and no read can produce one: the published filter set for API-MDL-001 is key, ownerModuleCode, name and isActiveFl, and for API-MDL-005 it is lookupTypeId and code — neither carries the record's own id, so even a one-row search cannot resolve `:typeId` or `:valueId`. The editor opens empty on the one entry path F4 explicitly promises.",
-      "fix": "State the cold-load behaviour on each entry route: when the hydrating row is absent from cache, redirect to the parent surface — `/reference-data/lookups` for a type editor, `/reference-data/lookups/:typeId` for a value editor — and show the localized 'open the record from the list' message rather than rendering an empty form. Best practice over the alternatives because it needs no unpublished endpoint and no invented filter, and it keeps the route addressable for the in-session case F4 was written for. Record the underlying gap where its owner can act: an OPEN platform-findings row that the published search envelopes carry no id operator, which is what makes by-id hydration impossible for every module that omits a by-id read.",
-      "adr": true
+      "clause": "C5.16 feature-unwanted",
+      "problem": "US-MDL-005's one requirement states no unwanted path. The real silent path is not the empty result (already a stated platform convention) but the deregistered owner: RULE-MDL-001 is create-time only, so a module removed from SEC keeps owning its types, and SCR-MDL-002 groups the registry by owner code — an administrator auditing by owner sees a group headed by a module code that no longer exists, unmarked. ADR-MDL-015 and ui-ux-spec-mdl.md both acknowledge it downstream; the SRS states it nowhere.",
+      "fix": "Add to REQ-MDL-013 an unwanted-pattern statement: 'If a lookup type's owner module code is no longer registered in the security module, then the system shall still return that type under its stored owner module code, and shall neither remove nor alter the type.' This documents the behaviour RULE-MDL-001's existing Test-Hint already decided, so no new choice is taken. Outside this pass's writable set — file alongside the rows above, owner P1.",
+      "adr": false
     },
     {
       "id": "G5",
-      "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "severity": "MINOR",
+      "artifact": "analysis/decisions/MDL/ADR-MDL-008.md",
       "line": null,
-      "clause": "REGISTRY-SCHEMA.md §4 (platform findings)",
-      "problem": "The pass found a cross-artifact permission divergence and answered it with a paragraph instead of a row. SEC-FE states: 'The api-docs put `PERM_MDL_LOOKUPS_UPDATE` on both deactivate endpoints, so no published endpoint of this module requires `PERM_MDL_LOOKUPS_DELETE`' — against backend-execution-plan PHASE 7, whose matrix marks the DELETE column for API-MDL-004 and API-MDL-008 and whose BOOTSTRAP DATA seeds that permission with grant targets. The consequence is a privilege widening, not a naming detail: as built, a caller holding UPDATE alone can deactivate, and a caller granted DELETE alone cannot. 'Recorded, not corrected — the permission an endpoint requires is the backend's to state' is the correct scope judgement and the wrong disposal: a module-scoped worker saying 'not mine to settle' into prose is what the platform-findings category exists to stop.",
-      "fix": "File an OPEN platform-findings row: owner = the MDL backend track (P3.1 plus the backend repo's method-level security annotations); evidence = backend-execution-plan PHASE 7 permission matrix and BOOTSTRAP DATA versus the api-docs' stated requirement on API-MDL-004 and API-MDL-008; impact = UPDATE grants deactivation and DELETE grants nothing, so the SRS B4 DELETE row is unenforceable as built. Keep the SEC-FE paragraph as the frontend's reading and cite the row's id from it.",
+      "clause": "§7 decisions review",
+      "problem": "The status header reads 'ACCEPTED (non-breaking) — supersedes ADR-MDL-001' with no record that ADR-MDL-011 supersedes it in turn.",
+      "fix": "No action owed by this pass. Already recorded by it as G8 in registry-exec-fe-mdl.md, correctly noted as outside its writable file set; per §7 recording a finding never lowers a score. Carried for whichever stage next holds ADR-MDL-008.md.",
       "adr": false
     },
     {
       "id": "G6",
       "severity": "MAJOR",
-      "artifact": "frontend-execution-plan",
+      "artifact": "frontend-execution-plan-mdl.md (F3 · SCR-MDL-001, UNIQUE_CHECK)",
       "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 complete",
-      "problem": "The owner-module filter on SCR-MDL-002 has no stated behaviour when its source read fails. F3-FIELD SCR-MDL-002 makes it a select over the UXD-MDL-001 list; ADR-MDL-013 states the degraded path for that screen only as 'the group headings showing the bare code the browse already returns' and asserts 'browsing is never blocked by it'. Both hold for the headings and neither holds for the filter: a select over an empty list cannot be used, so the EXACT owner filter SRS B2 requires — the one filter the screen exists for — silently becomes unavailable while the plan says nothing is blocked. F2-SCREEN-INIT repeats the heading-only wording.",
-      "fix": "State the filter's degraded source in F3-FIELD SCR-MDL-002 and in ADR-MDL-013: when the UXD-MDL-001 read is refused or fails, the owner select falls back to the distinct `ownerModuleCode` values present in the API-MDL-010 response, which the browse already returns on every group. Best practice over the alternatives because it needs no foreign grant, keeps the SRS B2 filter usable, and cannot offer a code the registry does not hold — narrower than free text, which would let a reviewer filter for a code no group carries.",
-      "adr": true
+      "clause": "P3 read the seams · C9.5 · consistent",
+      "problem": "The UNIQUE_CHECK specifies 'the type's key through API-MDL-001 with an EQUALS filter' and 'the value's code through API-MDL-005 with EQUALS filters on both lookupTypeId and code'. Both queries bind those columns with LIKE unconditionally: QR-MDL-001 'WHERE [key LIKE :key]' (Filters: key: LIKE) and QR-MDL-005 'AND [code LIKE :code]' (Filters: lookupTypeId: EXACT · code: LIKE); PHASE 1's Search contract and SRS §B2 agree. An EQUALS operator therefore cannot produce an exact match — typing PAYMENT returns the existing PAYMENT_METHOD row and the blur check falsely reports the key as already taken, on the one field RULE-MDL-003 makes unchangeable afterwards. Capped below CRITICAL only because the plan states the check never blocks submit and the server's 409 is the authority.",
+      "fix": "Rewrite the UNIQUE_CHECK line to request the LIKE filter the backend declares and then assert exact equality client-side over the returned rows before showing the inline message — for key on API-MDL-001, and for code scoped to lookupTypeId on API-MDL-005. This uses only the published surface, needs no new endpoint or operator, and is correct whether or not the service honours EQUALS. Inside this pass's writable set.",
+      "adr": false
     },
     {
       "id": "G7",
-      "severity": "MAJOR",
-      "artifact": "ui-ux-spec",
-      "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 complete",
-      "problem": "Deactivating a value permanently consumes its code under that type, and nothing in the pass says so. `UQ_MDL_LOOKUP_VALUE_TYPE_CODE` is (lookup_type_id, code) over every row, active or not (db-script BLOCK 5b), and no activate endpoint exists (ADR-MDL-005), so a code deactivated by mistake can never be re-created under its type through any surface this plan draws. The deactivate confirmation states only that the act 'is not reversible from this screen'; a user who then recreates the value is answered by MDL-409-VALUE-DUP routed inline to `code`, whose text — 'This code is already used within this type' — reads as a collision with a live value and offers no route out. The same closure question for a type is answered the same way: `key` is platform-unique forever and equally unrecoverable.",
-      "fix": "Name the consequence where the act is taken and where it is met. In F4 and in ui-ux-spec SCR-MDL-001, the value deactivate confirmation states that the code stays reserved under this type and cannot be reused while no activate endpoint exists; in F2-QUERY VALUE CREATE, the MDL-409-VALUE-DUP inline routing adds that a deactivated value of the same code may be holding it, with the list's own inactive row as the evidence the user can see. Add the same sentence to the type deactivate confirmation for `key`.",
-      "adr": false
-    },
-    {
-      "id": "G8",
       "severity": "MINOR",
-      "artifact": "ADR-MDL-008",
+      "artifact": "frontend-execution-plan-mdl.md (F1-SCREEN SCR-MDL-001; F2-QUERY TYPE SEARCH)",
       "line": null,
-      "clause": "GOVERNANCE-CORE.md §1 (ADR status)",
-      "problem": "The status is stale. ADR-MDL-008's header reads 'Status: ACCEPTED (non-breaking) — supersedes ADR-MDL-001', while ADR-MDL-011's header and registry-exec-fe both record it as superseded ('Superseded, kept on disk and cited only by the decisions that replaced them: ADR-MDL-001, ADR-MDL-008'). A reader who opens the file alone is told a withdrawn decision is in force, and its content — plan-local labels, an ALIGN API row written '— examined nothing' — contradicts the plan as delivered.",
-      "fix": "Rewrite the header the way ADR-MDL-001 already does it: 'Status : SUPERSEDED by ADR-MDL-011 (was ACCEPTED, non-breaking)', with the one-line note that the Contract ID lines it asked the backend for have since landed.",
-      "adr": false
-    },
-    {
-      "id": "G9",
-      "severity": "MINOR",
-      "artifact": "ADR-MDL-005",
-      "line": null,
-      "clause": "GOVERNANCE-CORE.md §1 (a decision follows its cited source)",
-      "problem": "The Context table cites an SRS line the current SRS does not contain. It attributes 'Buttons: activate/deactivate per row at both levels' to B3; SRS B3 in this pass's state reads «لا إجراء تفعيل ولا محو نهائي على أي من المستويين» — no activate action at either level — and A2 puts reactivation out of scope. The frontend plan already notices this ('This SRS version names no `activate` action at either level … so the half-toggle ADR-MDL-005 also covers is not a gap in this version'), which leaves the ADR as the only artifact asserting the quotation.",
-      "fix": "Drop the `activate` row from ADR-MDL-005's Context table, or mark it explicitly as a quotation from a superseded SRS revision, and keep the decision on the two by-id reads, which SRS B1 Operations still names. The plan's compensating sentence can then cite the corrected ADR instead of correcting it in passing.",
-      "adr": false
-    },
-    {
-      "id": "G10",
-      "severity": "MINOR",
-      "artifact": "frontend-execution-plan",
-      "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 complete",
-      "problem": "The optimistic reorder has no stated failure path. F2-QUERY VALUE REORDER holds 'the dragged order held until the call settles' and routes MDL-400-REORDER-MISMATCH to 'a user message on the value list', but never says what the list shows afterwards. The invalidation line is unconditional, so an implementer can read it as firing on failure too, and the user is left looking at a dragged order the server did not store.",
-      "fix": "Add one line to the block: on any non-2xx answer the pending order is discarded and the list re-renders from the last persisted response; invalidation of `[lookup-values, *]` runs on success only.",
-      "adr": false
-    },
-    {
-      "id": "G11",
-      "severity": "MINOR",
-      "artifact": "frontend-execution-plan",
-      "line": null,
-      "clause": "QUALITY-RUBRIC.md §2 singular",
-      "problem": "F1-SCR-MDL-002 models `LookupValueResponse[]` for the consumer read 'for completeness of the published surface', and states in the same block that no component renders it. The F2 block for API-MDL-011 already accounts for that surface, with its caller, its error answers and `Cache key : n/a` — so the F1 entry instructs an implementer to write a type nothing in the delivered frontend consumes.",
-      "fix": "Remove the F1-MODEL for the consumer read and leave the accounting to the F2 block ADR-MDL-007 points at; if the model is kept, say in the block that it documents a foreign contract and is not to be emitted as a client type.",
+      "clause": "P4 error vs pattern · consistent",
+      "problem": "The master search model carries sortField and sortDirection and the cache key carries both, but the backend declares a single ordering — QR-MDL-001 'ORDER BY key', PHASE 1 'key ASC — paged' and 'the module offers no free-form sort parameter'. This is the pass's own G2 correction unapplied to itself: 'keying a variation the server cannot produce would fragment the cache for nothing'.",
+      "fix": "Drop sortField from the F1 search model and from the F2 TYPE SEARCH cache key, or constrain it to the single literal 'key'. Keep sortDirection, which PHASE 1's 'refused on any other field' wording leaves available on key itself. Inside this pass's writable set.",
       "adr": false
     }
   ],
   "extra_checks": [],
   "analyze_confirmed": [
     {
-      "finding": "C5.16 / srs:47 / feature-unwanted US-MDL-005",
+      "finding": "C5.16 feature-unwanted / US-MDL-005 / srs:47",
       "confirmed": true,
-      "note": "Not a false positive. REQ-MDL-013 is the story's only requirement and is an `event` statement; SRS B2 states the groups come back whole with no state filter, and no statement anywhere in the pass says what the registry returns when the owner filter names a code no active type carries. The fix belongs to the SRS (P1), outside this pass's editable scope; this pass's artifacts inherit it rather than cause it."
+      "note": "Confirmed, and re-aimed. Round 1 proposed stating that an empty filter result is success — already stated platform-wide (QR-MDL-010 Notes; PHASE 1 Search contract). The unspecified path is the deregistered owner: see G4."
     }
   ]
 }
@@ -2215,7 +2175,8 @@ Inputs    : srs (v1) · prd (v1) · api-docs (fetched from the backend repo, dig
             4 files) · registry-srs (v1) · registry-exec-be (v1)
 Screens   : 2 — SCR-MDL-001, SCR-MDL-002 · UXD : 1 — UXD-MDL-001 · API published : 11, bound 11
 Decisions : ADR-MDL-002 · ADR-MDL-003 · ADR-MDL-004 · ADR-MDL-005 · ADR-MDL-006 · ADR-MDL-007 ·
-            ADR-MDL-011 · ADR-MDL-012 · ADR-MDL-013 — all ACCEPTED, all non-breaking
+            ADR-MDL-011 · ADR-MDL-012 · ADR-MDL-013 · ADR-MDL-014 · ADR-MDL-015 — all ACCEPTED,
+            all non-breaking
             (superseded, cited by them and not applied here: ADR-MDL-001, ADR-MDL-008)
 ══════════════════════════════════════════════════════════════════
 
@@ -2245,10 +2206,11 @@ UNMAPPED  REQ needing an endpoint that has none : none — all 13 requirements b
           Documented endpoint mapping to no REQ : none — all 11 endpoints bind.
           Operations the SRS names for which nothing is published: read one type by id · read
           one value by id. Neither is required by a REQ; both are omitted rather than faked,
-          and the entry sub-views hydrate from the row the search query already holds
-          (ADR-MDL-005). This SRS version names no `activate` action at either level (§B3:
-          "لا إجراء تفعيل ولا محو نهائي"), so the half-toggle ADR-MDL-005 also covers is not a
-          gap in this version — there is nothing to omit.
+          and the entry sub-views hydrate from the row the search query already holds where
+          that row is in cache, with a stated cold-load fallback where it is not
+          (ADR-MDL-005, ADR-MDL-014). This SRS version names no `activate` action at either
+          level (§B3: "لا إجراء تفعيل ولا محو نهائي"), so the half-toggle ADR-MDL-005 also
+          covers is not a gap in this version — there is nothing to omit.
 CODES     runtime error code → the RULE it carries, the link neither source states:
             MDL-409-MODULE-NOT-REGISTERED → RULE-MDL-001   (the owner module is registered in SEC)
             MDL-409-VALUE-DUP             → RULE-MDL-002   (no duplicate code within one type)
@@ -2272,10 +2234,17 @@ PAGING    the published pagination envelope is `PageLookup<T>` (index.md), const
           `PageableBuilder`: default page 0 · default size 20 · maximum size 200 — the same two
           numbers the SRS §B2 states. THREE response shapes travel in this module and the
           difference is load-bearing in every F2 block:
-            · paginated  — API-MDL-001, API-MDL-005 only
-            · bare array — API-MDL-009, API-MDL-010, API-MDL-011
+            · paginated  — API-MDL-001 only
+            · bare array — API-MDL-005, API-MDL-009, API-MDL-010, API-MDL-011
             · one object — API-MDL-002, API-MDL-003, API-MDL-004, API-MDL-006, API-MDL-007,
                            API-MDL-008
+          **Correction applied this pass (G2):** the previous revision modelled API-MDL-005 as
+          paginated, on no published source. `_inputs/api-docs-mdl.md`, backend-execution-plan
+          API-MDL-005 ("No paging: the result is bounded by one type and returned whole,
+          ordered") and QR-MDL-005 (`Pagination: NO`) all agree the detail read is unpaged; SRS
+          §B2 states the same. There is no divergence to record as an ADR here — every source
+          agrees, and the frontend plan was the one artifact that had assumed otherwise. F1, F2
+          and this table are corrected together.
 SEARCH    the three reads of a collection are `POST …/search` carrying a
           `filters[] {field, operator, value}` envelope (operators EQUALS, NOT_EQUALS, LIKE,
           GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, IN) — which is
@@ -2289,7 +2258,8 @@ LOOKUPS   none. MDL owns no lookup key and consumes none (SRS §A6): no field on
 PERMS     declared by the backend and cited, never redeclared: PERM_MDL_LOOKUPS_VIEW (gateway) ·
           PERM_MDL_LOOKUPS_CREATE · PERM_MDL_LOOKUPS_UPDATE · PERM_MDL_LOOKUPS_DELETE ·
           PERM_MDL_TYPE_REGISTRY_VIEW. The api-docs state each endpoint's requirement, and the
-          two deactivate endpoints require UPDATE, not DELETE — read there, not assumed here.
+          two deactivate endpoints require UPDATE, not DELETE — read there, not assumed here,
+          and filed as PF-MDL-001 below (G5) rather than settled in prose.
 ```
 
 **Where the business codes are stated, and where they are not.** The api-docs publish this
@@ -2298,6 +2268,22 @@ only the structurally guaranteed answers (`ACCESS_DENIED`, and `VALIDATION_ERROR
 is accepted). The per-block routing below therefore maps each code to the endpoint whose rule
 scope can raise it — the mapping is this plan's reading, not a published per-endpoint list, and
 no code appears below that the catalog does not publish.
+
+**Field precisions (G1).** Every `maxLength` in this plan is sourced from the deployed column
+widths — db-script §1 and ADR-MDL-010 — and not restated from `_inputs/api-docs-mdl.md` where
+the two disagree: `key` and `code` are `VARCHAR(50)`, every `nameAr`/`nameEn` is `VARCHAR(200)`.
+If the api-docs genuinely publish 80/150, that is a defect of the MDL api-doc generator on the
+backend repo, not a frontend choice: it is filed as PF-MDL-002 below, and this plan binds to the
+db-script meanwhile so a value the database accepts is never refused by the client and vice
+versa.
+
+### Platform findings — MDL v1 frontend track
+
+| id | status | owner | evidence | impact |
+|---|---|---|---|---|
+| PF-MDL-001 | OPEN | MDL backend track (P3.1) + backend repo method-level security annotations | backend-execution-plan-mdl.md PHASE 7 permission matrix and BOOTSTRAP DATA mark the DELETE column for API-MDL-004 and API-MDL-008 and seed `PERM_MDL_LOOKUPS_DELETE` with grant targets; `_inputs/api-docs-mdl.md` puts `PERM_MDL_LOOKUPS_UPDATE` on both deactivate endpoints | as built, a caller holding UPDATE alone can deactivate a type or a value, and a caller granted DELETE alone can deactivate neither; SRS §B4's DELETE row is unenforceable as built |
+| PF-MDL-002 | OPEN (conditional) | MDL backend track — the api-docs generator | if `_inputs/api-docs-mdl.md` publishes `key`/`code` maxLength 80 and `nameAr`/`nameEn` maxLength 150, that contradicts db-script §1 (`VARCHAR(50)`, `VARCHAR(200)`) and ADR-MDL-010 | a 51–80 character key passes client validation and is refused by the database; a 151–200 character label the platform accepts is refused by the client |
+| PF-MDL-003 | OPEN | platform — the search-filter contract for every module that omits a by-id read | no published filter set for API-MDL-001 or API-MDL-005 carries the record's own id (key, ownerModuleCode, name, isActiveFl on the first; lookupTypeId, code on the second) | a cold-load deep link into a type or value editor cannot resolve its target through any search, one-row or otherwise; see ADR-MDL-014 |
 
 ### Reconciliation against the SRS — run once, before any F-content
 
@@ -2311,15 +2297,23 @@ no code appears below that the catalog does not publish.
   it emits for the other modules, so this plan cites `API-MDL-*` rather than the plan-local
   labels its previous revision used (ADR-MDL-011, superseding ADR-MDL-008).
 - **Two by-id reads the SRS names are published nowhere**; both entry sub-views hydrate from the
-  search cache and perform no second read (ADR-MDL-005).
+  search cache where the row is present, and redirect on a cold load where it is not
+  (ADR-MDL-005, ADR-MDL-014).
 - **`isActiveFl` is read-only at both levels**, which the SRS §B3 Editable column states as well;
   no published write DTO carries it, and the deactivate endpoints are what change it
   (ADR-MDL-006).
 - **`ownerModuleCode` is a select over another module's registry**, cited as UXD-MDL-001 and
   never as a foreign path or a foreign API id (ADR-MDL-004); the foreign endpoint is named in
-  `ui-ux-spec-mdl.md`, and the grant that must travel with the screen is ADR-MDL-013.
+  `ui-ux-spec-mdl.md`, and the grant that must travel with the screen is ADR-MDL-013. Its
+  degraded-source fallback on SCR-MDL-002 is ADR-MDL-015.
 - **Action-level grants are readable from no published surface**, so no affordance is hidden on
   a guess; the page gate is the readable half and the server's 403 is the other (ADR-MDL-012).
+  The DELETE/UPDATE divergence itself is filed as PF-MDL-001, not resolved by this plan.
+- **The detail read is unpaged**, agreeing with every backend and SRS source; the previous
+  revision's paginated model is corrected here (G2).
+- **The whole value set is what a reorder submits**, and the screen now refuses a reorder drag
+  from a filtered or paged detail pane, because a partial submission collides ranks rather than
+  being refused server-side (G3).
 - **Nothing is invented.** No value absent from the api-docs appears in this plan, and no
   permission name, route, component or field is derived from anything but the SRS, the api-docs
   and the profile's own stack.
@@ -2359,6 +2353,9 @@ anywhere in this phase** — MDL owns no coded list of its own (SRS §A6).
 Field and DTO binding: see `_inputs/api-docs-mdl.md` — the published request and response shapes
 for this module are the source and are not restated here. What is stated here is the shape's
 consequence for the client: which properties a form may write, and which it may only display.
+Every `maxLength` below is the deployed db-script column width (db-script §1, ADR-MDL-010), per
+the correction in API SURFACE above (G1); a divergence from the api-docs is PF-MDL-002, not a
+number restated from them.
 
 <!-- SUB:F1-SCR-MDL-001:START traces=SCR-MDL-001,UXD-MDL-001,REQ-MDL-001,REQ-MDL-002,REQ-MDL-003,REQ-MDL-004,REQ-MDL-005,REQ-MDL-006,REQ-MDL-007,REQ-MDL-008,REQ-MDL-009,REQ-MDL-010,AC-MDL-001,AC-MDL-003,AC-MDL-005,AC-MDL-006,AC-MDL-008,AC-MDL-010,API-MDL-001,API-MDL-002,API-MDL-003,API-MDL-004,API-MDL-005,API-MDL-006,API-MDL-007,API-MDL-008,API-MDL-009 -->
 ### F1 · SCR-MDL-001 — اللوكبات العامة / Generic Lookups
@@ -2366,13 +2363,13 @@ consequence for the client: which properties a form may write, and which it may 
 #### F1-MODEL — ENT-MDL-001 — نوع اللوكب / LookupType
 Source DTOs  : `LookupTypeResponse` (read) · `LookupTypeCreateRequest` · `LookupTypeUpdateRequest`
   lookupTypePk    : number · read-only (PK) · system-only · never shown as a business reference
-  key             : string · maxLength 80 · required on create, **read-only on edit** —
-                    RULE-MDL-003, and the update request does not carry it
+  key             : string · maxLength 50 (db-script §1, ADR-MDL-010) · required on create,
+                    **read-only on edit** — RULE-MDL-003, and the update request does not carry it
   ownerModuleCode : string · maxLength 10 · required on create, **read-only on edit** — a plain
                     string holding the code, never an enum and never a union of literals; its
                     valid set is the security module's registry (UXD-MDL-001)
-  nameAr          : string · required · maxLength 150
-  nameEn          : string · required · maxLength 150
+  nameAr          : string · required · maxLength 200 (db-script §1, ADR-MDL-010)
+  nameEn          : string · required · maxLength 200 (db-script §1, ADR-MDL-010)
   isActiveFl      : boolean · read-only — flipped by API-MDL-004 alone (ADR-MDL-006)
   createdBy, createdAt, updatedBy, updatedAt : read-only · system-only (audit)
 
@@ -2384,8 +2381,8 @@ Source DTOs  : `LookupValueResponse` (read) · `LookupValueCreateRequest` ·
                   parent, never typed
   code          : string · maxLength 50 · required on create, **read-only on edit** — the update
                   request does not carry it; unique within its type (RULE-MDL-002)
-  nameAr        : string · required · maxLength 150
-  nameEn        : string · required · maxLength 150
+  nameAr        : string · required · maxLength 200 (db-script §1, ADR-MDL-010)
+  nameEn        : string · required · maxLength 200 (db-script §1, ADR-MDL-010)
   sortOrder     : number · required on create **and** on update — and the same field the reorder
                   writes through `{ orderedValueIds[] }`; two paths, one field
   isActiveFl    : boolean · read-only — flipped by API-MDL-008 alone (ADR-MDL-006)
@@ -2394,20 +2391,25 @@ Source DTOs  : `LookupValueResponse` (read) · `LookupValueCreateRequest` ·
 #### F1-SCREEN — SCR-MDL-001
 Search model : master — key : string · LIKE · ownerModuleCode : string · EXACT (options from the
                UXD-MDL-001 hook) · isActiveFl : boolean · EXACT · plus page, size, sortField,
-               sortDirection, all inside the one request object of API-MDL-001
+               sortDirection, all inside the one request object of API-MDL-001 (the only paged
+               read on this screen)
                detail — code : string · LIKE · lookupTypeId : number · EXACT (from the selected
-               parent, not typed) · plus page, size, sortField, sortDirection, inside the one
-               request object of API-MDL-005
+               parent, not typed) — **no page, no size, no sort**: API-MDL-005 is unpaged
+               (backend-execution-plan API-MDL-005, QR-MDL-005 `Pagination: NO`, SRS §B2), so
+               none of the three is modelled and none belongs in this screen's detail cache key
+               (corrects the previous revision's paginated detail model — G2)
 Form model   : type · create — key, ownerModuleCode, nameAr, nameEn (all required)
                type · edit   — nameAr, nameEn (required); key and ownerModuleCode read-only
                value · create — code, nameAr, nameEn, sortOrder (all required)
                value · edit   — nameAr, nameEn, sortOrder (required); code read-only
-               reorder        — the ordered list of value ids; not a per-row edit and not a form
+               reorder        — the ordered list of value ids, and only ever the type's complete
+               value set (G3, see F2-QUERY VALUE REORDER); not a per-row edit and not a form
                excluded system fields : both PKs · lookupTypeId · both isActiveFl · the audit four
 Container    : TREE_MASTER_DETAIL — a master list of types and, beside it, the selected type's
                values; each of the two entry surfaces models its own record and nothing else
-Both paged reads return the published pagination envelope; both write models drop every property
-no published write DTO carries, so no form offers a field the server would ignore (ADR-MDL-006).
+The master read returns the published pagination envelope; the detail read returns a bare array,
+returned whole because it is confined to one type. Both write models drop every property no
+published write DTO carries, so no form offers a field the server would ignore (ADR-MDL-006).
 <!-- SUB:F1-SCR-MDL-001:END -->
 
 <!-- SUB:F1-SCR-MDL-002:START traces=SCR-MDL-002,UXD-MDL-001,REQ-MDL-011,REQ-MDL-012,REQ-MDL-013,AC-MDL-011,AC-MDL-013,API-MDL-010,API-MDL-011 -->
@@ -2421,10 +2423,13 @@ Source DTO   : `OwnerGroupResponse[]` — a bare array (API-MDL-010); this scree
                     four. The type model of `F1-SCR-MDL-001` is reused, not re-declared; only its
                     writability differs, and on this screen there is none.
 
-#### F1-MODEL — LookupValueResponse (read by key) — قيم المستهلك / the consumer's values
-Source DTO   : `LookupValueResponse[]` — a bare array (API-MDL-011), active values only, ordered
-               by `sortOrder`. Modelled for completeness of the published surface and bound in
-               F2; **no component of this plan renders it** (ADR-MDL-007).
+**No F1-MODEL for the consumer read (G11).** The bare array `LookupValueResponse[]` API-MDL-011
+returns is accounted for once, in the F2 block that binds it (`F2 · SCR-MDL-002` below, per
+ADR-MDL-007): that block already carries its own caller, its own error answers and
+`Cache key : n/a`. Modelling it a second time here, in a screen this frontend renders, instructed
+an implementer to write a client type nothing in the delivered frontend consumes; removed rather
+than kept as documentation, since the F2 block is the complete and correct place for a foreign
+contract this plan binds but never emits.
 
 #### F1-SCREEN — SCR-MDL-002
 Search model : ownerModuleCode : string · EXACT · key : string · LIKE. **No page, no size, no
@@ -2445,8 +2450,9 @@ What each screen needs from the API — not hook code. Verb, path and request/re
 cited by the API id at each block's head and are read in the api-docs, never restated. Every read
 query's cache key carries every filter that changes the response, page and size included **where
 the endpoint is paged**; page and page size live inside the filter object and are never
-independent state. Every mutation declares its invalidation. Components use the facade only; the
-facade uses the declared queries only (server-state library: `tanstack-query`).
+independent state, and are absent from the key of an unpaged read entirely. Every mutation
+declares its invalidation. Components use the facade only; the facade uses the declared queries
+only (server-state library: `tanstack-query`).
 
 Error routing is uniform and is stated per block only where a business code makes it specific:
 field validation → inline on the field `error.fieldErrors[].field` names · business rule → the
@@ -2497,13 +2503,18 @@ Loading      : LOCAL — on the confirmation
 Invalidation : `[lookup-types, *]`, `[lookup-types-by-owner, *]` **and** `[lookup-values, *]` —
                RULE-MDL-004 makes an inactive type's values invisible to consumers, so a cached
                value list of that type is stale in meaning even though its rows did not change
-Requires `PERM_MDL_LOOKUPS_UPDATE` per the api-docs, not DELETE — read there, not assumed.
+Requires `PERM_MDL_LOOKUPS_UPDATE` per the api-docs, not DELETE — read there, not assumed, and
+filed as PF-MDL-001 rather than settled here (G5).
 
 #### F2-QUERY — VALUE SEARCH — API-MDL-005     traces=API-MDL-005,REQ-MDL-005,AC-MDL-005
-Kind         : read query (ADR-MDL-002); paginated response
-Cache key    : `[lookup-values, filters]` — lookupTypeId, code, sortField, sortDirection **and
-               page, size**. The parent id is part of the key, so selecting another type is a
-               different cache entry, not a refetch of the same one.
+Kind         : read query (ADR-MDL-002); **not paginated** — a bare array, ordered by
+               `sortOrder` then `code`, returned whole because it is bounded by one type
+               (backend-execution-plan API-MDL-005, QR-MDL-005, SRS §B2). The previous revision
+               of this block modelled this call as paginated; corrected here (G2).
+Cache key    : `[lookup-values, filters]` — lookupTypeId, code. No page and no size: the endpoint
+               accepts neither, and keying a variation the server cannot produce would fragment
+               the cache for nothing. The parent id is part of the key, so selecting another type
+               is a different cache entry, not a refetch of the same one.
 Errors       : `VALIDATION_ERROR` → inline on the offending filter · `ACCESS_DENIED` → the
                localized forbidden message · `INTERNAL_ERROR` → generic
 Loading      : LOCAL — on the values pane alone; the master list does not blank while it loads
@@ -2516,7 +2527,10 @@ consumer's, and the screen shows what API-MDL-011 hides (AC-MDL-005, AC-MDL-009)
 Kind         : mutation · the parent type is the path id, taken from the selection
 Errors       : `MDL-409-VALUE-DUP` → the RULE-MDL-002 message, routed inline to `code` —
                ar: «هذا الرمز مستخدم بالفعل ضمن هذا النوع» ·
-               en: "This code is already used within this type" ·
+               en: "This code is already used within this type" — a deactivated value of the
+               same code under this type may be the one holding it (RULE-MDL-002 permits no
+               reactivation, G7); the list's own inactive row, still shown in this pane
+               (AC-MDL-005), is the evidence the user can check ·
                `MDL-404-TYPE` → user message (the parent type is gone) ·
                `VALIDATION_ERROR` → inline · `ACCESS_DENIED` → the localized forbidden message
 Loading      : LOCAL
@@ -2537,7 +2551,9 @@ Errors       : `MDL-404-VALUE` → user message · `ACCESS_DENIED` → the local
 Loading      : LOCAL — on the confirmation
 Invalidation : `[lookup-values, *]`
 The row stays in this screen's list afterwards, marked inactive: it leaves the consumer's read,
-not the manager's (AC-MDL-009).
+not the manager's (AC-MDL-009). No endpoint exists to reverse it (ADR-MDL-005), so its `code`
+stays reserved under this type for the life of the type — the confirmation states this (G7,
+ui-ux-spec-mdl.md).
 
 #### F2-QUERY — VALUE REORDER — API-MDL-009    traces=API-MDL-009,REQ-MDL-010,AC-MDL-010
 Kind         : mutation · request `{ orderedValueIds[] }` · response a bare array in the
@@ -2546,10 +2562,26 @@ Errors       : `MDL-400-REORDER-MISMATCH` → user message on the value list (th
                not exactly that type's values) · `MDL-404-TYPE` → user message ·
                `ACCESS_DENIED` → the localized forbidden message
 Loading      : LOCAL — on the list, with the dragged order held until the call settles
-Invalidation : `[lookup-values, *]` — every row's `sortOrder` may have changed, and the response
-               carries the persisted order the list then renders from
-The whole ordered set is submitted, never one row's new position: the endpoint takes
-`orderedValueIds[]`, and the mismatch code exists precisely because a partial set is wrong.
+Invalidation : on success only — `[lookup-values, *]`, since every row's `sortOrder` may have
+               changed and the response carries the persisted order the list then renders from.
+               On any non-2xx answer the pending order is discarded and the list re-renders from
+               the last persisted response; no invalidation runs (G10). MDL-400-REORDER-MISMATCH
+               therefore always leaves the list showing the order the server actually holds,
+               never the rejected drag.
+Submission rule (G3) : **the submitted list is always the type's complete, unfiltered value set.**
+               `lookup_type_id = :typeId` is the only predicate QR-MDL-009 checks — it does not
+               (and cannot) verify that every value of the type was submitted — so a subset
+               re-ranks 1..n and collides with the ranks of every value left out. The values
+               pane can produce exactly that subset (a non-empty `code` filter, F1/F3), so the
+               drag affordance is **disabled** whenever the pane shows less than the whole type:
+               a non-empty `code` filter is active. A shown reason accompanies the disabled
+               state — ar: «امسح مرشّح الرمز لإعادة الترتيب» · en: "Clear the code filter to
+               reorder" — because the API-MDL-005 read this pane is built on carries no paging to
+               also guard against (G2). Reordering from a filtered pane is refused by the client
+               before the call is made, not answered by the server, because the server cannot
+               distinguish a partial submission from a deliberate whole-set one.
+<!-- moved from a bare inline note: the endpoint takes `orderedValueIds[]`; the mismatch code
+     exists for an id that does not belong to the type, never for a merely incomplete list. -->
 
 #### F2-LOOKUP — none
 MDL owns no lookup key and consumes none (SRS §A6). The one option list on this screen is the
@@ -2558,15 +2590,17 @@ owner-module select, which is not lookup data: it is UXD-MDL-001, declared below
 #### F2-SCREEN-INIT — SCR-MDL-001
 Permission read : `MDL_LOOKUPS` present in the caller's effective menu → VIEW, the gateway.
                   CREATE, UPDATE and DELETE are readable from no published surface; the server
-                  answers them per call (ADR-MDL-012).
+                  answers them per call (ADR-MDL-012, PF-MDL-001).
 Lookups used    : none
 Foreign data    : the owner-module select and the owner-module filter resolve through
                   UXD-MDL-001 — ONE shared hook, long-lived cache, shared with SCR-MDL-002. A
                   refused read leaves the select empty and disabled, and the create action
                   disabled behind it (ADR-MDL-013)
 Entity by id    : none published at either level; both entry sub-views hydrate from the row their
-                  own search query already holds, so opening an editor performs no second read
-                  (ADR-MDL-005)
+                  own search query already holds when that row is in cache; on a cold load the
+                  hydrating row is absent and the route redirects to `/reference-data/lookups`
+                  (type editor) or `/reference-data/lookups/:typeId` (value editor) rather than
+                  render empty (ADR-MDL-014)
 
 #### F2-FACADE — SCR-MDL-001
 Composes     : API-MDL-001, API-MDL-005 (the two lists) · API-MDL-002, API-MDL-003, API-MDL-004,
@@ -2574,13 +2608,17 @@ Composes     : API-MDL-001, API-MDL-005 (the two lists) · API-MDL-002, API-MDL-
                UXD-MDL-001 hook
 State it owns: the type list and the selected type's value list, both derived from their queries'
                data and never copied into state; the selected type id, read from the route param;
-               two filter objects, each carrying its own page and size; the pending drag order
-               while a reorder is in flight; the open editor's identity, held in navigation state
-               rather than in a boolean; and a derived loading flag over the calls in flight
+               two filter objects (the master's carrying page and size, the detail's carrying
+               `code` alone); the pending drag order while a reorder is in flight, and whether the
+               detail's `code` filter is empty (the reorder-eligibility flag of G3); the open
+               editor's identity, held in navigation state rather than in a boolean; and a
+               derived loading flag over the calls in flight
 Operations   : createType · updateType · deactivateType (confirmed, and the confirmation says
-               consumer reads will stop returning this type's values — RULE-MDL-004) ·
-               createValue · updateValue · deactivateValue (confirmed) · reorderValues (the whole
-               ordered list, submitted once)
+               consumer reads will stop returning this type's values, and that `key` stays
+               reserved and unreusable afterwards — RULE-MDL-004, G7) · createValue · updateValue
+               · deactivateValue (confirmed, same reserved-code statement, G7) · reorderValues
+               (the whole ordered list, submitted once, disabled while the detail pane is
+               filtered — G3)
 Ordered pairs: none. **No operation of this screen owns two calls** — a type's write carries no
                values, so nothing here updates a record and then replaces its child set, and no
                ordering or skip-if-unchanged rule is needed. Each operation is exactly one call.
@@ -2607,7 +2645,9 @@ Invalidation : n/a (a read). It is refreshed by SCR-MDL-001's type mutations, wh
                deactivated there changes what this registry shows.
 
 #### F2-QUERY — CONSUMER READ BY KEY — API-MDL-011  traces=API-MDL-011,REQ-MDL-011,REQ-MDL-012,AC-MDL-011,AC-MDL-012
-Kind         : read query · **bound, and called by no screen of this module** (ADR-MDL-007)
+Kind         : read query · **bound, and called by no screen of this module** (ADR-MDL-007).
+               This block is the complete accounting for API-MDL-011's response shape — no
+               second model of it exists in F1 (G11).
 Caller       : a consuming module's backend, over the platform's in-process module interface —
                not a user at a screen. Stated here so the published surface is completely
                accounted for.
@@ -2627,9 +2667,13 @@ Permission read : `MDL_TYPE_REGISTRY` present in the caller's effective menu →
                   has no other action to gate (SRS §B4).
 Lookups used    : none
 Foreign data    : the owner-module filter and the group headings resolve through UXD-MDL-001 —
-                  the same shared hook SCR-MDL-001 uses, not a second call. A refused read
-                  leaves the headings showing the bare code the browse already returns; browsing
-                  is never blocked by it (ADR-MDL-013)
+                  the same shared hook SCR-MDL-001 uses, not a second call. When that read is
+                  refused or fails, the owner select falls back to the **distinct
+                  `ownerModuleCode` values present in the current API-MDL-010 response**, which
+                  the browse already returns on every group — never to free text, and never to a
+                  code the registry does not currently hold. Group headings themselves fall back
+                  to the bare code the browse returns, unchanged from before; browsing is never
+                  blocked by the degraded source (ADR-MDL-013, ADR-MDL-015, G6)
 Entity by id    : none — each group carries its full type rows
 
 #### F2-FACADE — SCR-MDL-002
@@ -2652,6 +2696,8 @@ frontend-only validation the SRS does not state; every message is read from its 
 rather than hard-coded; the locale resolves session → browser → `ar` (`profile.languages.primary`);
 and a caller without the write permission is answered by the server, not by a pre-emptively
 disabled field (ADR-MDL-012). Schemas are written with `zod` and bound with `react-hook-form`.
+Every `maxLength` below is the deployed column width (db-script §1, ADR-MDL-010), per the
+correction in API SURFACE (G1).
 
 **No option-set validator exists anywhere in this module.** MDL owns no coded list (SRS §A6), so
 no field binds to a set of lookup values. The one field with a constrained set is
@@ -2665,24 +2711,24 @@ Validation timing for this screen, declared once and holding for both entry surf
 for the unique key and the unique code, on submit for everything else.**
 
 #### F3-FIELD — SCR-MDL-001 (type · create)
-key             · REQUIRED · LENGTH (maxLength 80) · UNIQUE_CHECK · on blur
+key             · REQUIRED · LENGTH (maxLength 50) · UNIQUE_CHECK · on blur
 ownerModuleCode · REQUIRED · LENGTH (maxLength 10) · MEMBER_OF the UXD-MDL-001 list ·
                   BUSINESS_RULE (RULE-MDL-001) · on submit
-nameAr, nameEn  · REQUIRED · LENGTH (maxLength 150) · on submit
+nameAr, nameEn  · REQUIRED · LENGTH (maxLength 200) · on submit
 
 #### F3-FIELD — SCR-MDL-001 (type · edit)
 key, ownerModuleCode · read-only — not inputs at all; the update request carries neither
-nameAr, nameEn       · REQUIRED · LENGTH (maxLength 150) · on submit
+nameAr, nameEn       · REQUIRED · LENGTH (maxLength 200) · on submit
 
 #### F3-FIELD — SCR-MDL-001 (value · create)
 code            · REQUIRED · LENGTH (maxLength 50) · UNIQUE_CHECK within the selected type
                   (RULE-MDL-002) · on blur
-nameAr, nameEn  · REQUIRED · LENGTH (maxLength 150) · on submit
+nameAr, nameEn  · REQUIRED · LENGTH (maxLength 200) · on submit
 sortOrder       · REQUIRED · integer · on submit
 
 #### F3-FIELD — SCR-MDL-001 (value · edit)
 code            · read-only — the update request does not carry it
-nameAr, nameEn  · REQUIRED · LENGTH (maxLength 150) · on submit
+nameAr, nameEn  · REQUIRED · LENGTH (maxLength 200) · on submit
 sortOrder       · REQUIRED · integer · on submit
 
 UNIQUE_CHECK    : async, on blur — the type's `key` through API-MDL-001 with an EQUALS filter;
@@ -2717,7 +2763,10 @@ Scope     : CREATE (and UPDATE, per the rule's trigger) · Field : the value's c
 Shape     : uniqueness is scoped to the parent type, never globally — the same code under
             another type is legitimate, and a global check would reject a value the server
             accepts. The async check is bound to the selected parent id. On edit the field is
-            read-only, so the client check cannot fire and the rule is the server's alone.
+            read-only, so the client check cannot fire and the rule is the server's alone. A
+            deactivated value under the same type can be the one holding a submitted code — no
+            activate endpoint exists (ADR-MDL-005), so the code stays reserved — and the inline
+            message names that possibility (G7, F2-QUERY VALUE CREATE).
 
 #### F3-VALIDATION — RULE-MDL-003   traces=REQ-MDL-003,AC-MDL-003
 Statement : The system shall prevent editing a lookup type's key after creation.
@@ -2739,10 +2788,12 @@ Scope     : the deactivate action (API-MDL-004) · Field : none — a row action
             kind BUSINESS_RULE · when submit
 Shape     : **not a validation this form performs** — it is a consequence the deactivate
             confirmation names before the act: every consuming module stops receiving this
-            type's values. The rule's text is also the state label on an inactive type row, so
-            the same words explain the row and the warning. Nothing on this screen is hidden by
-            it: the manager's value list still shows the values, which is the difference between
-            this screen and a consumer.
+            type's values, and — because no activate endpoint exists — the type's `key` stays
+            reserved under the platform and cannot be reused by a later registration (G7). The
+            rule's text is also the state label on an inactive type row, so the same words
+            explain the row and the warning. Nothing on this screen is hidden by it: the
+            manager's value list still shows the values, which is the difference between this
+            screen and a consumer.
 
 Business-code fields: `key` and `code` are client-chosen strings, not platform-numbered, and both
 are read-only after create per the two update DTOs. Neither is generated or predicted on the
@@ -2750,7 +2801,8 @@ client (SRS §3.3 numbering).
 Locale : session → browser → `ar`.
 Permission-driven behaviour: a caller without CREATE, UPDATE or DELETE receives `ACCESS_DENIED`
 on submit and the form shows the localized message; fields are not pre-emptively disabled,
-because no published surface tells this screen which actions its caller holds (ADR-MDL-012).
+because no published surface tells this screen which actions its caller holds (ADR-MDL-012,
+PF-MDL-001).
 <!-- SUB:F3-SCR-MDL-001:END -->
 
 <!-- SUB:F3-SCR-MDL-002:START traces=SCR-MDL-002,UXD-MDL-001,REQ-MDL-011,REQ-MDL-013,AC-MDL-013,API-MDL-010 -->
@@ -2760,10 +2812,12 @@ This screen has **no form**: SRS §B3 reads "read-only browse; no create/update 
 property of the response is read-only.
 
 #### F3-FIELD — SCR-MDL-002 (filters — not a form)
-ownerModuleCode · optional · the select offers the UXD-MDL-001 list, so only registered module
-                  codes can be chosen; a code that is no longer registered but still owns types
-                  is still shown in the results, because the grouping is the server's
-key             · optional · LENGTH (maxLength 80) · a LIKE filter
+ownerModuleCode · optional · the select offers the UXD-MDL-001 list; when that read is refused
+                  or fails the select falls back to the distinct `ownerModuleCode` values in the
+                  current API-MDL-010 response, never to free text (ADR-MDL-013, ADR-MDL-015, G6)
+                  — a code that is no longer registered but still owns types is still shown in
+                  the results either way, because the grouping is the server's
+key             · optional · LENGTH (maxLength 50) · a LIKE filter
 
 #### F3-VALIDATION — none on this screen
 No `RULE-*` is enforced here, because nothing is written. RULE-MDL-004's effect is visible — a
@@ -2805,7 +2859,7 @@ Chunk        : one lazy chunk for this composite screen — both panes and both 
 Guard        : every route element guarded by `PERM_MDL_LOOKUPS_VIEW`, evaluated as "`MDL_LOOKUPS`
                is in the caller's effective menu". The write routes carry the same guard, because
                CREATE, UPDATE and DELETE are readable from no published surface and the server's
-               403 is the authority on the write itself (ADR-MDL-012)
+               403 is the authority on the write itself (ADR-MDL-012, PF-MDL-001)
 Facade       : the SCR-MDL-001 facade of F2 — the page never calls a query directly
 Components   : `LookupsPage` (route-level, TREE_MASTER_DETAIL) · `LookupTypeList`,
                `LookupTypeFilters`, `LookupTypeForm`, `LookupValuePane`, `LookupValueRow`,
@@ -2813,29 +2867,45 @@ Components   : `LookupsPage` (route-level, TREE_MASTER_DETAIL) · `LookupTypeLis
                (presentational)
 Mode         : CREATE | EDIT | VIEW resolved from the route match — `/new` and `/values/new` →
                CREATE, `/edit` → EDIT, `/:typeId` → VIEW — never from a parent's prop
+Cold-load hydration (ADR-MDL-014) : the two edit routes and the two entry sub-views hydrate their
+               form from the row their own search query already holds (ADR-MDL-005). No by-id
+               read is published for either entity (PF-MDL-003: the search filter sets of
+               API-MDL-001 and API-MDL-005 carry no id operator), so on a cold load — the
+               hydrating row absent from cache, as when a link is opened directly rather than
+               navigated to — the route redirects instead of rendering an empty form:
+               `/reference-data/lookups/:typeId/edit` and `/reference-data/lookups/:typeId/values/new`
+               and `/values/:valueId/edit` redirect to `/reference-data/lookups/:typeId`; if the
+               type itself is not in cache either, to `/reference-data/lookups`. The destination
+               shows the localized message — ar: «افتح السجل من القائمة» ·
+               en: "Open the record from the list" — rather than a blank editor. This needs no
+               unpublished endpoint and no invented filter, and it keeps every route addressable
+               for the in-session case it was written for.
 Composition  : the spec's line resolved to components. Nothing is inline: `LookupValuePane` is not
                a control inside `LookupTypeForm`, and the type's write carries no values, so the
                type form has nothing of the values in it. Each value is a **summary row**
                (`LookupValueRow` — code, both names, order, state) and its editor is the **second
                level**: `LookupValueForm` is a SIBLING of `LookupValuePane`, never rendered inside
                its element; it is opened from the route (`/values/new`, `/values/:valueId/edit`),
-               so back closes it, dismissing closes only it and a deep link opens it; it carries
-               no scroll region of its own — the pane scrolls with the body it sits in
+               so back closes it, dismissing closes only it and a deep link opens it, subject to
+               the cold-load redirect above; it carries no scroll region of its own — the pane
+               scrolls with the body it sits in
 Saves        : ONE per open surface, and one surface at a time. `LookupTypeForm` submits once
                (API-MDL-002 or API-MDL-003); `LookupValueForm` submits once (API-MDL-006 or
                API-MDL-007) for its own record. The two are never open together: a value route is
                a state of the detail level, not a panel beside the open type form. **No action of
                this screen owns two calls**, so no ordered pair and no skip-if-unchanged rule
                arises. Deactivate and reorder are direct actions over a row and over the list;
-               neither is a form and neither carries a second submit
+               neither is a form and neither carries a second submit. The reorder handle is
+               disabled whenever the detail pane's `code` filter is non-empty (G3, F2-QUERY VALUE
+               REORDER)
 Cross-module : UXD-MDL-001 — the owner-module select on the type entry, the owner-module filter
                on the master list, and the owner column of the list. The one field on this screen
                whose authoritative source is another module
 The selected type is a route param, so a type's values are a linkable address and the browser's
 back gesture returns to the list. Both levels offer Deactivate and neither offers an Activate: no
 endpoint exists for the second half, and the confirmation says the act is not reversible from
-this screen (ADR-MDL-005). The drag handle submits the whole ordered set through API-MDL-009
-rather than writing one row's `sortOrder`.
+this screen and that the code/key stays reserved (ADR-MDL-005, G7). The drag handle submits the
+whole ordered set through API-MDL-009 rather than writing one row's `sortOrder`.
 <!-- SUB:F4-SCR-MDL-001:END -->
 
 <!-- SUB:F4-SCR-MDL-002:START traces=SCR-MDL-002,UXD-MDL-001,REQ-MDL-011,REQ-MDL-012,REQ-MDL-013,AC-MDL-013,API-MDL-010,API-MDL-011 -->
@@ -2860,7 +2930,7 @@ Composition  : `none`, resolved: no picker, no child-row editor, no second level
 Saves        : none — the screen submits nothing at all. Its one affordance is a link into
                SCR-MDL-001, which is a navigation, not a save
 Cross-module : UXD-MDL-001 — here it is the grouping itself and the label on each group heading,
-               not a field of a form
+               not a field of a form; its degraded-source fallback is ADR-MDL-015 (G6)
 Each type row links to `/reference-data/lookups/:typeId`, which is SCR-MDL-001's own route and
 carries its own guard: reviewing and managing are two steps of one task, and this screen does
 neither half of the second. API-MDL-011 has no component and no route here (ADR-MDL-007).
@@ -2893,11 +2963,15 @@ Per action       : **VIEW** → the gate above, exact, and it covers both panes:
                    the reorder) → the same. **DELETE** (which here means deactivate and nothing
                    else — no hard delete exists at either level) → the same.
 
-**Registered, required by nothing.** The api-docs put `PERM_MDL_LOOKUPS_UPDATE` on **both** deactivate
-endpoints, so no published endpoint of this module requires `PERM_MDL_LOOKUPS_DELETE`, which the
-backend registry and the SRS Access summary both declare. The frontend neither checks it nor
-depends on it: the guard it can evaluate is the page gate, and the authority on a write is the
-server. Recorded, not corrected — the permission an endpoint requires is the backend's to state.
+**Filed as a platform finding, not settled here (G5).** The api-docs put `PERM_MDL_LOOKUPS_UPDATE`
+on **both** deactivate endpoints, while backend-execution-plan-mdl.md PHASE 7's permission matrix
+and BOOTSTRAP DATA mark the DELETE column for API-MDL-004 and API-MDL-008 and seed
+`PERM_MDL_LOOKUPS_DELETE` with grant targets — a real divergence, not a naming detail: as built,
+UPDATE alone lets a caller deactivate, and DELETE alone lets a caller deactivate nothing, so SRS
+§B4's DELETE row is unenforceable as built. This is filed as **PF-MDL-001** (API SURFACE, above),
+owner the MDL backend track, evidence the two artifacts just named. The frontend neither checks
+`PERM_MDL_LOOKUPS_DELETE` nor depends on it: the guard it can evaluate is the page gate, and the
+authority on a write is the server's answer to the call actually made.
 
 The screen-level grant is the whole granularity available. Per-lookup-type permissions — letting
 a role manage one type but not another — are an explicit SRS scope exception (§A2), so no
@@ -2966,7 +3040,8 @@ MARKERS       markers         the parser reports no structural or semantic error
 DECISIONS     refs-exist      every ADR this plan cites exists on disk in
                               analysis/decisions/MDL/ — ADR-MDL-002, ADR-MDL-003, ADR-MDL-004,
                               ADR-MDL-005, ADR-MDL-006, ADR-MDL-007, ADR-MDL-011, ADR-MDL-012,
-                              ADR-MDL-013, and the two superseded ones they cite
+                              ADR-MDL-013, ADR-MDL-014, ADR-MDL-015, and the two superseded ones
+                              they cite
 COVERAGE      (the report)    none — the analyze report lists no clause as having examined
                               nothing. Two facts sit behind that word: every clause that counts
                               its subjects counted at least one here, and `xref-surface` reports
@@ -2988,11 +3063,11 @@ RESULT        PASSED ✓ — 0 findings
 | create lookup value | API-MDL-006 | SCR-MDL-001 · value entry, create | `/reference-data/lookups/:typeId/values/new` | ✓ |
 | update lookup value | API-MDL-007 | SCR-MDL-001 · value entry, edit | `/reference-data/lookups/:typeId/values/:valueId/edit` | ✓ |
 | deactivate lookup value | API-MDL-008 | SCR-MDL-001 · deactivate a value | `/reference-data/lookups/:typeId` | ✓ |
-| reorder a type's values | API-MDL-009 | SCR-MDL-001 · drag to reorder | `/reference-data/lookups/:typeId` | ✓ |
+| reorder a type's values | API-MDL-009 | SCR-MDL-001 · drag to reorder (disabled while filtered, G3) | `/reference-data/lookups/:typeId` | ✓ |
 | browse the registry by owner | API-MDL-010 | SCR-MDL-002 · the browse itself | `/reference-data/type-registry` | ✓ |
 | read active values by key | API-MDL-011 | — a consuming module's backend call | — (ADR-MDL-007) | ✗ |
-| read one type by id | — none published | hydrated from the search cache | — (ADR-MDL-005) | ✗ |
-| read one value by id | — none published | hydrated from the search cache | — (ADR-MDL-005) | ✗ |
+| read one type by id | — none published | hydrated from the search cache, redirected on cold load | — (ADR-MDL-005, ADR-MDL-014) | ✗ |
+| read one value by id | — none published | hydrated from the search cache, redirected on cold load | — (ADR-MDL-005, ADR-MDL-014) | ✗ |
 
 Ten of the eleven published endpoints carry a route and a ✓. Three rows carry a ✗ with the ADR
 that explains it: one endpoint published for a caller that is not this frontend, and two
@@ -3006,13 +3081,15 @@ and no row carries an empty route without one.
 
 The implementer reads the phases in profile order — F1 models, F2 hooks, F3 forms, F4 screens and
 routes, SEC-FE guards — takes design intent from `ui-ux-spec-mdl.md`, and takes every request and
-response shape from `_inputs/api-docs-mdl.md` at the commit this module version pins. No route,
-component, permission or field that is not traceable to an F-block above is invented: a gap is an
-ADR in `analysis/decisions/MDL/`, never an invention.
+response shape from `_inputs/api-docs-mdl.md` at the commit this module version pins, **except**
+the two published numbers PF-MDL-002 disputes (`key`/`code` maxLength, `nameAr`/`nameEn`
+maxLength), which this plan binds to the db-script instead until that finding is resolved. No
+route, component, permission or field that is not traceable to an F-block above is invented: a
+gap is an ADR in `analysis/decisions/MDL/`, never an invention.
 
-Three response shapes travel in this module and the difference is load-bearing: two paginated
-reads, three bare arrays and six single objects. No block may be read through an envelope another
-block declares.
+Two response shapes travel in this module and the difference is load-bearing: one paginated read,
+four bare arrays and six single objects. No block may be read through an envelope another block
+declares.
 
 The plan and its registry are split by the toolkit into the frontend execution package inside the
 shared repo after the `gate:pass-2` verdict, and tagged `mdl-v1`. Nothing is copied anywhere: the
@@ -3390,9 +3467,9 @@ Last sequence per atom : SCR 002 · UXD 001
 
 Neither sequence restarts and nothing is renumbered: both are the assignment this module version
 already carries, cited unchanged by the decisions on disk (ADR-MDL-003, ADR-MDL-004, ADR-MDL-007)
-and by every downstream artifact that names them. This run mints no new id of either kind — the
-two screens the SRS declares and the one cross-module display dependency are the same two and the
-same one.
+and by every downstream artifact that names them. This run mints no new `SCR-*` or `UXD-*` id —
+the two screens the SRS declares and the one cross-module display dependency are the same two and
+the same one; it mints two new ADR ids (ADR-MDL-014, ADR-MDL-015) against this same unchanged set.
 
 SCREENS
 | SCR | الاسم / Name | Owning ENT | Container pattern | Permissions |
@@ -3403,12 +3480,15 @@ SCREENS
 Two composite screens, two page codes (MDL_LOOKUPS, MDL_TYPE_REGISTRY), and one `SUB` per screen
 in each of the four sub-bearing phases — eight per-screen blocks, plus a level-1 block per screen
 in SEC-FE. The permission names are the backend registry's; this stage cites them and declares
-none.
+none. **PF-MDL-001** (frontend-execution-plan-mdl.md, API SURFACE) records that the api-docs
+require `PERM_MDL_LOOKUPS_UPDATE`, not `PERM_MDL_LOOKUPS_DELETE`, on both deactivate endpoints —
+filed against the backend track, not corrected in this table, which states the SRS §B4 grant as
+written.
 
 COMPOSITION
 | SCR | Secondary detail | Placement | Submits |
 |---|---|---|---|
-| SCR-MDL-001 | the selected type's values — records of a second entity, absent from every type write DTO | none inline · a summary row per value, its editor a second level opened from the route, rendered as a sibling and carrying no scroll region of its own | one per open surface, one surface at a time; no action of this screen owns two calls |
+| SCR-MDL-001 | the selected type's values — records of a second entity, absent from every type write DTO | none inline · a summary row per value, its editor a second level opened from the route (with a cold-load redirect when the hydrating row is not in cache, ADR-MDL-014), rendered as a sibling and carrying no scroll region of its own | one per open surface, one surface at a time; no action of this screen owns two calls; the reorder submits only the type's complete, unfiltered value set (G3) |
 | SCR-MDL-002 | none — a read-only browse | none | none — the screen writes nothing |
 
 UXD INDEX
@@ -3424,6 +3504,9 @@ appears in no frontend artifact.
 Grant that travels with it: every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold
 `PERM_SEC_MODULE_REGISTRY_VIEW`, or the owner-module select stays empty and disabled and creation
 is blocked behind it. The grant is the security module's to make (ADR-MDL-013).
+Degraded source on SCR-MDL-002: a refused or failed read falls back to the distinct
+`ownerModuleCode` values already present in the current API-MDL-010 response, never to free text
+(ADR-MDL-015, new this run, G6).
 
 API COVERAGE
 | Status | Count | API ids |
@@ -3433,14 +3516,18 @@ API COVERAGE
 | used but undocumented | 0 | no endpoint is called that the api-docs do not publish |
 | documented but unbound | 0 | all 11 published endpoints are bound, each cited by the `Contract ID` the api-docs now publish for it (ADR-MDL-011, superseding ADR-MDL-008) |
 
-RESPONSE SHAPES — the difference is load-bearing and is stated per block in F2
+RESPONSE SHAPES — the difference is load-bearing and is stated per block in F2 — **corrected this
+run (G2)**: API-MDL-005 moves from paginated to bare array. The prior revision modelled it as
+paginated on no published source; `_inputs/api-docs-mdl.md`, backend-execution-plan API-MDL-005
+and QR-MDL-005 (`Pagination: NO`) and SRS §B2 all agree it is unpaged.
+
 | Shape | API ids |
 |---|---|
-| paginated (`PageLookup<T>`) | API-MDL-001, API-MDL-005 |
-| a bare array | API-MDL-009, API-MDL-010, API-MDL-011 |
+| paginated (`PageLookup<T>`) | API-MDL-001 |
+| a bare array | API-MDL-005, API-MDL-009, API-MDL-010, API-MDL-011 |
 | a single object | API-MDL-002, API-MDL-003, API-MDL-004, API-MDL-006, API-MDL-007, API-MDL-008 |
-Only the two paginated reads carry page and size in their cache keys. API-MDL-010 accepts
-`filters` alone — no sort and no paging — so neither belongs in its key.
+Only API-MDL-001 carries page and size in its cache key. API-MDL-005 and API-MDL-010 accept
+`filters` alone — no sort and no paging — so neither belongs in either one's key.
 
 SHAPE DIFFS AGAINST THE BACKEND PLAN
 Three reads are `POST …/search` where `backend-execution-plan-mdl.md`'s contract summary still
@@ -3449,11 +3536,17 @@ with each other, so the backend plan is the one artifact that lags; `gov.py anal
 there (C8.4). Correcting it is three rows in a P3.1 artifact, outside this stage's boundary —
 recorded here and in ADR-MDL-002, not silently corrected.
 
+FIELD PRECISION DIFF (G1) — `key`/`code` and `nameAr`/`nameEn` maxLength is bound to db-script §1
+and ADR-MDL-010 (50 / 200) rather than to any conflicting number `_inputs/api-docs-mdl.md` may
+publish (80 / 150); filed as PF-MDL-002 in frontend-execution-plan-mdl.md against the MDL
+api-doc generator, with the db-script column widths as evidence.
+
 OPERATIONS WITHOUT AN ENDPOINT
 read one lookup type by id · read one lookup value by id — named by SRS Part B, required by no
 `REQ-*`, and omitted from the frontend rather than faked; both entry sub-views hydrate from the
-row the search query already holds (ADR-MDL-005). This SRS version names no `activate` action at
-either level, so deactivation being one-way is the SRS's own statement, not an omission.
+row the search query already holds when it is present, and redirect to the parent surface on a
+cold load when it is not (ADR-MDL-005, ADR-MDL-014). This SRS version names no `activate` action
+at either level, so deactivation being one-way is the SRS's own statement, not an omission.
 
 LOOKUPS
 None. MDL introduces no domain-specific coded list of its own — it is the generic mechanism every
@@ -3463,11 +3556,18 @@ runtime-loaded list of UXD-MDL-001.
 
 ALIGN
 Verdict as stamped in frontend-execution-plan-mdl.md → ALIGN-FE → the `RESULT` line (written by
-the orchestrator from the analyze report). Findings fixed during this run: three statements of the
-previous revision that no longer describe the inputs — the plan-local endpoint labels it used
-while the api-docs carried no governance id, the `activate` rows it listed as omitted operations
-after the SRS stopped naming them, and the unqualified per-screen phase content that the
-`sub_bearing` phases now address one screen at a time. None outstanding.
+the orchestrator from the analyze report). Findings fixed during this run (gate `pass-2`, this
+revision): the six-way field-precision divergence from the deployed schema (G1), the detail read
+modelled as paginated on no published source (G2), a reorder submittable from a partial pane
+(G3), an unbuildable cold-load deep link (G4, ADR-MDL-014), a cross-artifact permission
+divergence settled in prose instead of filed (G5, PF-MDL-001), a silent degraded-source gap on
+the SCR-MDL-002 owner filter (G6, ADR-MDL-015), the unstated permanence of a deactivated
+code/key (G7), a stale ADR-MDL-008 status header and an ADR-MDL-005 Context-table citation of a
+superseded SRS line (G8, G9 — filed against the ADR files themselves, outside this stage's
+writable set), an unstated optimistic-reorder failure path (G10), and an unconsumed F1 model for
+the consumer read (G11). None outstanding within this stage's scope; G8 and G9 remain open
+against `analysis/decisions/MDL/ADR-MDL-008.md` and `ADR-MDL-005.md`, which this pass's writable
+file set does not include.
 
 ADRs
 analysis/decisions/MDL/ADR-MDL-002.md (ACCEPTED — three reads are POST `…/search`; the backend
@@ -3479,16 +3579,21 @@ analysis/decisions/MDL/ADR-MDL-005.md (ACCEPTED — operations with no published
 omitted, not faked) ·
 analysis/decisions/MDL/ADR-MDL-006.md (ACCEPTED — `isActiveFl` read-only at both levels) ·
 analysis/decisions/MDL/ADR-MDL-007.md (ACCEPTED — API-MDL-011 bound and called by no screen) ·
-analysis/decisions/MDL/ADR-MDL-011.md (ACCEPTED, raised this run — the re-fetched api-docs
-publishes a Contract ID per endpoint, so the plan cites API ids; supersedes ADR-MDL-008) ·
-analysis/decisions/MDL/ADR-MDL-012.md (ACCEPTED, raised this run — no published surface tells a
-screen which actions its caller holds) ·
-analysis/decisions/MDL/ADR-MDL-013.md (ACCEPTED, raised this run — the grant that travels with
-UXD-MDL-001)
+analysis/decisions/MDL/ADR-MDL-011.md (ACCEPTED — the re-fetched api-docs publishes a Contract ID
+per endpoint, so the plan cites API ids; supersedes ADR-MDL-008) ·
+analysis/decisions/MDL/ADR-MDL-012.md (ACCEPTED — no published surface tells a screen which
+actions its caller holds) ·
+analysis/decisions/MDL/ADR-MDL-013.md (ACCEPTED — the grant that travels with UXD-MDL-001, and
+the SCR-MDL-001 degraded-source behaviour) ·
+analysis/decisions/MDL/ADR-MDL-014.md (ACCEPTED, raised this run — cold-load redirect for the
+deep-linked entry routes, G4) ·
+analysis/decisions/MDL/ADR-MDL-015.md (ACCEPTED, raised this run — the SCR-MDL-002
+degraded-source fallback for UXD-MDL-001, G6)
 Superseded, kept on disk and cited only by the decisions that replaced them: ADR-MDL-001,
-ADR-MDL-008. Carried from earlier stages: ADR-MDL-009 and ADR-MDL-010 (P2) touch no frontend
-artifact and are not applied here. No BLOCKED ADR — the pass was not stopped, and no question was
-raised.
+ADR-MDL-008 — the latter's own status header remains to be corrected on disk (G8, outside this
+pass's writable files). Carried from earlier stages: ADR-MDL-009 and ADR-MDL-010 (P2) touch no
+frontend artifact and are not applied here. No BLOCKED ADR — the pass was not stopped, and no
+question was raised.
 
 TRACEABILITY
 REQ reached by ≥1 F-block: 13/13 — REQ-MDL-001 … REQ-MDL-010 appear in the `traces=` of
@@ -3496,19 +3601,28 @@ SCR-MDL-001's blocks, and REQ-MDL-011, REQ-MDL-012, REQ-MDL-013 in SCR-MDL-002's
 none.
 REQ traced by an `SCR-*` or `UXD-*` record: **11/13**, and the two numbers are not in conflict.
 REQ-MDL-011 and REQ-MDL-012 are the consumer's read by key — a server-to-server call with no
-screen (ADR-MDL-007) — so they are reached by the F2 block that binds API-MDL-011 and by the
-values and active flags managed on SCR-MDL-001 that decide what that read returns, and they are
-traced by no screen, because no screen implements them. The analyze report's `req-ux` ratio says
-84.6% for exactly this reason; inflating it would mean asserting a screen that does not exist.
+screen (ADR-MDL-007) — so they are reached by the F2 block that binds API-MDL-011 (and by that
+block alone — no F1 model duplicates it, G11) and by the values and active flags managed on
+SCR-MDL-001 that decide what that read returns, and they are traced by no screen, because no
+screen implements them. The analyze report's `req-ux` ratio says 84.6% for exactly this reason;
+inflating it would mean asserting a screen that does not exist.
 AC covered: 13/13 — each AC accompanies its REQ in the same traces.
 SCR covered: 2/2 — each carries a SUB in F1, F2, F3 and F4 and a block in SEC-FE.
 UXD cited by an F-block: 1 of 1 — none unreferenced, none dangling.
 Screen operations the SRS names, resolved to a route: 8/8 on SCR-MDL-001 (search, create, read,
 update, deactivate, reorder across both levels) and 2/2 on SCR-MDL-002 (search, browse).
 
+PLATFORM FINDINGS (frontend track, this run)
+| id | status | subject |
+|---|---|---|
+| PF-MDL-001 | OPEN | deactivate-endpoint permission (UPDATE vs DELETE) divergence — G5 |
+| PF-MDL-002 | OPEN (conditional) | api-docs field-precision divergence from the db-script — G1 |
+| PF-MDL-003 | OPEN | no by-id read published for either entity, blocking cold-load hydration — G4 |
+Full text of each in frontend-execution-plan-mdl.md, API SURFACE.
+
 Event
-"P3.2 completed: MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10 called), 4 sub-bearing phases
-split per screen (8 SUB blocks), ALIGN-FE stamped by the orchestrator, 3 new ADRs"
+"P3.2 revised (gate pass-2): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10 called), 2 new ADRs
+(ADR-MDL-014, ADR-MDL-015), 3 platform-findings rows filed, 11 findings (G1-G11) applied"
 ══════════════════════════════════════════════════════════════════
 
 <<<END ARTIFACT>>>
@@ -4227,10 +4341,10 @@ omits none of them: every line below is copied from its source and attributed to
 Traces            : REQ-MDL-001, REQ-MDL-002, REQ-MDL-003, REQ-MDL-004, REQ-MDL-005, REQ-MDL-006, REQ-MDL-007, REQ-MDL-008, REQ-MDL-009, REQ-MDL-010, AC-MDL-001, AC-MDL-002, AC-MDL-003, AC-MDL-004, AC-MDL-005, AC-MDL-006, AC-MDL-007, AC-MDL-008, AC-MDL-009, AC-MDL-010, UXD-MDL-001
 Screen requirement: SCR-REQ-MDL-001 · page code MDL_LOOKUPS
 UI pattern        : header + repeating lines — رئيسي (أنواع) + تفصيلي (قيم) قابل لإعادة الترتيب / master (types) + detail (values), reorderable — من SRS §B1 حرفيًا، غير مُبدَّل / verbatim from the SRS screen entry, not changed here
-Sub-views         : Search (الأنواع / the types, مُرقَّم الصفحات على الخادم / server-paged) · Entry (نوع / a type) · Detail (قيم النوع المختار / the selected type's values) · Entry (قيمة / a value) — أربعة سطوح تحت SCR واحد / four surfaces under ONE SCR
+Sub-views         : Search (الأنواع / the types, مُرقَّم الصفحات على الخادم / server-paged) · Entry (نوع / a type) · Detail (قيم النوع المختار / the selected type's values, غير مُرقَّمة الصفحات — محصورة بنوع واحد / not paged — bounded by one type) · Entry (قيمة / a value) — أربعة سطوح تحت SCR واحد / four surfaces under ONE SCR
 Fields shown      : كل حقول ENT-MDL-001 وENT-MDL-002 كما في SRS §A3 — الجدولان أدناه، بتسمية لكل لغة وبعلم القراءة فقط / every field of ENT-MDL-001 and ENT-MDL-002 as SRS §A3 states them — the two tables below, label per language, read-only flags marked
 Composition       : جزء القيم ليس تفصيلًا ثانويًا داخل نموذج النوع / the values are not secondary detail inside the type's form — inline: none · summary row + second level: صفّ لكل قيمة في جزء القيم، ومحرّرها يُفتح من ذلك الصفّ / a row per value in the values pane, its editor opened from that row · submits: one per open form, never two open at once
-Permissions       : SRS §B4 — MDL_LOOKUPS: VIEW (بوابة / gateway) · CREATE · UPDATE · DELETE (تعطيل ناعم / soft deactivate) — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
+Permissions       : SRS §B4 — MDL_LOOKUPS: VIEW (بوابة / gateway) · CREATE · UPDATE · DELETE (تعطيل ناعم / soft deactivate) — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`. The api-docs' own endpoint requirements versus this matrix are filed as PF-MDL-001 in frontend-execution-plan-mdl.md, not resolved here.
 Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC)
 States            : empty — لا نوع يطابق المرشِّحات / no type matches the filters · النوع المختار بلا قيم / the selected type has no values (رسالتان مختلفتان / two distinct messages) · loading — هيكل عظمي للقائمة، ومؤشّر موضعي لجزء القيم / a list skeleton and a local indicator on the values pane · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message (الرموز نفسها من نصيب الجزء ب / the codes themselves are Part B's) · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
 
@@ -4263,7 +4377,8 @@ States            : empty — لا نوع يطابق المرشِّحات / no t
 المفتاح (LIKE) · الوحدة المالكة (EXACT) · الاسم في اللغتين معًا (LIKE) · الحالة (EXACT) على القائمة
 الرئيسية؛ ورمز القيمة (LIKE) على الجزء التفصيلي، محصورًا بالنوع المختار (REQ-MDL-005). القائمة
 الرئيسية مُرقَّمة الصفحات على الخادم، والجزء التفصيلي يُعرض كاملًا مرتَّبًا بـ`sortOrder` لأنه محصور
-بنوع واحد / the master list is server-paged; the detail is shown whole, ordered by `sortOrder`,
+بنوع واحد ولا ترقيم صفحات له أصلًا (backend-execution-plan API-MDL-005 · QR-MDL-005 · SRS §B2) /
+the master list is server-paged; the detail is shown whole, unpaged, ordered by `sortOrder`,
 because it is confined to one type.
 
 **الإجراءات / actions** — SRS §B3: حفظ نوع · حفظ تعديل النوع · تعطيل النوع · حفظ قيمة · حفظ تعديل
@@ -4271,6 +4386,32 @@ because it is confined to one type.
 value · save value changes · deactivate value · reorder. لا إجراء تفعيل ولا محو نهائي على أي من
 المستويين / no activate and no hard delete at either level — SRS §B3 and §A2 (re-activation is out
 of scope), which is why deactivation is stated as one-way where it is offered.
+
+**أثر التعطيل على الرمز/المفتاح — لا استرجاع له / the code/key consequence of deactivation, and
+that it cannot be undone through any surface here.** `UQ_MDL_LOOKUP_TYPE_KEY` and
+`UQ_MDL_LOOKUP_VALUE_TYPE_CODE` are unique over every row, active or not (db-script BLOCK 5b),
+and no activate endpoint exists at either level (ADR-MDL-005). Deactivating a value or a type
+therefore does not free its `code` or `key` for reuse — it reserves it, permanently, under that
+type or under the platform. Both deactivate confirmations state this explicitly, in the wording
+the act itself deserves, not deferred to a later error message:
+
+- **Type deactivate confirmation** — ar: «سيصبح النوع غير فعّال، ولن يُعاد إليه المفتاح
+  `{key}` بعد ذلك — لا يوجد إجراء لإعادة التفعيل من هذه الشاشة.» ·
+  en: "The type will become inactive, and its key `{key}` cannot be reused afterwards — there is
+  no activate action on this screen."
+- **Value deactivate confirmation** — ar: «ستصبح القيمة غير فعّالة، ولن يُعاد إليها الرمز
+  `{code}` ضمن هذا النوع بعد ذلك — لا يوجد إجراء لإعادة التفعيل من هذه الشاشة.» ·
+  en: "The value will become inactive, and its code `{code}` cannot be reused under this type
+  afterwards — there is no activate action on this screen."
+
+A user who then tries to register the same key or code again meets `MDL-409-TYPE-DUP` or
+`MDL-409-VALUE-DUP`, which by default reads as a collision with a live record. The value create
+form's inline routing of `MDL-409-VALUE-DUP` (frontend-execution-plan-mdl.md, F2-QUERY VALUE
+CREATE) therefore adds that a deactivated value of the same code under this type may be the one
+holding it, and points at the list's own inactive row — still shown in this manager's pane
+(AC-MDL-005, AC-MDL-009) — as the evidence a user can check without leaving the screen. The same
+applies at the type level: a rejected registration whose key is provably a prior, now-inactive
+type is not a code the platform will ever hand back.
 
 **لماذا هذا التوزيع / why this composition.** الشاشة تحرّر سجلّين من كيانين مختلفين، لا سجلًّا واحدًا
 ذا مجموعة أبناء / this screen edits records of two different entities, not one record with a child
@@ -4283,15 +4424,20 @@ write carries no values at all, and each value is a record of its own. فالن�
    and a value editor and a type form are never open at once, so two Save buttons never face the
    user together;
 2. **حالة فتحه في حالة التنقّل** حيث تعيش بقية حالة التنقّل، فالرجوع يغلقه، والصرف يغلقه وحده،
-   والرابط العميق يفتحه / its open state lives in navigation state: back closes it, dismissing
-   closes only it, and a deep link opens it;
+   والرابط العميق يفتحه إن وُجد سجلّه في الذاكرة المؤقتة، وإلا يُعاد التوجيه إلى مستوى النوع
+   (frontend-execution-plan-mdl.md ADR-MDL-014) / it lives in navigation state: back closes it,
+   dismissing closes only it, and a deep link opens it when its record is in cache, else redirects
+   to the type level (ADR-MDL-014);
 3. **لا منطقة تمرير خاصة به** — القائمة تتمرّر مع الجسم الذي تسكنه / it carries no scroll region of
    its own; the list scrolls with the body it sits in;
 4. **يُرسم شقيقًا للمستوى الأول** لا داخل عنصره / it renders as a SIBLING of the first level, never
    inside its element.
-إعادة الترتيب إجراء واحد على القائمة كلها — المجموعة المرتَّبة تُرسل مرة واحدة — لا تحريرًا لحقل في
-نموذج / reordering is one action over the whole list: the ordered set is submitted once, not
-edited field by field. ولا إجراء على هذه الشاشة يملك نداءين / no action of this screen owns two
+إعادة الترتيب إجراء واحد على القائمة كلها، وعلى المجموعة **الكاملة غير المُرشَّحة** من قيم النوع —
+لا مجموعة جزئية: مسح مُرشِّح الرمز شرط لإتاحة السحب، لأن الخادم لا يميّز إرسال جزء من القيم عن
+إرسال المجموعة كاملة عمدًا (frontend-execution-plan-mdl.md, G3) / reordering is one action over
+the whole, unfiltered value set — never a partial one: clearing the code filter is a precondition
+for the drag affordance, because the server cannot distinguish a partial submission from a
+deliberate whole-set one. ولا إجراء على هذه الشاشة يملك نداءين / no action of this screen owns two
 calls, so nothing here needs an ordered pair.
 
 ## SCR-MDL-002 — سجل أنواع اللوكب حسب المالك / Lookup-type registry by owner
@@ -4302,7 +4448,7 @@ Sub-views         : Search (مرشِّحان / two filters) · Browse (المج�
 Fields shown      : حقول ENT-MDL-001 المعروضة بالإشارة، كلها للقراءة / the displayed fields of ENT-MDL-001, every one read-only — الجدول أدناه / the table below
 Composition       : none — سجل للقراءة فقط بلا تفصيل ثانوي ولا مُنتقٍ ولا مجموعة أبناء تُحرَّر / a read-only browse with no secondary detail, no picker and no editable child set · submits: none — الشاشة لا تكتب شيئًا / the screen writes nothing
 Permissions       : SRS §B4 — MDL_TYPE_REGISTRY: VIEW (بوابة / gateway) وحدها؛ لا CREATE ولا UPDATE ولا DELETE / VIEW alone — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
-Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC) — هنا عنوان المجموعة نفسه / here it is the group heading itself
+Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC) — هنا عنوان المجموعة نفسه، مع مصدر بديل عند تعذّر القراءة (ADR-MDL-015) / here it is the group heading itself, with a degraded-source fallback (ADR-MDL-015)
 States            : empty — لا وحدة مالكة تطابق المرشِّحات / no owner module matches the filters (مجموعة بلا أنواع لا تُعاد أصلًا / a group with no types is not returned at all) · loading — هيكل عظمي للمجموعات / a skeleton over the groups · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
 
 | Field | التسمية (ar) | Label (en) | Read-only | من / from |
@@ -4333,7 +4479,12 @@ Owner       : SEC — `ModuleRegistry` (ENT-SEC-004)، وهو الكيان ال�
 Real API    : `POST /api/v1/sec/registry/search` (API-SEC-021) — سجل وحدات الأمان، شكله ومعرّفه من مواصفة تلك الوحدة لا من هنا / the security module's registry search; its shape and its id belong to that module's own artifacts
 Grant       : كل دور يُمنح `PERM_MDL_LOOKUPS_CREATE` يلزمه `PERM_SEC_MODULE_REGISTRY_VIEW` أيضًا / every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold `PERM_SEC_MODULE_REGISTRY_VIEW` — منحٌ تملكه وحدة الأمان، يُسمّى هنا ولا يُنشأ (ADR-MDL-013) / SEC's grant to make; named here, minted nowhere
 Control     : قائمة اختيار على رموز الوحدات المسجَّلة، لا حقل نصّ حرّ (ADR-MDL-004) / a select over the registered module codes, never a free-text field
-Degraded    : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or failed read leaves the select empty and disabled with a message naming the missing read, and the create action disabled behind it — never a fall back to free text (ADR-MDL-013)
+Degraded (SCR-MDL-001) : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة
+Degraded (SCR-MDL-002) : القراءة مرفوضة أو متعذّرة → المرشِّح يسقط إلى القيم المميَّزة لـ`ownerModuleCode` الحاضرة فعلًا في ردّ API-MDL-010 نفسه، لا إلى نصّ حرّ ولا إلى رمز لا تحمله أي مجموعة معروضة؛ عناوين المجموعات تبقى على الرمز الخام الذي يعيده التصفّح أصلًا، والتصفّح لا يُحجب بهذا العطل بحال (ADR-MDL-015، G6) / a refused or failed read leaves the SCR-MDL-002 filter falling back to the distinct `ownerModuleCode` values already present in the current API-MDL-010 response — never free text, never a code no displayed group carries; group headings stay on the raw code the browse already returns, and browsing is never blocked by it
+                  الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or
+                  failed read on SCR-MDL-001 leaves the select empty and disabled with a message
+                  naming the missing read, and the create action disabled behind it — never a
+                  fall back to free text (this half is ADR-MDL-013)
 
 `UXD-MDL-001` هو حاجة في طبقة التطبيق لا قيد قاعدة بيانات: شاشة تملكها هذه الوحدة تعرض بيانات
 مرجعها الموثوق وحدةٌ أخرى / an application-layer need, not a DB constraint: a screen this module
@@ -4343,7 +4494,11 @@ owns displays data whose authoritative source is another module's real API. لا
 existence check behind RULE-MDL-001, and it appears in no backend artifact.
 
 واحد لا اثنان: التبعية نفسها والخطّاف نفسه يخدمان الشاشتين، فلا يُمنت `UXD-*` لكل شاشة / ONE, not
-one per screen: the same dependency and the same shared hook serve both screens.
+one per screen: the same dependency and the same shared hook serve both screens. The two
+screens' degraded paths differ because their controls differ — a select that must accept an
+unpicked value (SCR-MDL-001, create) cannot degrade the same way a filter over an already-known
+result set can (SCR-MDL-002) — and each is now its own ADR: ADR-MDL-013 for the first,
+ADR-MDL-015 for the second.
 
 **لا تبعية عرض ثانية** / no second display dependency: MDL لا تملك مفتاح قائمة قيم ولا تستهلك أيًّا
 منه (SRS §A6)، فلا حقل على أي من الشاشتين مسنود بقائمة قيم، ولا قيمة مُرمَّزة تُقرأ من وحدة أخرى /
@@ -4363,10 +4518,12 @@ B1 every US-* used in a flow has an SRS counterpart (REQ/AC/screen)
 B2 no RULE-* contradicts a flow or a spec outcome
    ✓ RULE-MDL-001 (owner module registered) → the create form's owner-module field and its
      server message · RULE-MDL-002 (no duplicate code within a type) → the value form's code
-     field · RULE-MDL-003 (the key is immutable) → `key` read-only on edit, stated beside it ·
-     RULE-MDL-004 (an inactive type hides its values from consumers) → said in the deactivate
-     confirmation, and NOT applied to this screen's own value list, which is the manager's view
-     and shows inactive rows (AC-MDL-005, AC-MDL-009). No contradiction; no ADR needed.
+     field, now naming the reserved-code case (G7) · RULE-MDL-003 (the key is immutable) →
+     `key` read-only on edit, stated beside it · RULE-MDL-004 (an inactive type hides its
+     values from consumers) → said in the deactivate confirmation, alongside the reserved-key
+     consequence (G7), and NOT applied to this screen's own value list, which is the manager's
+     view and shows inactive rows (AC-MDL-005, AC-MDL-009). No contradiction; no ADR needed for
+     the rules themselves.
 B3 every field and permission on a screen exists in the SRS
    ✓ extra: none — every field above is an SRS §A3 field of the owning entity and every
      permission is an SRS §B4 row. missing: none — no field of either entity is dropped, the
@@ -4374,9 +4531,10 @@ B3 every field and permission on a screen exists in the SRS
 B4 every screen entry of the SRS has exactly one SCR-* block
    ✓ SCR-REQ-MDL-001 → SCR-MDL-001 · SCR-REQ-MDL-002 → SCR-MDL-002. Two screen requirements,
      two SCR blocks, and the sub-views of each stay under their one SCR.
-RESULT  reconciled 2 · reworked 0 · ADRs ADR-MDL-013 (new, the grant that travels with
-        UXD-MDL-001); applied unchanged: ADR-MDL-003, ADR-MDL-004, ADR-MDL-005, ADR-MDL-006,
-        ADR-MDL-007
+RESULT  reconciled 2 · reworked 0 · ADRs applied this pass: ADR-MDL-014 (new — cold-load
+        redirect for the deep-linked entry routes, G4), ADR-MDL-015 (new — the SCR-MDL-002
+        degraded-source fallback for UXD-MDL-001, G6); applied unchanged: ADR-MDL-003,
+        ADR-MDL-004, ADR-MDL-005, ADR-MDL-006, ADR-MDL-007, ADR-MDL-013
 ```
 
 لا سؤال في هذه المرحلة ولا قرار بحالة BLOCKED / no question is raised at this stage and no ADR is

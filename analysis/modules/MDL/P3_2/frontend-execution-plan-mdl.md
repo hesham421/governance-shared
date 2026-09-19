@@ -117,6 +117,9 @@ versa.
 | PF-MDL-001 | OPEN | MDL backend track (P3.1) + backend repo method-level security annotations | backend-execution-plan-mdl.md PHASE 7 permission matrix and BOOTSTRAP DATA mark the DELETE column for API-MDL-004 and API-MDL-008 and seed `PERM_MDL_LOOKUPS_DELETE` with grant targets; `_inputs/api-docs-mdl.md` puts `PERM_MDL_LOOKUPS_UPDATE` on both deactivate endpoints | as built, a caller holding UPDATE alone can deactivate a type or a value, and a caller granted DELETE alone can deactivate neither; SRS §B4's DELETE row is unenforceable as built |
 | PF-MDL-002 | OPEN (conditional) | MDL backend track — the api-docs generator | if `_inputs/api-docs-mdl.md` publishes `key`/`code` maxLength 80 and `nameAr`/`nameEn` maxLength 150, that contradicts db-script §1 (`VARCHAR(50)`, `VARCHAR(200)`) and ADR-MDL-010 | a 51–80 character key passes client validation and is refused by the database; a 151–200 character label the platform accepts is refused by the client |
 | PF-MDL-003 | OPEN | platform — the search-filter contract for every module that omits a by-id read | no published filter set for API-MDL-001 or API-MDL-005 carries the record's own id (key, ownerModuleCode, name, isActiveFl on the first; lookupTypeId, code on the second) | a cold-load deep link into a type or value editor cannot resolve its target through any search, one-row or otherwise; see ADR-MDL-014 |
+| PF-MDL-004 | OPEN | MDL backend track (P3.1) | QR-MDL-009's statement and Result-shape lines (backend-execution-plan-mdl.md) enforce only `lookup_type_id = :typeId` per submitted id, against this plan's F2-QUERY VALUE REORDER submission rule, which states the submitted set must always be the type's complete, unfiltered value set | a submitted set that is incomplete or carries a duplicate re-ranks 1..n and collides with the ranks of every value left out — nothing server-side rejects it; required backend change: reject in the API-MDL-009 orchestration, before the UPDATE loop and inside the same transaction, when the DISTINCT submitted id count does not equal the count of rows under `lookup_type_id = :typeId` (active and inactive both, matching QR-MDL-005's scope), and broaden MDL-400-REORDER-MISMATCH's catalog trigger — today it reads only "a submitted id does not belong to the type in the path" — to cover an incomplete or duplicated set |
+| PF-MDL-005 | OPEN | MDL backend track (P3.1) | backend-test-plan-mdl.md TC-MDL-014's Preconditions line ("SEC's registry-search endpoint (the published HTTP read named in `ui-ux-spec-mdl.md`, ADR-MDL-013) is made unreachable/times out") against backend-execution-plan-mdl.md PHASE 6 (INT-R), which states there is no HTTP-level way to simulate "SEC unreachable" and no test should try to, and against the ALIGN-BE strike note for the same impossibility. that endpoint is this plan's own UXD-MDL-001 HTTP read, not the backend's in-process XM-MDL-001 call | TC-MDL-014 names the wrong surface and an unconstructible failure mode, and duplicates TC-MDL-002's coverage; required change: retarget the test to the SOFT-READ's real untested edge — a module deregistered from SEC after its types were accepted must not invalidate them (RULE-MDL-001's own Test-Hint) — and drop the foreign-endpoint citation |
+| PF-MDL-006 | OPEN | SEC / P3.1 track | registry-exec-be-mdl.md XM STATUS and backend-execution-plan-mdl.md INT-C XM-MDL-001's Interface paragraph both state that SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, so the module-registry read XM-MDL-001 consumes is written down nowhere on SEC's side, disclosed only as prose and deferred to "SEC's own re-run" while the XM is carried ACTIVE with "Unblock condition: none outstanding" | SEC v1's P3.1 artifacts must register `SecModuleRegistryApi` as an exposed cross-module surface alongside `SecUserDirectoryApi` — distinct from the published HTTP read UXD-MDL-001 uses (named in `ui-ux-spec-mdl.md`); the gap is specifically the in-process backend contract |
 
 ### Reconciliation against the SRS — run once, before any F-content
 
@@ -223,9 +226,12 @@ Source DTOs  : `LookupValueResponse` (read) · `LookupValueCreateRequest` ·
 
 #### F1-SCREEN — SCR-MDL-001
 Search model : master — key : string · LIKE · ownerModuleCode : string · EXACT (options from the
-               UXD-MDL-001 hook) · isActiveFl : boolean · EXACT · plus page, size, sortField,
-               sortDirection, all inside the one request object of API-MDL-001 (the only paged
-               read on this screen)
+               UXD-MDL-001 hook) · isActiveFl : boolean · EXACT · plus page, size, sortDirection,
+               all inside the one request object of API-MDL-001 (the only paged read on this
+               screen). No `sortField` is modelled: QR-MDL-001 declares a single ordering
+               (`ORDER BY key`) and PHASE 1 states the module offers no free-form sort parameter,
+               so `sortDirection` is available on `key` alone and keying a variation the server
+               cannot produce would fragment the cache for nothing (G7).
                detail — code : string · LIKE · lookupTypeId : number · EXACT (from the selected
                parent, not typed) — **no page, no size, no sort**: API-MDL-005 is unpaged
                (backend-execution-plan API-MDL-005, QR-MDL-005 `Pagination: NO`, SRS §B2), so
@@ -299,8 +305,9 @@ call · server → the generic message.
 #### F2-QUERY — TYPE SEARCH — API-MDL-001      traces=API-MDL-001,REQ-MDL-001,REQ-MDL-003
 Kind         : read query — a POST that mutates nothing (ADR-MDL-002); paginated response
 Cache key    : `[lookup-types, filters]`, `filters` being the whole request object — key,
-               ownerModuleCode, isActiveFl, sortField, sortDirection **and page, size**. Every
-               one of them changes the response, so every one is in the key.
+               ownerModuleCode, isActiveFl, sortDirection **and page, size**. Every one of them
+               changes the response, so every one is in the key. No `sortField` is in the key or
+               the request: the backend offers no free-form sort parameter (G7, F1-SCREEN above).
 Errors       : `VALIDATION_ERROR` → inline on the offending filter · `ACCESS_DENIED` → the
                localized forbidden message · `INTERNAL_ERROR` → generic
 Loading      : LOCAL — the SRS states nothing about this call being slow, so no global indicator
@@ -564,12 +571,18 @@ code            · read-only — the update request does not carry it
 nameAr, nameEn  · REQUIRED · LENGTH (maxLength 200) · on submit
 sortOrder       · REQUIRED · integer · on submit
 
-UNIQUE_CHECK    : async, on blur — the type's `key` through API-MDL-001 with an EQUALS filter;
-                  the value's `code` through API-MDL-005 with EQUALS filters on **both**
-                  `lookupTypeId` and `code`, so the check's scope is the rule's scope. Neither
-                  blocks submit on its own: `MDL-409-TYPE-DUP` and `MDL-409-VALUE-DUP` from the
-                  server are the authority, routed inline to the same field. On edit neither
-                  field is an input, so neither check runs.
+UNIQUE_CHECK    : async, on blur — both backend filters are LIKE, never EQUALS (QR-MDL-013's
+                  `key LIKE :key`, QR-MDL-005's `code LIKE :code`; PHASE 1's Search contract and
+                  SRS §B2 agree), so the check requests the LIKE filter the backend actually
+                  declares and then asserts exact string equality client-side over the returned
+                  rows before showing the inline message: the type's `key` through API-MDL-001
+                  (LIKE `key`, then filter the response for an exact match) — the value's `code`
+                  through API-MDL-005 scoped to `lookupTypeId` (LIKE `code`, then filter the
+                  response for an exact match), so the check's scope is the rule's scope. This
+                  uses only the published surface and is correct whether or not the service ever
+                  honours EQUALS (G6). Neither blocks submit on its own: `MDL-409-TYPE-DUP` and
+                  `MDL-409-VALUE-DUP` from the server are the authority, routed inline to the
+                  same field. On edit neither field is an input, so neither check runs.
 
 #### F3-VALIDATION — RULE-MDL-001   traces=REQ-MDL-002,AC-MDL-002
 Statement : The system shall reject a lookup type registration whose owner module code has no
