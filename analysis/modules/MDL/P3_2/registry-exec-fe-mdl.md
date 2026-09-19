@@ -15,7 +15,7 @@ Neither sequence restarts and nothing is renumbered: both are the assignment thi
 already carries, cited unchanged by the decisions on disk (ADR-MDL-003, ADR-MDL-004, ADR-MDL-007)
 and by every downstream artifact that names them. This run mints no new `SCR-*` or `UXD-*` id —
 the two screens the SRS declares and the one cross-module display dependency are the same two and
-the same one; it mints two new ADR ids (ADR-MDL-014, ADR-MDL-015) against this same unchanged set.
+the same one; it mints one new ADR id (ADR-MDL-016) against this same unchanged set.
 
 SCREENS
 | SCR | الاسم / Name | Owning ENT | Container pattern | Permissions |
@@ -42,17 +42,21 @@ UXD INDEX
 |---|---|---|---|
 | UXD-MDL-001 | SCR-MDL-001, SCR-MDL-002 | `ownerModuleCode` — the type's owning module | SEC · `ModuleRegistry` (ENT-SEC-004), read through the security module's registry search, named in ui-ux-spec-mdl.md and cited by no id inside the frontend plan (ADR-MDL-004, ADR-MDL-011) |
 
-One `UXD-*` for the whole module, and the same shared, long-lived hook serves both screens. It is
-**not** a lookup dependency: SRS §A6 records that MDL introduces no coded list of its own, and the
-owner-module field's valid set is another module's registry data. It is not the backend's
-cross-module record either: that one is the server-side existence check behind RULE-MDL-001 and
-appears in no frontend artifact.
+One `UXD-*` for the whole module, and the same shared, long-lived hook serves both screens and
+every control on them. It is **not** a lookup dependency: SRS §A6 records that MDL introduces no
+coded list of its own, and the owner-module field's valid set is another module's registry data.
+It is not the backend's cross-module record either: that one is the server-side existence check
+behind RULE-MDL-001 and appears in no frontend artifact.
 Grant that travels with it: every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold
 `PERM_SEC_MODULE_REGISTRY_VIEW`, or the owner-module select stays empty and disabled and creation
 is blocked behind it. The grant is the security module's to make (ADR-MDL-013).
-Degraded source on SCR-MDL-002: a refused or failed read falls back to the distinct
-`ownerModuleCode` values already present in the current API-MDL-010 response, never to free text
-(ADR-MDL-015, new this run, G6).
+Degraded source, one per control, not one per screen: the create-form select on SCR-MDL-001
+degrades to empty-and-disabled (ADR-MDL-013) — the only one of the three controls where a
+submitted value could reach the server unvalidated. Both read-only filters degrade instead to the
+distinct `ownerModuleCode` values already present in their own screen's current search response —
+SCR-MDL-001's master-list filter falls back to the current API-MDL-001 response (ADR-MDL-016, new
+this run, G1), and SCR-MDL-002's registry filter falls back to the current API-MDL-010 response
+(ADR-MDL-015, G6) — never to free text, and never blocking browsing.
 
 API COVERAGE
 | Status | Count | API ids |
@@ -62,8 +66,8 @@ API COVERAGE
 | used but undocumented | 0 | no endpoint is called that the api-docs do not publish |
 | documented but unbound | 0 | all 11 published endpoints are bound, each cited by the `Contract ID` the api-docs now publish for it (ADR-MDL-011, superseding ADR-MDL-008) |
 
-RESPONSE SHAPES — the difference is load-bearing and is stated per block in F2 — **corrected this
-run (G2)**: API-MDL-005 moves from paginated to bare array. The prior revision modelled it as
+RESPONSE SHAPES — the difference is load-bearing and is stated per block in F2 — corrected in a
+prior run (G2): API-MDL-005 moved from paginated to bare array. An earlier revision modelled it as
 paginated on no published source; `_inputs/api-docs-mdl.md`, backend-execution-plan API-MDL-005
 and QR-MDL-005 (`Pagination: NO`) and SRS §B2 all agree it is unpaged.
 
@@ -82,16 +86,20 @@ with each other, so the backend plan is the one artifact that lags; `gov.py anal
 there (C8.4). Correcting it is three rows in a P3.1 artifact, outside this stage's boundary —
 recorded here and in ADR-MDL-002, not silently corrected.
 
-FIELD PRECISION DIFF (G1) — `key`/`code` and `nameAr`/`nameEn` maxLength is bound to db-script §1
-and ADR-MDL-010 (50 / 200) rather than to any conflicting number `_inputs/api-docs-mdl.md` may
-publish (80 / 150); filed as PF-MDL-002 in frontend-execution-plan-mdl.md against the MDL
-api-doc generator, with the db-script column widths as evidence.
+FIELD PRECISION DIFF (G1, a prior run) — `key`/`code` and `nameAr`/`nameEn` maxLength is bound to
+db-script §1 and ADR-MDL-010 (50 / 200) rather than to any conflicting number
+`_inputs/api-docs-mdl.md` may publish (80 / 150); filed as PF-MDL-002 in
+frontend-execution-plan-mdl.md against the MDL api-doc generator, with the db-script column
+widths as evidence.
 
 OPERATIONS WITHOUT AN ENDPOINT
 read one lookup type by id · read one lookup value by id — named by SRS Part B, required by no
 `REQ-*`, and omitted from the frontend rather than faked; both entry sub-views hydrate from the
 row the search query already holds when it is present, and redirect to the parent surface on a
-cold load when it is not (ADR-MDL-005, ADR-MDL-014). This SRS version names no `activate` action
+cold load when it is not (ADR-MDL-005, ADR-MDL-014). The value-create route (`/values/new`) is a
+special case of that redirect, not a third kind of hydration: it creates a record and has no row
+to hydrate at all, so its cold-load redirect protects the parent type's display context, not a
+value record (ADR-MDL-014, corrected this run — G2). This SRS version names no `activate` action
 at either level, so deactivation being one-way is the SRS's own statement, not an omission.
 
 LOOKUPS
@@ -102,29 +110,41 @@ runtime-loaded list of UXD-MDL-001.
 
 ALIGN
 Verdict as stamped in frontend-execution-plan-mdl.md → ALIGN-FE → the `RESULT` line (written by
-the orchestrator from the analyze report). Findings fixed during this run (gate `pass-2`, this
-revision): the six-way field-precision divergence from the deployed schema (G1), the detail read
-modelled as paginated on no published source (G2), a reorder submittable from a partial pane
-(G3), an unbuildable cold-load deep link (G4, ADR-MDL-014), a cross-artifact permission
-divergence settled in prose instead of filed (G5, PF-MDL-001), a silent degraded-source gap on
-the SCR-MDL-002 owner filter (G6, ADR-MDL-015), the unstated permanence of a deactivated
-code/key (G7), a stale ADR-MDL-008 status header and an ADR-MDL-005 Context-table citation of a
-superseded SRS line (G8, G9 — filed against the ADR files themselves, outside this stage's
-writable set), an unstated optimistic-reorder failure path (G10), and an unconsumed F1 model for
-the consumer read (G11). None outstanding within this stage's scope; G8 and G9 remain open
-against `analysis/decisions/MDL/ADR-MDL-008.md` and `ADR-MDL-005.md`, which this pass's writable
-file set does not include.
+the orchestrator from the analyze report).
 
-Findings fixed in this later revision (gate `pass-2`, second round): a server-side reorder
-invariant gap settled client-side instead of filed (this round's G1, PF-MDL-004), a backend test
-naming the wrong surface and an unconstructible failure mode (this round's G2, PF-MDL-005), an
+Findings fixed in this revision (gate `pass-2`, third round): a shared degraded-source fallback
+that left SCR-MDL-001's own master-list `ownerModuleCode` filter undocumented and defaulting, by
+the nearest stated text, to the create-form select's empty-and-disabled treatment — even though
+that select's failure grant (`PERM_SEC_MODULE_REGISTRY_VIEW`) is tied to CREATE alone, so a
+VIEW-only caller was denied a read-only filter their own permissions never gated (this round's
+G1, ADR-MDL-016, new); and an overstated cold-load hydration rule that grouped the value-create
+route's redirect with the two true edit routes' record-hydration rule, when the create route has
+no record to hydrate at all and its redirect protects the parent type's display context instead
+(this round's G2, documentation-only, no ADR). The corresponding line in `ADR-MDL-014.md` needs
+the same G2 correction and remains open against that file, which this stage's writable set does
+not include — carried forward in the same posture G8/G9 already record below.
+
+Findings fixed in earlier revisions of this same gate, kept for the record: the six-way
+field-precision divergence from the deployed schema (G1, round 1), the detail read modelled as
+paginated on no published source (G2, round 1), a reorder submittable from a partial pane (G3,
+round 1), an unbuildable cold-load deep link (G4, round 1, ADR-MDL-014), a cross-artifact
+permission divergence settled in prose instead of filed (G5, round 1, PF-MDL-001), a silent
+degraded-source gap on the SCR-MDL-002 owner filter (G6, round 1, ADR-MDL-015), the unstated
+permanence of a deactivated code/key (G7, round 1), a stale ADR-MDL-008 status header and an
+ADR-MDL-005 Context-table citation of a superseded SRS line (G8, G9, round 1 — filed against the
+ADR files themselves, outside that pass's writable set), an unstated optimistic-reorder failure
+path (G10, round 1), an unconsumed F1 model for the consumer read (G11, round 1), a server-side
+reorder invariant gap settled client-side instead of filed (G1, round 2, PF-MDL-004), a backend
+test naming the wrong surface and an unconstructible failure mode (G2, round 2, PF-MDL-005), an
 undisclosed cross-module registration gap on SEC's side carried as ACTIVE with no outstanding
-condition (this round's G3, PF-MDL-006), the UNIQUE_CHECK line requesting an EQUALS filter the
-backend never honours (this round's G6), and a `sortField` modelled for an ordering the backend
-cannot produce (this round's G7). This round's G4 and G5 land outside this stage's writable
-files (srs-mdl.md and ADR-MDL-008.md respectively) and are carried, not applied here — the same
-posture G8/G9 already state above. No new ADR was raised: every fix corrects against an input
-already on record, not a two-sided choice.
+condition (G3, round 2, PF-MDL-006), the UNIQUE_CHECK line requesting an EQUALS filter the
+backend never honours (G6, round 2), and a `sortField` modelled for an ordering the backend
+cannot produce (G7, round 2). G4 and G5 of round 2 land outside this stage's writable files
+(srs-mdl.md and ADR-MDL-008.md respectively) and remain carried, not applied — the same posture
+G8/G9 and this round's ADR-MDL-014 correction already state. No new ADR was raised in round 2;
+this round raises exactly one (ADR-MDL-016), because G1 of this round needed a choice among two
+live, already-accepted patterns (empty-and-disabled vs. current-response fallback) rather than a
+restatement of an existing decision.
 
 ADRs
 analysis/decisions/MDL/ADR-MDL-002.md (ACCEPTED — three reads are POST `…/search`; the backend
@@ -140,12 +160,16 @@ analysis/decisions/MDL/ADR-MDL-011.md (ACCEPTED — the re-fetched api-docs publ
 per endpoint, so the plan cites API ids; supersedes ADR-MDL-008) ·
 analysis/decisions/MDL/ADR-MDL-012.md (ACCEPTED — no published surface tells a screen which
 actions its caller holds) ·
-analysis/decisions/MDL/ADR-MDL-013.md (ACCEPTED — the grant that travels with UXD-MDL-001, and
-the SCR-MDL-001 degraded-source behaviour) ·
-analysis/decisions/MDL/ADR-MDL-014.md (ACCEPTED, raised this run — cold-load redirect for the
-deep-linked entry routes, G4) ·
-analysis/decisions/MDL/ADR-MDL-015.md (ACCEPTED, raised this run — the SCR-MDL-002
-degraded-source fallback for UXD-MDL-001, G6)
+analysis/decisions/MDL/ADR-MDL-013.md (ACCEPTED — the grant that travels with UXD-MDL-001's
+create-form select, and that select's own degraded-source behaviour) ·
+analysis/decisions/MDL/ADR-MDL-014.md (ACCEPTED — cold-load redirect for the deep-linked entry
+routes; its own text still owes the G2 correction this round applies in
+frontend-execution-plan-mdl.md, carried forward against the file itself) ·
+analysis/decisions/MDL/ADR-MDL-015.md (ACCEPTED — the SCR-MDL-002 degraded-source fallback for
+UXD-MDL-001's registry filter, G6) ·
+analysis/decisions/MDL/ADR-MDL-016.md (ACCEPTED, raised this run — SCR-MDL-001's own master-list
+owner-module filter falls back to the current search response's distinct values rather than
+sharing the create-form select's empty-and-disabled behaviour, G1)
 Superseded, kept on disk and cited only by the decisions that replaced them: ADR-MDL-001,
 ADR-MDL-008 — the latter's own status header remains to be corrected on disk (G8, outside this
 pass's writable files). Carried from earlier stages: ADR-MDL-009 and ADR-MDL-010 (P2) touch no
@@ -172,17 +196,22 @@ update, deactivate, reorder across both levels) and 2/2 on SCR-MDL-002 (search, 
 PLATFORM FINDINGS (frontend track, this run)
 | id | status | subject |
 |---|---|---|
-| PF-MDL-001 | OPEN | deactivate-endpoint permission (UPDATE vs DELETE) divergence — G5 |
-| PF-MDL-002 | OPEN (conditional) | api-docs field-precision divergence from the db-script — G1 |
-| PF-MDL-003 | OPEN | no by-id read published for either entity, blocking cold-load hydration — G4 |
-| PF-MDL-004 | OPEN | QR-MDL-009 checks only type membership per id, never that the submitted set is the type's complete, non-duplicated value set — this round's G1, owner MDL backend track (P3.1) |
-| PF-MDL-005 | OPEN | TC-MDL-014 names the wrong surface (API-SEC-021, a frontend HTTP read) for an unconstructible in-process failure mode — this round's G2, owner MDL backend track (P3.1) |
-| PF-MDL-006 | OPEN | SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, leaving XM-MDL-001's module-registry read unregistered on SEC's side while the XM is carried ACTIVE — this round's G3, owner SEC / P3.1 track |
+| PF-MDL-001 | OPEN | deactivate-endpoint permission (UPDATE vs DELETE) divergence — G5, round 1 |
+| PF-MDL-002 | OPEN (conditional) | api-docs field-precision divergence from the db-script — G1, round 1 |
+| PF-MDL-003 | OPEN | no by-id read published for either entity, blocking cold-load hydration — G4, round 1 |
+| PF-MDL-004 | OPEN | QR-MDL-009 checks only type membership per id, never that the submitted set is the type's complete, non-duplicated value set — G1, round 2, owner MDL backend track (P3.1) |
+| PF-MDL-005 | OPEN | TC-MDL-014 names the wrong surface (API-SEC-021, a frontend HTTP read) for an unconstructible in-process failure mode — G2, round 2, owner MDL backend track (P3.1) |
+| PF-MDL-006 | OPEN | SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, leaving XM-MDL-001's module-registry read unregistered on SEC's side while the XM is carried ACTIVE — G3, round 2, owner SEC / P3.1 track |
+No new platform-finding row is filed this round: G1 and G2 of this round are both corrected
+within this stage's own writable files (frontend-execution-plan-mdl.md, ui-ux-spec-mdl.md), with
+G2's mirror correction in `ADR-MDL-014.md` carried forward rather than filed as a platform
+finding, since it names no other track as owner — it is this same track's own file, just outside
+this pass's writable set.
 Full text of each in frontend-execution-plan-mdl.md, API SURFACE.
 
 Event
-"P3.2 revised (gate pass-2, second round): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10
-called), 0 new ADRs, 3 additional platform-findings rows filed (PF-MDL-004..006), 5 findings
-(G1, G2, G3, G6, G7 of this round) applied — G4 and G5 of this round land outside this stage's
-writable files and are carried forward"
+"P3.2 revised (gate pass-2, third round): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10
+called), 1 new ADR (ADR-MDL-016), 0 new platform-findings rows filed, 2 findings (G1, G2 of this
+round) applied — G2's ADR-MDL-014 mirror correction lands outside this stage's writable files and
+is carried forward, alongside G4/G5 of round 2 and G8/G9 of round 1"
 ══════════════════════════════════════════════════════════════════
