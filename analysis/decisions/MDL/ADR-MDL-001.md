@@ -1,7 +1,15 @@
 # ADR-MDL-001 — the api-docs input carries an API ID BINDING annex
 
 Module  : MDL     Version : v1     Stage raised : P3.2 (Frontend — UX Design + Execution Plan)
-Status  : ACCEPTED (non-breaking)
+Status  : SUPERSEDED by ADR-MDL-008 (was ACCEPTED, non-breaking)
+
+> The annex this decision wrote lived INSIDE `_inputs/api-docs-mdl.md`. That file is generated
+> by `gov.py fetch-inputs`, which re-fetched it on 2026-09-19 and regenerated it from the
+> backend's published folder — the annex is gone, and `factory.yaml → inputs.api-docs.merge`
+> now says plainly where a hand-written companion belongs (`api-docs-binding-{mod}.md`,
+> `keep_alongside`), which is beside the file and not inside it. A companion beside it is not
+> read by `analyze`, which resolves the `api-docs` input to the merged file alone, so it
+> cannot make C9.5 resolve either. ADR-MDL-008 records what is done instead.
 
 ## Context
 `_inputs/api-docs-mdl.md` is generated from the implemented backend's OpenAPI document and
