@@ -1,7 +1,7 @@
 {
   "module": "MDL",
   "version": 1,
-  "scope": "pass:2",
+  "scope": "gate:pass-2",
   "counts": {
     "CRITICAL": 0,
     "MAJOR": 0,
@@ -173,6 +173,6 @@
       "system-test-index": "67d6136b3df1bf00744f47bfd9cc34af944ee01ea67fd14d1999655c0af389b9",
       "ui-ux-spec": "044b0c7df1a69dc3b30fc1af66e5f3fb63c9a0cd366f9272cd4a06482b3dd02f"
     },
-    "at": "2026-09-19T12:03:20+00:00"
+    "at": "2026-09-19T12:03:56+00:00"
   }
 }

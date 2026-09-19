@@ -1,0 +1,1 @@
+The Write tool isn't available in this session, so I can't create the plan file. Since this task was a read-only review deliverable (not a code implementation task), the full output is already complete above — the JSON scorecard is the deliverable and there's nothing further to execute.
