@@ -152,12 +152,37 @@ Owner       : SEC — `ModuleRegistry` (ENT-SEC-004)، وهو الكيان ال�
 Real API    : `POST /api/v1/sec/registry/search` (API-SEC-021) — سجل وحدات الأمان، شكله ومعرّفه من مواصفة تلك الوحدة لا من هنا / the security module's registry search; its shape and its id belong to that module's own artifacts
 Grant       : كل دور يُمنح `PERM_MDL_LOOKUPS_CREATE` يلزمه `PERM_SEC_MODULE_REGISTRY_VIEW` أيضًا / every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold `PERM_SEC_MODULE_REGISTRY_VIEW` — منحٌ تملكه وحدة الأمان، يُسمّى هنا ولا يُنشأ (ADR-MDL-013) / SEC's grant to make; named here, minted nowhere
 Control     : قائمة اختيار على رموز الوحدات المسجَّلة، لا حقل نصّ حرّ (ADR-MDL-004) / a select over the registered module codes, never a free-text field
-Degraded (SCR-MDL-001) : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة
-Degraded (SCR-MDL-002) : القراءة مرفوضة أو متعذّرة → المرشِّح يسقط إلى القيم المميَّزة لـ`ownerModuleCode` الحاضرة فعلًا في ردّ API-MDL-010 نفسه، لا إلى نصّ حرّ ولا إلى رمز لا تحمله أي مجموعة معروضة؛ عناوين المجموعات تبقى على الرمز الخام الذي يعيده التصفّح أصلًا، والتصفّح لا يُحجب بهذا العطل بحال (ADR-MDL-015، G6) / a refused or failed read leaves the SCR-MDL-002 filter falling back to the distinct `ownerModuleCode` values already present in the current API-MDL-010 response — never free text, never a code no displayed group carries; group headings stay on the raw code the browse already returns, and browsing is never blocked by it
-                  الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or
-                  failed read on SCR-MDL-001 leaves the select empty and disabled with a message
-                  naming the missing read, and the create action disabled behind it — never a
-                  fall back to free text (this half is ADR-MDL-013)
+
+`UXD-MDL-001` backs **three** controls, and each has its own degraded behaviour — the control's
+own shape decides the fallback, not which screen it sits on:
+
+Degraded (SCR-MDL-001 · create-form select) : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة
+                  برسالة تسمّي القراءة الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ
+                  (ADR-MDL-013) / a refused or failed read leaves the create-form select empty and
+                  disabled with a message naming the missing read, and the create action disabled
+                  behind it — never a fall back to free text. This is the only one of the three
+                  controls where a submitted value could reach the server unvalidated, which is
+                  why it alone degrades to empty-and-disabled (ADR-MDL-013).
+Degraded (SCR-MDL-001 · master-list search filter) : القراءة مرفوضة أو متعذّرة → المرشِّح يسقط إلى
+                  القيم المميَّزة لـ`ownerModuleCode` الحاضرة فعلًا في ردّ API-MDL-001 نفسه، لا إلى
+                  نصّ حرّ ولا إلى تعطيل الحقل؛ تصفّح قائمة الأنواع لا يُحجب بهذا العطل بحال — البيانات
+                  البديلة موجودة أصلًا في كل صفّ يعيده البحث (ADR-MDL-016، G1) / a refused or failed
+                  read leaves this read-only filter falling back to the distinct `ownerModuleCode`
+                  values already present in the current API-MDL-001 response — never free text and
+                  never disabled; browsing the type list is never blocked by the degraded source,
+                  because the fallback data is already in every row the search returns
+                  (ADR-MDL-016, G1). Nothing is submitted through a filter, so ADR-MDL-013's
+                  write-path reasoning ("a code typed blind is a code the server is certain to
+                  refuse") has no purchase here.
+Degraded (SCR-MDL-002 · registry filter) : القراءة مرفوضة أو متعذّرة → المرشِّح يسقط إلى القيم
+                  المميَّزة لـ`ownerModuleCode` الحاضرة فعلًا في ردّ API-MDL-010 نفسه، لا إلى نصّ حرّ
+                  ولا إلى رمز لا تحمله أي مجموعة معروضة؛ عناوين المجموعات تبقى على الرمز الخام الذي
+                  يعيده التصفّح أصلًا، والتصفّح لا يُحجب بهذا العطل بحال (ADR-MDL-015، G6) / a
+                  refused or failed read leaves the SCR-MDL-002 filter falling back to the distinct
+                  `ownerModuleCode` values already present in the current API-MDL-010 response —
+                  never free text, never a code no displayed group carries; group headings stay on
+                  the raw code the browse already returns, and browsing is never blocked by it
+                  (ADR-MDL-015, G6).
 
 `UXD-MDL-001` هو حاجة في طبقة التطبيق لا قيد قاعدة بيانات: شاشة تملكها هذه الوحدة تعرض بيانات
 مرجعها الموثوق وحدةٌ أخرى / an application-layer need, not a DB constraint: a screen this module
@@ -166,12 +191,15 @@ owns displays data whose authoritative source is another module's real API. لا
 خلفي / it shares nothing with the backend's cross-module record, which is the server-side
 existence check behind RULE-MDL-001, and it appears in no backend artifact.
 
-واحد لا اثنان: التبعية نفسها والخطّاف نفسه يخدمان الشاشتين، فلا يُمنت `UXD-*` لكل شاشة / ONE, not
-one per screen: the same dependency and the same shared hook serve both screens. The two
-screens' degraded paths differ because their controls differ — a select that must accept an
-unpicked value (SCR-MDL-001, create) cannot degrade the same way a filter over an already-known
-result set can (SCR-MDL-002) — and each is now its own ADR: ADR-MDL-013 for the first,
-ADR-MDL-015 for the second.
+واحد لا ثلاثة: التبعية نفسها والخطّاف نفسه يخدمان الشاشتين وكل تحكّم فيهما، فلا يُمنت `UXD-*` لكل
+شاشة ولا لكل حقل / ONE, not three: the same dependency and the same shared hook serve both screens
+and every control on them; only ONE `UXD-*` is minted. The three degraded paths differ because
+their **controls** differ, not because their screens differ: a select that must accept an
+unpicked value (SCR-MDL-001's create form) cannot degrade the way a read-only filter over an
+already-known result set can — and SCR-MDL-001's own master-list filter is exactly that second
+kind, so it shares its fallback pattern with SCR-MDL-002's filter rather than with its own
+screen's create select. Each control-kind's degraded behaviour is now its own ADR: ADR-MDL-013
+for the select, ADR-MDL-016 for the master-list filter, ADR-MDL-015 for the registry filter.
 
 **لا تبعية عرض ثانية** / no second display dependency: MDL لا تملك مفتاح قائمة قيم ولا تستهلك أيًّا
 منه (SRS §A6)، فلا حقل على أي من الشاشتين مسنود بقائمة قيم، ولا قيمة مُرمَّزة تُقرأ من وحدة أخرى /
@@ -204,10 +232,11 @@ B3 every field and permission on a screen exists in the SRS
 B4 every screen entry of the SRS has exactly one SCR-* block
    ✓ SCR-REQ-MDL-001 → SCR-MDL-001 · SCR-REQ-MDL-002 → SCR-MDL-002. Two screen requirements,
      two SCR blocks, and the sub-views of each stay under their one SCR.
-RESULT  reconciled 2 · reworked 0 · ADRs applied this pass: ADR-MDL-014 (new — cold-load
-        redirect for the deep-linked entry routes, G4), ADR-MDL-015 (new — the SCR-MDL-002
-        degraded-source fallback for UXD-MDL-001, G6); applied unchanged: ADR-MDL-003,
-        ADR-MDL-004, ADR-MDL-005, ADR-MDL-006, ADR-MDL-007, ADR-MDL-013
+RESULT  reconciled 2 · reworked 0 · ADRs applied this pass: ADR-MDL-016 (new — SCR-MDL-001's
+        master-list owner-module filter now falls back to the current search response's own
+        distinct values instead of sharing the create-form select's empty-and-disabled
+        behaviour, G1); applied unchanged: ADR-MDL-003, ADR-MDL-004, ADR-MDL-005, ADR-MDL-006,
+        ADR-MDL-007, ADR-MDL-013, ADR-MDL-014, ADR-MDL-015
 ```
 
 لا سؤال في هذه المرحلة ولا قرار بحالة BLOCKED / no question is raised at this stage and no ADR is

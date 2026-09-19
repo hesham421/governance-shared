@@ -31,80 +31,30 @@ for files you do not change. The files you may write:
     {
       "id": "G1",
       "severity": "MAJOR",
-      "artifact": "frontend-execution-plan-mdl.md (API SURFACE / platform findings)",
+      "artifact": "frontend-execution-plan-mdl.md",
       "line": null,
-      "clause": "P1 adversarial inversion · C7.20 operation-resolves · §7 platform findings",
-      "problem": "QR-MDL-009 enforces only that each submitted id belongs to the type (lookup_type_id = :typeId). Nothing verifies the submitted set is the type's complete value set, contains no duplicate, and is non-empty. A subset re-ranks 1..n and collides with the ranks of every value left out; [A,A,B] on a 3-value type writes A twice. The frontend disables the drag affordance when the pane is filtered (G3) precisely because 'the server cannot distinguish a partial submission from a deliberate whole-set one' — so this pass identified a server-side invariant gap and settled it with a client-side convention instead of filing it, contrary to the PF-MDL-001 precedent it set for exactly this class.",
-      "fix": "File a platform-findings row (PF-MDL-004) in frontend-execution-plan-mdl.md, owner MDL backend track (P3.1). Evidence: QR-MDL-009's statement and Result-shape lines, against frontend-execution-plan-mdl.md F2-QUERY VALUE REORDER's submission rule. Required backend change: reject in the API-MDL-009 orchestration, before the UPDATE loop and inside the same transaction, when the DISTINCT submitted id count does not equal the count of rows under lookup_type_id = :typeId (active and inactive both, matching QR-MDL-005's scope) — and broaden MDL-400-REORDER-MISMATCH's catalog trigger, which today reads only 'a submitted id does not belong to the type in the path', to cover an incomplete or duplicated set.",
-      "adr": false
+      "clause": "C9.17 screen-composition / consistency",
+      "problem": "F2 · SCR-MDL-001 → F2-SCREEN-INIT names two controls on the UXD-MDL-001 hook — the create-form owner-module select AND the master list's read-only ownerModuleCode search filter — then states a degraded behaviour for only one of them: 'A refused read leaves the select empty and disabled, and the create action disabled behind it (ADR-MDL-013).' ui-ux-spec-mdl.md → UXD-MDL-001 → Degraded (SCR-MDL-001) repeats the same single-control wording, so the search filter's behaviour on a refused read is unspecified and the only nearby stated behaviour is empty-and-disabled. The grant behind the failure, PERM_SEC_MODULE_REGISTRY_VIEW, is tied by ADR-MDL-013 and SEC-FE to PERM_MDL_LOOKUPS_CREATE alone, so a VIEW-only caller (SRS §B4's consuming-module service account, or a reviewer holding the screen without CREATE) is expected not to hold it: the degraded path is that caller's normal path, and as written it costs them a filter their own permissions never gated. The sibling screen decided the opposite for the identical failure — ADR-MDL-015 falls back to the distinct ownerModuleCode values in the current response so that 'browsing is never blocked by the degraded source' — and API-MDL-001 returns ownerModuleCode on every row (F1-MODEL, LookupTypeResponse), so the same fallback data is already in hand. ADR-MDL-013's own reasoning ('a code typed blind is a code the server is certain to refuse, RULE-MDL-001') is a write-path argument and does not reach a filter over rows the server itself just returned.",
+      "fix": "Extend ADR-MDL-015's fallback to SCR-MDL-001's master-list search filter: when the UXD-MDL-001 read is refused or fails, derive that filter's option set from the distinct ownerModuleCode values present in the current API-MDL-001 response, leaving ONLY the create-form select empty-and-disabled per ADR-MDL-013. Split the F2-SCREEN-INIT 'Foreign data' line in frontend-execution-plan-mdl.md into the two controls' separate degraded behaviours instead of one shared sentence, and make the matching split in ui-ux-spec-mdl.md → UXD-MDL-001 → Degraded (SCR-MDL-001). Both files are in this pass's writable set.",
+      "adr": true
     },
     {
       "id": "G2",
-      "severity": "MAJOR",
-      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-test-plan-mdl.md TC-MDL-014",
-      "line": null,
-      "clause": "P3 read the seams · XM-PROTOCOL §4-5 · consistency",
-      "problem": "TC-MDL-014 makes 'SEC's registry-search endpoint (API-SEC-021) unreachable/times out' and expects a controlled non-500. Three artifacts under review contradict it: backend-execution-plan INT-R states 'there is no HTTP-level way to simulate \"SEC unreachable\", and no test should try to'; ALIGN-BE struck the 503 row for that same impossibility; and API-SEC-021 is the FRONTEND's HTTP read behind UXD-MDL-001, not the backend XM path at all, which is an injected in-process call. The test names the wrong surface AND an unconstructible failure mode, and duplicates TC-MDL-002's coverage.",
-      "fix": "File a platform-findings row (PF-MDL-005) in frontend-execution-plan-mdl.md, owner MDL backend track. Evidence: TC-MDL-014's Preconditions line against backend-execution-plan-mdl.md PHASE 6 (INT-R) and the ALIGN-BE strike note. Required change: retarget TC-MDL-014 to the SOFT-READ's real untested edge — a module deregistered from SEC after its types were accepted must not invalidate them (RULE-MDL-001's own Test-Hint) — and drop the API-SEC-021 citation, which belongs to the frontend's UXD-MDL-001 read.",
-      "adr": false
-    },
-    {
-      "id": "G3",
-      "severity": "MAJOR",
-      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-execution-plan-mdl.md XM-MDL-001",
-      "line": null,
-      "clause": "§7 platform findings · XM-PROTOCOL §4-5",
-      "problem": "XM-MDL-001's contract states that SEC's P3.1 artifacts register only SecUserDirectoryApi, so the module-registry read this XM consumes is written down nowhere on SEC's side, and defers it to 'SEC's own re-run'. registry-exec-be repeats it. It is disclosed only as prose inside MDL's own artifacts and filed as no platform-findings row anywhere — the 'not mine to settle into the void' pattern §7 exists to stop. Meanwhile the XM is carried ACTIVE with 'Unblock condition: none outstanding', which is the claim the prose two paragraphs above contradicts.",
-      "fix": "File a platform-findings row (PF-MDL-006) in frontend-execution-plan-mdl.md, owner SEC / P3.1 track. Evidence: registry-exec-be-mdl.md XM STATUS and backend-execution-plan-mdl.md INT-C XM-MDL-001 Interface paragraph. Statement: SEC v1's P3.1 artifacts must register SecModuleRegistryApi as an exposed cross-module surface alongside SecUserDirectoryApi. Distinct from API-SEC-021, which is the published HTTP read UXD-MDL-001 uses — the gap is specifically the in-process backend contract.",
-      "adr": false
-    },
-    {
-      "id": "G4",
       "severity": "MINOR",
-      "artifact": "srs-mdl.md REQ-MDL-013",
+      "artifact": "frontend-execution-plan-mdl.md",
       "line": null,
-      "clause": "C5.16 feature-unwanted",
-      "problem": "US-MDL-005's one requirement states no unwanted path. The real silent path is not the empty result (already a stated platform convention) but the deregistered owner: RULE-MDL-001 is create-time only, so a module removed from SEC keeps owning its types, and SCR-MDL-002 groups the registry by owner code — an administrator auditing by owner sees a group headed by a module code that no longer exists, unmarked. ADR-MDL-015 and ui-ux-spec-mdl.md both acknowledge it downstream; the SRS states it nowhere.",
-      "fix": "Add to REQ-MDL-013 an unwanted-pattern statement: 'If a lookup type's owner module code is no longer registered in the security module, then the system shall still return that type under its stored owner module code, and shall neither remove nor alter the type.' This documents the behaviour RULE-MDL-001's existing Test-Hint already decided, so no new choice is taken. Outside this pass's writable set — file alongside the rows above, owner P1.",
-      "adr": false
-    },
-    {
-      "id": "G5",
-      "severity": "MINOR",
-      "artifact": "analysis/decisions/MDL/ADR-MDL-008.md",
-      "line": null,
-      "clause": "§7 decisions review",
-      "problem": "The status header reads 'ACCEPTED (non-breaking) — supersedes ADR-MDL-001' with no record that ADR-MDL-011 supersedes it in turn.",
-      "fix": "No action owed by this pass. Already recorded by it as G8 in registry-exec-fe-mdl.md, correctly noted as outside its writable file set; per §7 recording a finding never lowers a score. Carried for whichever stage next holds ADR-MDL-008.md.",
-      "adr": false
-    },
-    {
-      "id": "G6",
-      "severity": "MAJOR",
-      "artifact": "frontend-execution-plan-mdl.md (F3 · SCR-MDL-001, UNIQUE_CHECK)",
-      "line": null,
-      "clause": "P3 read the seams · C9.5 · consistent",
-      "problem": "The UNIQUE_CHECK specifies 'the type's key through API-MDL-001 with an EQUALS filter' and 'the value's code through API-MDL-005 with EQUALS filters on both lookupTypeId and code'. Both queries bind those columns with LIKE unconditionally: QR-MDL-001 'WHERE [key LIKE :key]' (Filters: key: LIKE) and QR-MDL-005 'AND [code LIKE :code]' (Filters: lookupTypeId: EXACT · code: LIKE); PHASE 1's Search contract and SRS §B2 agree. An EQUALS operator therefore cannot produce an exact match — typing PAYMENT returns the existing PAYMENT_METHOD row and the blur check falsely reports the key as already taken, on the one field RULE-MDL-003 makes unchangeable afterwards. Capped below CRITICAL only because the plan states the check never blocks submit and the server's 409 is the authority.",
-      "fix": "Rewrite the UNIQUE_CHECK line to request the LIKE filter the backend declares and then assert exact equality client-side over the returned rows before showing the inline message — for key on API-MDL-001, and for code scoped to lookupTypeId on API-MDL-005. This uses only the published surface, needs no new endpoint or operator, and is correct whether or not the service honours EQUALS. Inside this pass's writable set.",
-      "adr": false
-    },
-    {
-      "id": "G7",
-      "severity": "MINOR",
-      "artifact": "frontend-execution-plan-mdl.md (F1-SCREEN SCR-MDL-001; F2-QUERY TYPE SEARCH)",
-      "line": null,
-      "clause": "P4 error vs pattern · consistent",
-      "problem": "The master search model carries sortField and sortDirection and the cache key carries both, but the backend declares a single ordering — QR-MDL-001 'ORDER BY key', PHASE 1 'key ASC — paged' and 'the module offers no free-form sort parameter'. This is the pass's own G2 correction unapplied to itself: 'keying a variation the server cannot produce would fragment the cache for nothing'.",
-      "fix": "Drop sortField from the F1 search model and from the F2 TYPE SEARCH cache key, or constrain it to the single literal 'key'. Keep sortDirection, which PHASE 1's 'refused on any other field' wording leaves available on key itself. Inside this pass's writable set.",
+      "clause": "traceable / rubric-clarity (ADR-MDL-014)",
+      "problem": "The F4-SCREEN 'Cold-load hydration' block and ADR-MDL-014 group the value-create route (/reference-data/lookups/:typeId/values/new, which creates a record and so has no row to hydrate) with the two true edit routes under one 'hydrate a row from cache or redirect' rule. The redirect target /reference-data/lookups/:typeId renders its values pane from API-MDL-005, whose cache key is [lookup-values, {lookupTypeId, code}] and which needs no type row at all — so the only thing that route's redirect protects is the parent type's display context. The behaviour is correct; the description overstates the constraint.",
+      "fix": "Reword the F4-SCREEN Cold-load hydration paragraph and the corresponding line in ADR-MDL-014 to state that /values/new's redirect protects parent-type display context rather than a value record, keeping the two edit routes' record-hydration rule as written. Documentation-only; no behaviour change.",
       "adr": false
     }
   ],
   "extra_checks": [],
   "analyze_confirmed": [
     {
-      "finding": "C5.16 feature-unwanted / US-MDL-005 / srs:47",
+      "finding": "C5.16 US-MDL-005/REQ-MDL-013 feature-unwanted",
       "confirmed": true,
-      "note": "Confirmed, and re-aimed. Round 1 proposed stating that an empty filter result is success — already stated platform-wide (QR-MDL-010 Notes; PHASE 1 Search contract). The unspecified path is the deregistered owner: see G4."
+      "note": "Confirmed, and systemic rather than local: REQ-MDL-005 and the search half of REQ-MDL-001 are in the same position, which is what a read-only operation with no violation state looks like. The fix is an AC in srs-mdl.md (P1), outside P3.2's writable set — carried forward, same posture registry-exec-fe-mdl.md states for G8/G9. Not scored against this track."
     }
   ]
 }
@@ -1463,206 +1413,402 @@ platform's record. No BLOCKED ADR — the pass was not stopped. No question was 
 <<<ARTIFACT: current-backend-test-plan.md>>>
 # BACKEND TEST PLAN — البيانات المرجعية / Master Data Lookup (MDL)
 ══════════════════════════════════════════════════════════════════
-Module : MDL   Version : v1   Profile : erp   Scope : project (modules MDL, SEC)
-Sources: srs-mdl.md v1 · backend-execution-plan-mdl.md v1 · registry-srs-mdl.md v1 · registry-db-mdl.md v1
-Framework: agnostic. REDUCED: no. Open ADRs: 0 new.
-TC count: 13 (module scope) · 1 (integration — XM-MDL-001, MDL declares → SEC)
+Module : MDL   Version : v1   Profile : erp   Track : backend   Plan : test
+Scope  : **module** — modules MDL (`gov.py run-standalone test-gen --module MDL`)
+Sources: `_state/current-srs.md` (v1) · `_state/current-backend-execution-plan.md` (v1) ·
+         `_state/current-registry-srs.md` (v1) · `_state/current-registry-db.md` (v1)
+Framework : **agnostic** (`profile.stack.testing`). Every block below is the framework-agnostic
+            TC form; no tool, annotation, fixture or file layout is named anywhere in this plan.
+            The consumer repo chooses its framework and turns each TC into a test.
+REDUCED   : no — the backend-execution-plan is present, so every step binds to a real `API-*`.
+TC ids    : TC-MDL-001 … TC-MDL-014 — one continuous module sequence **shared** with
+            `frontend-test-plan-mdl.md`, which continues at TC-MDL-015. No id is reused and no
+            id is reassigned to a different subject than the one it already carried.
+Open ADRs : 2 raised by this run — ADR-MDL-023, ADR-MDL-024 (both ACCEPTED, non-breaking).
+            Applied and not re-derived: ADR-MDL-002, ADR-MDL-005, ADR-MDL-007, ADR-SEC-002,
+            ADR-FIN-001.
 ══════════════════════════════════════════════════════════════════
 
-<!-- PHASE:TEST-PLAN-BE:START traces=REQ-MDL-001,REQ-MDL-002,REQ-MDL-003,REQ-MDL-004,REQ-MDL-005,REQ-MDL-006,REQ-MDL-007,REQ-MDL-008,REQ-MDL-009,REQ-MDL-010,REQ-MDL-011,REQ-MDL-012,REQ-MDL-013 -->
+**Id order is AC order, not document order.** `TC-MDL-<seq>` maps 1:1 onto `AC-MDL-<seq>` for
+the thirteen acceptance criteria, and TC-MDL-014 is the fourteenth. The two SUBs group by
+scenario kind, so the ids are not monotonic inside a SUB — that is the price of never
+renumbering, and the traceability index below is the address. No id changed its subject in this
+revision.
 
-<!-- SUB:RULE-SCENARIOS:START traces=REQ-MDL-002,REQ-MDL-003,REQ-MDL-004,REQ-MDL-007,REQ-MDL-011,REQ-MDL-012 -->
+**What this revision changed, so a reader of the previous one is not misled.**
+
+- **Scope narrowed from `project` to `module`.** The previous revision was produced at
+  `scope: project` (modules MDL, SEC) and carried a `PHASE:INT-XM` block. This run is
+  `--module MDL`, so the integration phase is **absent** by the engine's own rule (§2 rule 3):
+  a module never gets an integration TC for a module outside the selection, and SEC is not in
+  this selection. Nothing about XM-MDL-001 is asserted or denied here; it is simply not this
+  run's concern.
+- **TC-MDL-014 is retargeted, keeping its id** (ADR-MDL-024). It described "SEC unreachable
+  during owner-module validation" and cited a foreign endpoint id. `profile.conventions.module_interface`
+  is `in_process`, so there is no hop to make unreachable — backend-execution-plan PHASE 6
+  (INT-R) says so in as many words: "there is no HTTP-level way to simulate 'SEC unreachable',
+  and no test should try to". The test is retargeted to the real untested edge RULE-MDL-001's
+  own Test-Hint names. This is **PF-MDL-005** (frontend-execution-plan, API SURFACE) applied,
+  not a decision taken here.
+- **Test data is the AC's own.** Every value below is one the SRS names — `PAYMENT_METHOD`,
+  `FIN`, `SEC`, `XYZ`, `SHIPPING_MODE`, `CASH`, `CHEQUE`, `TRANSFER`, `NO_SUCH_KEY` and the
+  labels beside them. The previous revision invented `ZZZ`, `TEST_TYPE`, `ACCOUNT_TYPE`,
+  `USER_STATUS`, `NEW_VAL` and `NOT_A_REAL_KEY`; invented business data is forbidden (§3 rule 5)
+  and none survives here.
+- **Every asserted message is quoted in both languages**, character-perfect from the SRS, where
+  the previous revision cited only the catalog code.
+- **TC-MDL-003 no longer submits a `key`.** Its step 2 ("attempt to also pass a key value")
+  described a branch that cannot exist: `key` is absent from `LookupTypeUpdateRequest` and from
+  QR-MDL-003's statement, so a submitted key is ignored, never rejected, and RULE-MDL-003 raises
+  no catalog row (backend-execution-plan, RULE-MDL-003 block).
+
+<!-- PHASE:TEST-PLAN-BE:START traces=REQ-MDL-001,REQ-MDL-002,REQ-MDL-003,REQ-MDL-004,REQ-MDL-005,REQ-MDL-006,REQ-MDL-007,REQ-MDL-008,REQ-MDL-009,REQ-MDL-010,REQ-MDL-011,REQ-MDL-012,REQ-MDL-013,AC-MDL-001,AC-MDL-002,AC-MDL-003,AC-MDL-004,AC-MDL-005,AC-MDL-006,AC-MDL-007,AC-MDL-008,AC-MDL-009,AC-MDL-010,AC-MDL-011,AC-MDL-012,AC-MDL-013 -->
+## PHASE — TEST-PLAN-BE
+
+TC count is 14, above the split threshold of 12, so this phase is split into the two groups the
+engine names: rule-driven scenarios (violations and state transitions) and endpoint-driven
+scenarios (happy paths, listing, ordering, grouping). Every TC sits inside one of them.
+
+<!-- SUB:RULE-SCENARIOS:START traces=REQ-MDL-002,REQ-MDL-004,REQ-MDL-007,REQ-MDL-009,REQ-MDL-012,AC-MDL-002,AC-MDL-004,AC-MDL-007,AC-MDL-009,AC-MDL-012 -->
 ### SUB — RULE-SCENARIOS
 
+The ACs whose Then names a `RULE-*` violation or a state transition. Each one asserts the
+catalog code and both message strings, or the stored state the rule governs.
+
 <!-- TC:TC-MDL-002:START traces=AC-MDL-002,REQ-MDL-002,API-MDL-002 -->
-### TC-MDL-002 — reject a type for an unregistered owner module
-Derived from : AC-MDL-002 (REQ-MDL-002)
+### TC-MDL-002 — an unregistered owner module code is refused
+Derived from : AC-MDL-002  (REQ-MDL-002)
 Exercises    : API-MDL-002 POST /api/v1/mdl/lookup-types
-Rule / code  : RULE-MDL-001 → MDL-409-MODULE-NOT-REGISTERED
+Rule / code  : RULE-MDL-001 → MDL-409-MODULE-NOT-REGISTERED (409)
 Scenario     : VIOLATION · data class INVALID · language ALL
-Preconditions: an owner module code with no ModuleRegistry row in SEC
-Steps        : 1. POST {key, ownerModuleCode: "ZZZ", nameAr, nameEn}
-Expected     : 409 MDL-409-MODULE-NOT-REGISTERED; no LookupType created
-Test data    : ownerModuleCode "ZZZ" (never registered in SEC)
+Preconditions: a registrar holding PERM_MDL_LOOKUPS_CREATE (gated by PERM_MDL_LOOKUPS_VIEW); the
+               module code `XYZ` has no ModuleRegistry row in SEC (ENT-SEC-004)
+Steps        : 1. POST `/api/v1/mdl/lookup-types` with `LookupTypeCreateRequest` carrying
+                  key `SHIPPING_MODE`, ownerModuleCode `XYZ`, and both names
+Expected     : 409 · `LocalizedException → {code, messageAr, messageEn}` with code
+               MDL-409-MODULE-NOT-REGISTERED —
+               ar: «الوحدة المالكة غير مسجّلة في وحدة الأمان» ·
+               en: "The owning module is not registered in the Security module".
+               No lookup type row is stored at all — a subsequent search for key `SHIPPING_MODE`
+               (API-MDL-001) returns an empty page.
+Test data    : key `SHIPPING_MODE`, ownerModuleCode `XYZ` (AC-MDL-002's own values)
 <!-- TC:TC-MDL-002:END -->
 
-<!-- TC:TC-MDL-003:START traces=AC-MDL-003,REQ-MDL-003,API-MDL-003 -->
-### TC-MDL-003 — key is immutable after creation
-Derived from : AC-MDL-003 (REQ-MDL-003)
-Exercises    : API-MDL-003 PUT /api/v1/mdl/lookup-types/{id}
-Rule / code  : RULE-MDL-003 → (enforced by DTO shape — no error code, `key` simply absent from the request schema)
+<!-- TC:TC-MDL-004:START traces=AC-MDL-004,REQ-MDL-004,API-MDL-004,API-MDL-011 -->
+### TC-MDL-004 — deactivating a type keeps its values and hides them from consumers
+Derived from : AC-MDL-004  (REQ-MDL-004)
+Exercises    : API-MDL-004 DELETE /api/v1/mdl/lookup-types/{id}  ·  API-MDL-011 GET /api/v1/mdl/lookups
+Rule / code  : RULE-MDL-004 → MDL-404-TYPE-KEY (404) on the consumer read
 Scenario     : STATE · data class VALID · language ALL
-Preconditions: an existing LookupType
-Steps        : 1. PUT {nameAr, nameEn} (no `key` field in the request DTO at all) — 2. attempt to also pass a `key` value and confirm it is ignored / rejected by schema validation
-Expected     : 200; names updated, key unchanged; step 2 either fails schema validation (400) or is silently ignored depending on the consumer's DTO strictness — either way key never changes
-Test data    : existing type key "ACCOUNT_TYPE"
-<!-- TC:TC-MDL-003:END -->
-
-<!-- TC:TC-MDL-004:START traces=AC-MDL-004,REQ-MDL-004,API-MDL-004 -->
-### TC-MDL-004 — deactivating a type excludes its values from reads
-Derived from : AC-MDL-004 (REQ-MDL-004)
-Exercises    : API-MDL-004 DELETE /api/v1/mdl/lookup-types/{id}
-Rule / code  : RULE-MDL-004 → (no error code — enforced on the read side, see TC-MDL-011)
-Scenario     : STATE · data class VALID · language ALL
-Preconditions: an active LookupType with active values
-Steps        : 1. DELETE (deactivate) the type — 2. call API-MDL-011 for its key
-Expected     : 1. 200, isActiveFl=false — 2. step 2 returns no values (REQ-MDL-011 no longer returns them)
-Test data    : a test-only type with 2 active values
+Preconditions: an active lookup type with key `PAYMENT_METHOD` holding three active values; the
+               caller holds PERM_MDL_LOOKUPS_DELETE, gated by PERM_MDL_LOOKUPS_VIEW
+Steps        : 1. DELETE `/api/v1/mdl/lookup-types/{id}` for that type
+               2. POST `/api/v1/mdl/lookup-types/values/search` filtered by its `lookupTypeId`
+               3. GET `/api/v1/mdl/lookups?type=PAYMENT_METHOD`
+Expected     : 1. 200 · the type's `isActiveFl` is false
+               2. the three values are still stored, each with its own `isActiveFl` untouched —
+                  deactivating a type writes nothing to its values
+               3. no value of the type is returned: an inactive type answers MDL-404-TYPE-KEY —
+                  ar: «لا يوجد نوع لوكب بهذا المفتاح» ·
+                  en: "No lookup type exists with this key"
+Test data    : type `PAYMENT_METHOD` with three active values (AC-MDL-004's own precondition)
 <!-- TC:TC-MDL-004:END -->
 
 <!-- TC:TC-MDL-007:START traces=AC-MDL-007,REQ-MDL-007,API-MDL-006 -->
-### TC-MDL-007 — reject a duplicate code within a type
-Derived from : AC-MDL-007 (REQ-MDL-007)
+### TC-MDL-007 — a duplicate code under the same type is refused
+Derived from : AC-MDL-007  (REQ-MDL-007)
 Exercises    : API-MDL-006 POST /api/v1/mdl/lookup-types/{id}/values
-Rule / code  : RULE-MDL-002 → MDL-409-VALUE-DUP
+Rule / code  : RULE-MDL-002 → MDL-409-VALUE-DUP (409)
 Scenario     : VIOLATION · data class INVALID · language ALL
-Preconditions: a type already holding a value with code "ACTIVE"
-Steps        : 1. POST a second value with code "ACTIVE" under the same type
-Expected     : 409 MDL-409-VALUE-DUP; no second row created
-Test data    : type USER_STATUS, code "ACTIVE" (already exists)
+Preconditions: the type `PAYMENT_METHOD` already holds a value whose code is `CASH`
+Steps        : 1. POST `/api/v1/mdl/lookup-types/{id}/values` with a second
+                  `LookupValueCreateRequest` carrying code `CASH` under the same type
+Expected     : 409 · MDL-409-VALUE-DUP —
+               ar: «هذا الرمز مستخدم بالفعل ضمن هذا النوع» ·
+               en: "This code is already used within this type".
+               The type's value count is exactly what it was before the request (AC-MDL-007:
+               «ويبقى عدد قيم النوع كما كان قبل الطلب»), confirmed by re-running API-MDL-005.
+Test data    : type `PAYMENT_METHOD`, code `CASH` (already held)
 <!-- TC:TC-MDL-007:END -->
 
-<!-- TC:TC-MDL-011:START traces=AC-MDL-011,REQ-MDL-011,API-MDL-011 -->
-### TC-MDL-011 — read active values by key, ordered
-Derived from : AC-MDL-011 (REQ-MDL-011)
-Exercises    : API-MDL-011 GET /api/v1/mdl/lookups
-Rule / code  : RULE-MDL-004 (positive path — active type, active values only)
-Scenario     : HAPPY · data class VALID · language ALL
-Preconditions: a type "PAYMENT_METHOD" with 2 active and 1 inactive value
-Steps        : 1. GET ?type=PAYMENT_METHOD
-Expected     : 200; exactly the 2 active values, ordered by sortOrder
-Test data    : PAYMENT_METHOD with 3 values (2 active, 1 inactive)
-<!-- TC:TC-MDL-011:END -->
+<!-- TC:TC-MDL-009:START traces=AC-MDL-009,REQ-MDL-009,API-MDL-008,API-MDL-011,API-MDL-005 -->
+### TC-MDL-009 — a deactivated value leaves the consumer read and stays in the management read
+Derived from : AC-MDL-009  (REQ-MDL-009)
+Exercises    : API-MDL-008 DELETE /api/v1/mdl/lookup-values/{id}  ·  API-MDL-011 GET /api/v1/mdl/lookups
+               ·  API-MDL-005 POST /api/v1/mdl/lookup-types/values/search
+Rule / code  : — · RULE-MDL-004 is the read-side reason the value disappears from step 2
+Scenario     : STATE · data class VALID · language ALL
+Preconditions: an active value whose code is `CHEQUE`, under the active type `PAYMENT_METHOD`
+Steps        : 1. DELETE `/api/v1/mdl/lookup-values/{id}` for `CHEQUE`
+               2. GET `/api/v1/mdl/lookups?type=PAYMENT_METHOD`
+               3. POST `/api/v1/mdl/lookup-types/values/search` filtered by the type's `lookupTypeId`
+Expected     : 1. 200 · the value's `isActiveFl` is false
+               2. `CHEQUE` is absent from the consumer read
+               3. `CHEQUE` is present in the management detail read — the endpoint the detail
+                  pane of the generic lookups screen calls (AC-MDL-009: «وتبقى معروضة في الجزء
+                  التفصيلي للشاشة العامة»)
+Test data    : value `CHEQUE` under type `PAYMENT_METHOD` (AC-MDL-009's own values)
+<!-- TC:TC-MDL-009:END -->
 
 <!-- TC:TC-MDL-012:START traces=AC-MDL-012,REQ-MDL-012,API-MDL-011 -->
-### TC-MDL-012 — reject an unknown type key
-Derived from : AC-MDL-012 (REQ-MDL-012)
+### TC-MDL-012 — an unknown key is a not-found, never an empty success
+Derived from : AC-MDL-012  (REQ-MDL-012)
 Exercises    : API-MDL-011 GET /api/v1/mdl/lookups
-Rule / code  : RULE-MDL-004 → MDL-404-TYPE-KEY
+Rule / code  : RULE-MDL-004 → MDL-404-TYPE-KEY (404)
 Scenario     : VIOLATION · data class INVALID · language ALL
-Preconditions: no LookupType with key "NOT_A_REAL_KEY"
-Steps        : 1. GET ?type=NOT_A_REAL_KEY
-Expected     : 404 MDL-404-TYPE-KEY (never an empty-success)
-Test data    : type "NOT_A_REAL_KEY"
+Preconditions: no lookup type on the platform carries the key `NO_SUCH_KEY`
+Steps        : 1. GET `/api/v1/mdl/lookups?type=NO_SUCH_KEY` as a consuming module's service
+                  account (VIEW on MDL_LOOKUPS)
+Expected     : 404 · MDL-404-TYPE-KEY —
+               ar: «لا يوجد نوع لوكب بهذا المفتاح» ·
+               en: "No lookup type exists with this key".
+               The answer is **not** a 200 carrying an empty list — the two outcomes are
+               distinguished by requirement (AC-MDL-012: «ولا يُعاد ردّ ناجح بقائمة فارغة»).
+Test data    : key `NO_SUCH_KEY` (AC-MDL-012's own value)
 <!-- TC:TC-MDL-012:END -->
+
+TC-MDL-014 below is this plan's one TC that is not the 1:1 twin of an AC. It derives from
+AC-MDL-002's own rule, RULE-MDL-001, whose **Test-Hint** states the edge in the SRS itself:
+«الفحص عند الإنشاء وحده؛ إلغاء تسجيل وحدة في الأمان لاحقًا لا يُبطل أنواعها القائمة». Nothing
+is invented for it, and it replaces — under the same id — the unconstructible
+"SEC unreachable" test the previous revision carried (PF-MDL-005, ADR-MDL-024).
+
+<!-- TC:TC-MDL-014:START traces=AC-MDL-002,REQ-MDL-002,API-MDL-001,API-MDL-003,API-MDL-011 -->
+### TC-MDL-014 — deregistering the owner module later does not invalidate its existing types
+Derived from : AC-MDL-002  (REQ-MDL-002) — through RULE-MDL-001's own Test-Hint
+Exercises    : API-MDL-001 POST /api/v1/mdl/lookup-types/search · API-MDL-003 PUT /api/v1/mdl/lookup-types/{id}
+               · API-MDL-011 GET /api/v1/mdl/lookups
+Rule / code  : RULE-MDL-001 → no code is expected on any step: the rule fires `on create` alone
+Scenario     : STATE · data class EDGE · language —
+Preconditions: a lookup type with key `PAYMENT_METHOD` and ownerModuleCode `FIN` was accepted
+               while `FIN` held a ModuleRegistry row in SEC, and holds active values; `FIN`'s
+               registry row is then removed from SEC (ENT-SEC-004), so the code no longer
+               resolves there
+Steps        : 1. POST `/api/v1/mdl/lookup-types/search` filtered by ownerModuleCode `FIN`
+               2. PUT `/api/v1/mdl/lookup-types/{id}` with revised names
+               3. GET `/api/v1/mdl/lookups?type=PAYMENT_METHOD`
+Expected     : 1. 200 · the type is still returned, `isActiveFl` still true, `ownerModuleCode`
+                  still the stored `FIN` — nothing re-reads SEC on a search
+               2. 200 · the rename succeeds; no code path on the update re-checks SEC
+               3. 200 · the type's active values are returned as before — the type is usable
+Test data    : type `PAYMENT_METHOD`, ownerModuleCode `FIN` (AC-MDL-001/AC-MDL-002's own values);
+               the SEC-side deregistration is a precondition of the target module's data, not a
+               value this module supplies
+<!-- TC:TC-MDL-014:END -->
 <!-- SUB:RULE-SCENARIOS:END -->
 
-  <!-- SUB:API-SCENARIOS:START traces=REQ-MDL-001,REQ-MDL-005,REQ-MDL-006,REQ-MDL-008,REQ-MDL-009,REQ-MDL-010,REQ-MDL-013 -->
-  ### SUB — API-SCENARIOS
+<!-- SUB:API-SCENARIOS:START traces=REQ-MDL-001,REQ-MDL-003,REQ-MDL-005,REQ-MDL-006,REQ-MDL-008,REQ-MDL-010,REQ-MDL-011,REQ-MDL-013,AC-MDL-001,AC-MDL-003,AC-MDL-005,AC-MDL-006,AC-MDL-008,AC-MDL-010,AC-MDL-011,AC-MDL-013 -->
+### SUB — API-SCENARIOS
 
-  <!-- TC:TC-MDL-001:START traces=AC-MDL-001,REQ-MDL-001,API-MDL-002 -->
-  ### TC-MDL-001 — create a lookup type
-  Derived from : AC-MDL-001 (REQ-MDL-001)
-  Exercises    : API-MDL-002 POST /api/v1/mdl/lookup-types
-  Rule / code  : — (happy path)
-  Scenario     : HAPPY · data class VALID · language ALL
-  Preconditions: unique key; registered owner module code
-  Steps        : 1. POST {key: "TEST_TYPE", ownerModuleCode: "MDL", nameAr, nameEn}
-  Expected     : 201; active LookupType created
-  Test data    : key "TEST_TYPE", ownerModuleCode "MDL" (MDL owning its own test lookup type is a legitimate self-registration case — a module owning its own reference data is a real scenario, not a contrived one)
-  <!-- TC:TC-MDL-001:END -->
+The endpoint-driven ACs: the happy paths, the two ordered reads and the grouped browse.
 
-  <!-- TC:TC-MDL-005:START traces=AC-MDL-005,REQ-MDL-005,API-MDL-005 -->
-  ### TC-MDL-005 — select a type and list its values
-  Derived from : AC-MDL-005 (REQ-MDL-005)
-  Exercises    : API-MDL-005 POST /api/v1/mdl/lookup-types/values/search
-  Rule / code  : — (happy path)
-  Scenario     : HAPPY · data class VALID · language ALL
-  Preconditions: a type with 3 values
-  Steps        : 1. POST /search filtered by the type's lookupTypeId
-  Expected     : 200; exactly those 3 values, ordered by sortOrder
-  Test data    : type with 3 values
-  <!-- TC:TC-MDL-005:END -->
-
-  <!-- TC:TC-MDL-006:START traces=AC-MDL-006,REQ-MDL-006,API-MDL-006 -->
-### TC-MDL-006 — create a lookup value
-Derived from : AC-MDL-006 (REQ-MDL-006)
-Exercises    : API-MDL-006 POST /api/v1/mdl/lookup-types/{id}/values
-Rule / code  : — (happy path)
+<!-- TC:TC-MDL-001:START traces=AC-MDL-001,REQ-MDL-001,API-MDL-002 -->
+### TC-MDL-001 — register a lookup type, happy path
+Derived from : AC-MDL-001  (REQ-MDL-001)
+Exercises    : API-MDL-002 POST /api/v1/mdl/lookup-types
+Rule / code  : RULE-MDL-001 (satisfied — `FIN` is registered in SEC) → no error expected
 Scenario     : HAPPY · data class VALID · language ALL
-Preconditions: a code not yet used within the type
-Steps        : 1. POST {code, nameAr, nameEn, sortOrder}
-Expected     : 201; active LookupValue created under the type
-Test data    : new code "NEW_VAL" under an existing type
+Preconditions: a registrar holding PERM_MDL_LOOKUPS_CREATE, gated by PERM_MDL_LOOKUPS_VIEW; no
+               lookup type on the platform carries the key `PAYMENT_METHOD`; `FIN` has a
+               ModuleRegistry row in SEC (ENT-SEC-004)
+Steps        : 1. POST `/api/v1/mdl/lookup-types` with `LookupTypeCreateRequest` carrying
+                  key `PAYMENT_METHOD`, ownerModuleCode `FIN`, nameAr «طريقة الدفع»,
+                  nameEn "Payment method"
+Expected     : 201 · `ApiResponse<LookupTypeResponse>` — `key = PAYMENT_METHOD`,
+               `ownerModuleCode = FIN`, `isActiveFl = true`, with `createdBy` and `createdAt`
+               written by the system and absent from the request; message —
+               ar: «تم حفظ نوع اللوكب.» · en: "The lookup type has been saved."
+Test data    : key `PAYMENT_METHOD`, ownerModuleCode `FIN`, names «طريقة الدفع» / "Payment method"
+<!-- TC:TC-MDL-001:END -->
+
+<!-- TC:TC-MDL-003:START traces=AC-MDL-003,REQ-MDL-003,API-MDL-003 -->
+### TC-MDL-003 — the names change and the key does not
+Derived from : AC-MDL-003  (REQ-MDL-003)
+Exercises    : API-MDL-003 PUT /api/v1/mdl/lookup-types/{id}
+Rule / code  : RULE-MDL-003 → no catalog row exists and none can be raised: `key` is absent from
+               `LookupTypeUpdateRequest` and from QR-MDL-003's statement
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: an existing lookup type whose key is `PAYMENT_METHOD` and whose names are
+               «طريقة الدفع» / "Payment method"; the caller holds PERM_MDL_LOOKUPS_UPDATE
+Steps        : 1. PUT `/api/v1/mdl/lookup-types/{id}` with `LookupTypeUpdateRequest` carrying
+                  nameAr «وسيلة الدفع» and nameEn "Payment means" — the request carries no `key`
+                  field, because the schema has none
+Expected     : 200 · `nameAr` and `nameEn` hold the submitted values; `key` is still
+               `PAYMENT_METHOD`; `ownerModuleCode` is unchanged; `updatedBy` and `updatedAt` are
+               filled by the system
+Test data    : key `PAYMENT_METHOD`, revised names «وسيلة الدفع» / "Payment means"
+<!-- TC:TC-MDL-003:END -->
+
+<!-- TC:TC-MDL-005:START traces=AC-MDL-005,REQ-MDL-005,API-MDL-005 -->
+### TC-MDL-005 — the detail is confined to the selected type, active and inactive alike
+Derived from : AC-MDL-005  (REQ-MDL-005)
+Exercises    : API-MDL-005 POST /api/v1/mdl/lookup-types/values/search
+Rule / code  : — · RULE-MDL-004 governs the consumer read, not this management read
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: the type `PAYMENT_METHOD` holds four values with `sortOrder` 1, 2, 3 and 4, one
+               of them deactivated; a second lookup type holds two values of its own
+Steps        : 1. POST `/api/v1/mdl/lookup-types/values/search` with `lookupTypeId` = the id of
+                  `PAYMENT_METHOD` and no `code` filter
+Expected     : 200 · a bare list (not a page) of all four values of `PAYMENT_METHOD` — the three
+               active and the deactivated one alike — ordered ascending by `sortOrder`; no value
+               of the second type appears in the result
+Test data    : `PAYMENT_METHOD` with four values at ranks 1–4, one deactivated; a second type
+               with two values (AC-MDL-005's own precondition)
+<!-- TC:TC-MDL-005:END -->
+
+<!-- TC:TC-MDL-006:START traces=AC-MDL-006,REQ-MDL-006,API-MDL-006 -->
+### TC-MDL-006 — add a value under the selected type, happy path
+Derived from : AC-MDL-006  (REQ-MDL-006)
+Exercises    : API-MDL-006 POST /api/v1/mdl/lookup-types/{id}/values
+Rule / code  : RULE-MDL-002 (satisfied — no value under this type carries `CASH`) → no error
+Scenario     : HAPPY · data class VALID · language ALL
+Preconditions: the selected type `PAYMENT_METHOD` holds no value whose code is `CASH`; the
+               caller holds PERM_MDL_LOOKUPS_CREATE
+Steps        : 1. POST `/api/v1/mdl/lookup-types/{id}/values` with `LookupValueCreateRequest`
+                  carrying code `CASH`, nameAr «نقدًا», nameEn "Cash", sortOrder 1
+Expected     : 201 · the value is stored under `PAYMENT_METHOD` with `code = CASH`,
+               `sortOrder = 1` and `isActiveFl = true`; message —
+               ar: «تم حفظ القيمة.» · en: "The value has been saved."
+Test data    : code `CASH`, names «نقدًا» / "Cash", sortOrder 1 (AC-MDL-006's own values)
 <!-- TC:TC-MDL-006:END -->
 
 <!-- TC:TC-MDL-008:START traces=AC-MDL-008,REQ-MDL-008,API-MDL-007 -->
-### TC-MDL-008 — edit a lookup value
-Derived from : AC-MDL-008 (REQ-MDL-008)
+### TC-MDL-008 — the labels and the rank change and the code does not
+Derived from : AC-MDL-008  (REQ-MDL-008)
 Exercises    : API-MDL-007 PUT /api/v1/mdl/lookup-values/{id}
-Rule / code  : — (happy path)
-Scenario     : HAPPY · data class VALID · language ALL
-Preconditions: an existing LookupValue
-Steps        : 1. PUT {nameAr, nameEn, sortOrder}
-Expected     : 200; names/sortOrder updated; code and lookupTypeId unchanged
-Test data    : existing value, new nameEn
+Rule / code  : RULE-MDL-002 → nothing can raise it on this path: `code` is absent from
+               `LookupValueUpdateRequest`
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: an existing value under `PAYMENT_METHOD` whose code is `CASH` and whose
+               `sortOrder` is 1; the caller holds PERM_MDL_LOOKUPS_UPDATE
+Steps        : 1. PUT `/api/v1/mdl/lookup-values/{id}` with `LookupValueUpdateRequest` carrying
+                  nameAr «نقد», nameEn "Cash payment", sortOrder 2
+Expected     : 200 · `nameAr`, `nameEn` and `sortOrder = 2` hold the submitted values; `code` is
+               still `CASH`; `lookupTypeId` is unchanged; `updatedBy` and `updatedAt` are filled
+Test data    : value `CASH`, revised names «نقد» / "Cash payment", sortOrder 2
 <!-- TC:TC-MDL-008:END -->
 
-<!-- TC:TC-MDL-009:START traces=AC-MDL-009,REQ-MDL-009,API-MDL-008 -->
-### TC-MDL-009 — deactivate a lookup value
-Derived from : AC-MDL-009 (REQ-MDL-009)
-Exercises    : API-MDL-008 DELETE /api/v1/mdl/lookup-values/{id}
-Rule / code  : — (happy path)
-Scenario     : STATE · data class VALID · language ALL
-Preconditions: an active LookupValue
-Steps        : 1. DELETE (deactivate) — 2. call API-MDL-011 for its type
-Expected     : 1. 200, isActiveFl=false — 2. the value no longer returned
-Test data    : a test-only value
-<!-- TC:TC-MDL-009:END -->
-
-<!-- TC:TC-MDL-010:START traces=AC-MDL-010,REQ-MDL-010,API-MDL-009 -->
-### TC-MDL-010 — reorder lookup values
-Derived from : AC-MDL-010 (REQ-MDL-010)
+<!-- TC:TC-MDL-010:START traces=AC-MDL-010,REQ-MDL-010,API-MDL-009,API-MDL-011 -->
+### TC-MDL-010 — the ranks follow the submitted order
+Derived from : AC-MDL-010  (REQ-MDL-010)
 Exercises    : API-MDL-009 PATCH /api/v1/mdl/lookup-types/{id}/values/reorder
-Rule / code  : — (happy path)
-Scenario     : HAPPY · data class VALID · language ALL
-Preconditions: 3 values with sortOrder 1,2,3
-Steps        : 1. PATCH {orderedValueIds: [v3, v1, v2]}
-Expected     : 200; sortOrder persisted as 3,1,2 respectively; a subsequent API-MDL-011 call returns them in that order
-Test data    : 3 values under one type
+               · API-MDL-011 GET /api/v1/mdl/lookups
+Rule / code  : — · no `RULE-*` applies to a reorder
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: a type holding exactly three active values — `CASH`, `CHEQUE` and `TRANSFER` —
+               with `sortOrder` 1, 2 and 3; the caller holds PERM_MDL_LOOKUPS_UPDATE
+Steps        : 1. PATCH `/api/v1/mdl/lookup-types/{id}/values/reorder` with
+                  `LookupValueReorderRequest` carrying the ids of `TRANSFER`, `CASH`, `CHEQUE`
+                  in that order — the type's complete value set, no rank number supplied
+               2. GET `/api/v1/mdl/lookups?type=PAYMENT_METHOD`
+Expected     : 1. 200 · `sortOrder` is 1 for `TRANSFER`, 2 for `CASH` and 3 for `CHEQUE` — each
+                  value's rank is its position in the submitted list
+               2. the values come back in that order
+Test data    : `CASH`, `CHEQUE`, `TRANSFER` at ranks 1–3, resubmitted as `TRANSFER`, `CASH`,
+               `CHEQUE` (AC-MDL-010's own values)
 <!-- TC:TC-MDL-010:END -->
 
+<!-- TC:TC-MDL-011:START traces=AC-MDL-011,REQ-MDL-011,API-MDL-011 -->
+### TC-MDL-011 — the active values only, in order
+Derived from : AC-MDL-011  (REQ-MDL-011)
+Exercises    : API-MDL-011 GET /api/v1/mdl/lookups
+Rule / code  : RULE-MDL-004 (satisfied — the type is active) → no error expected
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: an active type with key `PAYMENT_METHOD` holding two active values at `sortOrder`
+               1 and 2 and a third value that is deactivated; the caller is a consuming module's
+               service account holding VIEW on MDL_LOOKUPS
+Steps        : 1. GET `/api/v1/mdl/lookups?type=PAYMENT_METHOD`
+Expected     : 200 · exactly the two active values, ordered ascending by `sortOrder`, each
+               carrying `code`, `nameAr` and `nameEn`; the deactivated value is absent from the
+               response
+Test data    : `PAYMENT_METHOD` with two active values (ranks 1, 2) and one deactivated
+<!-- TC:TC-MDL-011:END -->
+
 <!-- TC:TC-MDL-013:START traces=AC-MDL-013,REQ-MDL-013,API-MDL-010 -->
-### TC-MDL-013 — browse the type registry grouped by owner
-Derived from : AC-MDL-013 (REQ-MDL-013)
+### TC-MDL-013 — the registry groups by owner module
+Derived from : AC-MDL-013  (REQ-MDL-013)
 Exercises    : API-MDL-010 POST /api/v1/mdl/lookup-types/by-owner/search
-Rule / code  : — (happy path)
-Scenario     : HAPPY · data class VALID · language ALL
-Preconditions: types owned by SEC and by MDL
-Steps        : 1. POST /search for the registry
-Expected     : 200; types grouped under their respective owner-module headings
-Test data    : existing SEC-owned and MDL-owned types
+Rule / code  : — · the active-only narrowing is REQ-MDL-013's own text, not a rule
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: three active lookup types — two whose `ownerModuleCode` is `FIN`, one whose
+               `ownerModuleCode` is `SEC`; the caller holds PERM_MDL_TYPE_REGISTRY_VIEW
+Steps        : 1. POST `/api/v1/mdl/lookup-types/by-owner/search` with no filter
+Expected     : 200 · two groups — `FIN` carrying its two types and `SEC` carrying its one —
+               with every row carrying `key`, `nameAr`, `nameEn` and `ownerModuleCode`
+Test data    : three active types, owners `FIN` (×2) and `SEC` (AC-MDL-013's own precondition)
 <!-- TC:TC-MDL-013:END -->
 <!-- SUB:API-SCENARIOS:END -->
 <!-- PHASE:TEST-PLAN-BE:END -->
 
-<!-- PHASE:INT-XM:START traces=REQ-MDL-002,XM-MDL-001 -->
-MDL declares one XM (XM-MDL-001, SOFT-READ → SEC's ModuleRegistry); SEC is in the current
-selection, so this is a real linking atom.
-
-<!-- TC:TC-MDL-014:START traces=XM-MDL-001,REQ-MDL-002,API-MDL-002 -->
-### TC-MDL-014 — graceful degradation when SEC is unreachable during owner-module validation
-Derived from : XM-MDL-001 (REQ-MDL-002)
-Exercises    : API-MDL-002 POST /api/v1/mdl/lookup-types
-Rule / code  : XM-MDL-001 (SOFT-READ) → (a defined error, never a 500/unhandled state)
-Scenario     : INTEGRATION · data class EDGE · language ALL
-Preconditions: SEC's registry-search endpoint (API-SEC-021) is made unreachable/times out
-Steps        : 1. POST a new lookup-type registration while SEC is unreachable
-Expected     : the request fails with a defined, documented error (not a raw 500/timeout
-  leak) — MDL's own flow returns a controlled response rather than crashing
-Test data    : any lookup-type payload; SEC endpoint simulated as down
-<!-- TC:TC-MDL-014:END -->
-<!-- PHASE:INT-XM:END -->
-
 ## TC TRACEABILITY INDEX
-| AC | TC | REQ | API | RULE/code | XM |
-|---|---|---|---|---|---|
-| AC-MDL-001…013 | TC-MDL-001…013 (1:1) | REQ-MDL-001…013 (1:1) | see each TC's Exercises line | see each TC's Rule/code line | — |
-| — | TC-MDL-014 | REQ-MDL-002 | API-MDL-002 | — | XM-MDL-001 |
+
+**AC → TC**
+
+| AC | TC | AC | TC |
+|---|---|---|---|
+| AC-MDL-001 | TC-MDL-001 | AC-MDL-008 | TC-MDL-008 |
+| AC-MDL-002 | TC-MDL-002, TC-MDL-014 | AC-MDL-009 | TC-MDL-009 |
+| AC-MDL-003 | TC-MDL-003 | AC-MDL-010 | TC-MDL-010 |
+| AC-MDL-004 | TC-MDL-004 | AC-MDL-011 | TC-MDL-011 |
+| AC-MDL-005 | TC-MDL-005 | AC-MDL-012 | TC-MDL-012 |
+| AC-MDL-006 | TC-MDL-006 | AC-MDL-013 | TC-MDL-013 |
+| AC-MDL-007 | TC-MDL-007 | — | — |
+
+**REQ → TC**
+
+| REQ | TC | REQ | TC |
+|---|---|---|---|
+| REQ-MDL-001 | TC-MDL-001 | REQ-MDL-008 | TC-MDL-008 |
+| REQ-MDL-002 | TC-MDL-002, TC-MDL-014 | REQ-MDL-009 | TC-MDL-009 |
+| REQ-MDL-003 | TC-MDL-003 | REQ-MDL-010 | TC-MDL-010 |
+| REQ-MDL-004 | TC-MDL-004 | REQ-MDL-011 | TC-MDL-011 |
+| REQ-MDL-005 | TC-MDL-005 | REQ-MDL-012 | TC-MDL-012 |
+| REQ-MDL-006 | TC-MDL-006 | REQ-MDL-013 | TC-MDL-013 |
+| REQ-MDL-007 | TC-MDL-007 | — | — |
+
+**API → TC**
+
+| API | TC |
+|---|---|
+| API-MDL-001 | TC-MDL-002 (the empty-search assertion), TC-MDL-014 |
+| API-MDL-002 | TC-MDL-001, TC-MDL-002 |
+| API-MDL-003 | TC-MDL-003, TC-MDL-014 |
+| API-MDL-004 | TC-MDL-004 |
+| API-MDL-005 | TC-MDL-005, TC-MDL-007 (the count assertion), TC-MDL-009 |
+| API-MDL-006 | TC-MDL-006, TC-MDL-007 |
+| API-MDL-007 | TC-MDL-008 |
+| API-MDL-008 | TC-MDL-009 |
+| API-MDL-009 | TC-MDL-010 |
+| API-MDL-010 | TC-MDL-013 |
+| API-MDL-011 | TC-MDL-004, TC-MDL-009, TC-MDL-010, TC-MDL-011, TC-MDL-012, TC-MDL-014 |
+
+**RULE / catalog code → TC**
+
+| RULE | code | TC |
+|---|---|---|
+| RULE-MDL-001 | MDL-409-MODULE-NOT-REGISTERED (409) | TC-MDL-002 · TC-MDL-014 (the create-only limit, no code raised) |
+| RULE-MDL-002 | MDL-409-VALUE-DUP (409) | TC-MDL-007 · TC-MDL-008 (unreachable on the update path, asserted as such) |
+| RULE-MDL-003 | — (no catalog row can be raised) | TC-MDL-003 |
+| RULE-MDL-004 | MDL-404-TYPE-KEY (404) | TC-MDL-004, TC-MDL-012 · TC-MDL-009, TC-MDL-011 (the read-time exclusion) |
+
+Catalog rows **no TC exercises**, stated rather than left unsaid: MDL-409-TYPE-DUP,
+MDL-404-TYPE, MDL-404-VALUE, MDL-400-REORDER-MISMATCH, and the three platform rows
+(VALIDATION_ERROR, ACCESS_DENIED, INTERNAL_ERROR). No `AC-*` states any of them, and this engine
+derives from the ACs alone — fabricating a TC for a code no acceptance criterion asserts is the
+over-engineering the guard of §3 forbids. They are a requirements-side gap if anyone wants them
+covered, not a test-generation one. PF-MDL-004 (the reorder invariant) is filed against the
+backend track for the same reason: nothing in this plan can test a rejection the service does
+not perform.
 
 ## COVERAGE
-AC covered 13/13 (0 gaps) · REQ covered 13/13 · API covered 11/11 · every selected-module
-XM covered 1/1 (XM-MDL-001 → TC-MDL-014, no gap).
+
+```
+AC  covered   13/13   ✓ 0 gaps   (every AC-MDL-001…013 carries ≥1 TC)
+REQ covered   13/13   ✓ 0 gaps
+API covered   11/11   ✓ 0 gaps   (API-MDL-001…011, each named by ≥1 TC's Exercises line)
+TC count      14      ✓ 1.08× the AC count — under the ~2× over-engineering guard
+Integration   n/a     scope = module: no INT-XM phase is emitted and none is owed (§2 rule 3)
+```
 ══════════════════════════════════════════════════════════════════
 
 <<<END ARTIFACT>>>
@@ -2284,6 +2430,9 @@ versa.
 | PF-MDL-001 | OPEN | MDL backend track (P3.1) + backend repo method-level security annotations | backend-execution-plan-mdl.md PHASE 7 permission matrix and BOOTSTRAP DATA mark the DELETE column for API-MDL-004 and API-MDL-008 and seed `PERM_MDL_LOOKUPS_DELETE` with grant targets; `_inputs/api-docs-mdl.md` puts `PERM_MDL_LOOKUPS_UPDATE` on both deactivate endpoints | as built, a caller holding UPDATE alone can deactivate a type or a value, and a caller granted DELETE alone can deactivate neither; SRS §B4's DELETE row is unenforceable as built |
 | PF-MDL-002 | OPEN (conditional) | MDL backend track — the api-docs generator | if `_inputs/api-docs-mdl.md` publishes `key`/`code` maxLength 80 and `nameAr`/`nameEn` maxLength 150, that contradicts db-script §1 (`VARCHAR(50)`, `VARCHAR(200)`) and ADR-MDL-010 | a 51–80 character key passes client validation and is refused by the database; a 151–200 character label the platform accepts is refused by the client |
 | PF-MDL-003 | OPEN | platform — the search-filter contract for every module that omits a by-id read | no published filter set for API-MDL-001 or API-MDL-005 carries the record's own id (key, ownerModuleCode, name, isActiveFl on the first; lookupTypeId, code on the second) | a cold-load deep link into a type or value editor cannot resolve its target through any search, one-row or otherwise; see ADR-MDL-014 |
+| PF-MDL-004 | OPEN | MDL backend track (P3.1) | QR-MDL-009's statement and Result-shape lines (backend-execution-plan-mdl.md) enforce only `lookup_type_id = :typeId` per submitted id, against this plan's F2-QUERY VALUE REORDER submission rule, which states the submitted set must always be the type's complete, unfiltered value set | a submitted set that is incomplete or carries a duplicate re-ranks 1..n and collides with the ranks of every value left out — nothing server-side rejects it; required backend change: reject in the API-MDL-009 orchestration, before the UPDATE loop and inside the same transaction, when the DISTINCT submitted id count does not equal the count of rows under `lookup_type_id = :typeId` (active and inactive both, matching QR-MDL-005's scope), and broaden MDL-400-REORDER-MISMATCH's catalog trigger — today it reads only "a submitted id does not belong to the type in the path" — to cover an incomplete or duplicated set |
+| PF-MDL-005 | OPEN | MDL backend track (P3.1) | backend-test-plan-mdl.md TC-MDL-014's Preconditions line ("SEC's registry-search endpoint (the published HTTP read named in `ui-ux-spec-mdl.md`, ADR-MDL-013) is made unreachable/times out") against backend-execution-plan-mdl.md PHASE 6 (INT-R), which states there is no HTTP-level way to simulate "SEC unreachable" and no test should try to, and against the ALIGN-BE strike note for the same impossibility. that endpoint is this plan's own UXD-MDL-001 HTTP read, not the backend's in-process XM-MDL-001 call | TC-MDL-014 names the wrong surface and an unconstructible failure mode, and duplicates TC-MDL-002's coverage; required change: retarget the test to the SOFT-READ's real untested edge — a module deregistered from SEC after its types were accepted must not invalidate them (RULE-MDL-001's own Test-Hint) — and drop the foreign-endpoint citation |
+| PF-MDL-006 | OPEN | SEC / P3.1 track | registry-exec-be-mdl.md XM STATUS and backend-execution-plan-mdl.md INT-C XM-MDL-001's Interface paragraph both state that SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, so the module-registry read XM-MDL-001 consumes is written down nowhere on SEC's side, disclosed only as prose and deferred to "SEC's own re-run" while the XM is carried ACTIVE with "Unblock condition: none outstanding" | SEC v1's P3.1 artifacts must register `SecModuleRegistryApi` as an exposed cross-module surface alongside `SecUserDirectoryApi` — distinct from the published HTTP read UXD-MDL-001 uses (named in `ui-ux-spec-mdl.md`); the gap is specifically the in-process backend contract |
 
 ### Reconciliation against the SRS — run once, before any F-content
 
@@ -2390,9 +2539,12 @@ Source DTOs  : `LookupValueResponse` (read) · `LookupValueCreateRequest` ·
 
 #### F1-SCREEN — SCR-MDL-001
 Search model : master — key : string · LIKE · ownerModuleCode : string · EXACT (options from the
-               UXD-MDL-001 hook) · isActiveFl : boolean · EXACT · plus page, size, sortField,
-               sortDirection, all inside the one request object of API-MDL-001 (the only paged
-               read on this screen)
+               UXD-MDL-001 hook) · isActiveFl : boolean · EXACT · plus page, size, sortDirection,
+               all inside the one request object of API-MDL-001 (the only paged read on this
+               screen). No `sortField` is modelled: QR-MDL-001 declares a single ordering
+               (`ORDER BY key`) and PHASE 1 states the module offers no free-form sort parameter,
+               so `sortDirection` is available on `key` alone and keying a variation the server
+               cannot produce would fragment the cache for nothing (G7).
                detail — code : string · LIKE · lookupTypeId : number · EXACT (from the selected
                parent, not typed) — **no page, no size, no sort**: API-MDL-005 is unpaged
                (backend-execution-plan API-MDL-005, QR-MDL-005 `Pagination: NO`, SRS §B2), so
@@ -2466,8 +2618,9 @@ call · server → the generic message.
 #### F2-QUERY — TYPE SEARCH — API-MDL-001      traces=API-MDL-001,REQ-MDL-001,REQ-MDL-003
 Kind         : read query — a POST that mutates nothing (ADR-MDL-002); paginated response
 Cache key    : `[lookup-types, filters]`, `filters` being the whole request object — key,
-               ownerModuleCode, isActiveFl, sortField, sortDirection **and page, size**. Every
-               one of them changes the response, so every one is in the key.
+               ownerModuleCode, isActiveFl, sortDirection **and page, size**. Every one of them
+               changes the response, so every one is in the key. No `sortField` is in the key or
+               the request: the backend offers no free-form sort parameter (G7, F1-SCREEN above).
 Errors       : `VALIDATION_ERROR` → inline on the offending filter · `ACCESS_DENIED` → the
                localized forbidden message · `INTERNAL_ERROR` → generic
 Loading      : LOCAL — the SRS states nothing about this call being slow, so no global indicator
@@ -2731,12 +2884,18 @@ code            · read-only — the update request does not carry it
 nameAr, nameEn  · REQUIRED · LENGTH (maxLength 200) · on submit
 sortOrder       · REQUIRED · integer · on submit
 
-UNIQUE_CHECK    : async, on blur — the type's `key` through API-MDL-001 with an EQUALS filter;
-                  the value's `code` through API-MDL-005 with EQUALS filters on **both**
-                  `lookupTypeId` and `code`, so the check's scope is the rule's scope. Neither
-                  blocks submit on its own: `MDL-409-TYPE-DUP` and `MDL-409-VALUE-DUP` from the
-                  server are the authority, routed inline to the same field. On edit neither
-                  field is an input, so neither check runs.
+UNIQUE_CHECK    : async, on blur — both backend filters are LIKE, never EQUALS (QR-MDL-013's
+                  `key LIKE :key`, QR-MDL-005's `code LIKE :code`; PHASE 1's Search contract and
+                  SRS §B2 agree), so the check requests the LIKE filter the backend actually
+                  declares and then asserts exact string equality client-side over the returned
+                  rows before showing the inline message: the type's `key` through API-MDL-001
+                  (LIKE `key`, then filter the response for an exact match) — the value's `code`
+                  through API-MDL-005 scoped to `lookupTypeId` (LIKE `code`, then filter the
+                  response for an exact match), so the check's scope is the rule's scope. This
+                  uses only the published surface and is correct whether or not the service ever
+                  honours EQUALS (G6). Neither blocks submit on its own: `MDL-409-TYPE-DUP` and
+                  `MDL-409-VALUE-DUP` from the server are the authority, routed inline to the
+                  same field. On edit neither field is an input, so neither check runs.
 
 #### F3-VALIDATION — RULE-MDL-001   traces=REQ-MDL-002,AC-MDL-002
 Statement : The system shall reject a lookup type registration whose owner module code has no
@@ -3094,6 +3253,349 @@ declares.
 The plan and its registry are split by the toolkit into the frontend execution package inside the
 shared repo after the `gate:pass-2` verdict, and tagged `mdl-v1`. Nothing is copied anywhere: the
 implementer reads it where it was written.
+══════════════════════════════════════════════════════════════════
+
+<<<END ARTIFACT>>>
+
+<<<ARTIFACT: current-frontend-test-plan.md>>>
+# FRONTEND TEST PLAN — البيانات المرجعية / Master Data Lookup (MDL)
+══════════════════════════════════════════════════════════════════
+Module : MDL   Version : v1   Profile : erp   Track : frontend   Plan : test
+Scope  : **module** — modules MDL (`gov.py run-standalone test-gen --module MDL`)
+Sources: `_state/current-srs.md` (v1) · `_state/current-frontend-execution-plan.md` (v1) ·
+         `_state/current-registry-srs.md` (v1) · `_state/current-registry-exec-fe.md` (v1)
+Framework : **agnostic** (`profile.stack.testing`). Every block below is the framework-agnostic
+            TC form; no tool, selector, annotation or file layout is named anywhere in this plan.
+            The consumer repo chooses its framework and turns each TC into a test.
+REDUCED   : no — the frontend-execution-plan is present, so every step binds to a real `SCR-*`
+            and a real route.
+TC ids    : TC-MDL-015 … TC-MDL-025 — the continuation of the one module sequence
+            `backend-test-plan-mdl.md` opened at TC-MDL-001 and closed at TC-MDL-014. The
+            sequence does not restart here and no id is reused across the two files.
+Open ADRs : 2 raised by this run — ADR-MDL-023 (this file's AC denominator), ADR-MDL-024.
+            Applied and not re-derived: ADR-MDL-002, ADR-MDL-005, ADR-MDL-006, ADR-MDL-007,
+            ADR-MDL-012, ADR-MDL-013, ADR-MDL-014, ADR-MDL-015.
+══════════════════════════════════════════════════════════════════
+
+**Two ACs have no screen, and that is not a gap (ADR-MDL-023).** AC-MDL-011 and AC-MDL-012 are
+the consumer read by key: `API-MDL-011` is bound by the frontend plan and **called by no screen**
+— a consuming module's backend performs it over the platform's in-process interface (ADR-MDL-007),
+and registry-exec-fe-mdl.md records the same 11-of-13 ratio for exactly this reason. Both are
+covered on the backend track (TC-MDL-011, TC-MDL-012). This plan therefore states its AC coverage
+against the **screen-bearing** AC set of eleven, and lists the two out-of-track ACs by id rather
+than marking them ✗ — a ✗ would assert a missing test for a screen that does not exist.
+Module-level AC coverage across both tracks is 13/13.
+
+**No PERMISSION TC appears here**, and none is owed: no `AC-*` in the SRS states a denied VIEW or
+a denied action. Action-level grants are readable from no published surface, so the screens render
+their affordances and the server's `ACCESS_DENIED` is the authority (ADR-MDL-012, PF-MDL-001) —
+there is no acceptance criterion describing either half, and inventing one is out of this engine's
+boundary.
+
+**No BOUNDARY TC appears here.** No AC and no RULE this module carries states a numeric limit;
+the column widths are field constraints stated in F1/F3, not an AC's assertion.
+
+<!-- PHASE:TEST-PLAN-FE:START traces=REQ-MDL-001,REQ-MDL-002,REQ-MDL-003,REQ-MDL-004,REQ-MDL-005,REQ-MDL-006,REQ-MDL-007,REQ-MDL-008,REQ-MDL-009,REQ-MDL-010,REQ-MDL-013,AC-MDL-001,AC-MDL-002,AC-MDL-003,AC-MDL-004,AC-MDL-005,AC-MDL-006,AC-MDL-007,AC-MDL-008,AC-MDL-009,AC-MDL-010,AC-MDL-013 -->
+## PHASE — TEST-PLAN-FE
+
+TC count is 11, above the split threshold of 8, so this phase is split into the two groups the
+engine names: the per-screen flows, and the flows whose assertion spans a state change across
+both levels of the composite screen.
+
+Every TC below runs in both languages where a message is asserted: the locale resolves
+session → browser → `ar` (`profile.languages.primary`), and the client keys its displayed text on
+`error.code` against the module's catalog, which carries the ar and the en wording.
+
+<!-- SUB:UI-FLOWS:START traces=REQ-MDL-001,REQ-MDL-002,REQ-MDL-003,REQ-MDL-005,REQ-MDL-006,REQ-MDL-007,REQ-MDL-008,REQ-MDL-010,REQ-MDL-013,AC-MDL-001,AC-MDL-002,AC-MDL-003,AC-MDL-005,AC-MDL-006,AC-MDL-007,AC-MDL-008,AC-MDL-010,AC-MDL-013 -->
+### SUB — UI-FLOWS
+
+Search, entry, violation-on-screen and grouped-browse flows, one per AC, on the screen each AC's
+requirement is traced to.
+
+<!-- TC:TC-MDL-015:START traces=AC-MDL-001,REQ-MDL-001,SCR-MDL-001,API-MDL-002 -->
+### TC-MDL-015 — register a lookup type from the generic lookups screen
+Derived from : AC-MDL-001  (REQ-MDL-001)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/new`  (submits API-MDL-002)
+Rule / code  : RULE-MDL-001 (satisfied — `FIN` is in the owner-module list) → no error expected
+Scenario     : HAPPY · data class VALID · language ALL
+Preconditions: a signed-in registrar whose effective menu carries `MDL_LOOKUPS`; no lookup type
+               carries the key `PAYMENT_METHOD`; the owner-module select has loaded its options
+               through UXD-MDL-001 and offers `FIN`
+Steps        : 1. navigate to `/reference-data/lookups`
+               2. open the type entry — route `/reference-data/lookups/new`
+               3. enter key `PAYMENT_METHOD`, choose `FIN` in the owner-module select, enter
+                  nameAr «طريقة الدفع» and nameEn "Payment method"
+               4. save — one submit, one call
+Expected     : the type is saved active and the success message renders —
+               ar: «تم حفظ نوع اللوكب.» · en: "The lookup type has been saved." ·
+               the master list shows the new type with its key, both names and owner `FIN`
+Test data    : key `PAYMENT_METHOD`, owner `FIN`, names «طريقة الدفع» / "Payment method"
+<!-- TC:TC-MDL-015:END -->
+
+<!-- TC:TC-MDL-016:START traces=AC-MDL-002,REQ-MDL-002,SCR-MDL-001,API-MDL-002 -->
+### TC-MDL-016 — the unregistered owner module is refused on the form
+Derived from : AC-MDL-002  (REQ-MDL-002)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/new`  (submits API-MDL-002)
+Rule / code  : RULE-MDL-001 → MDL-409-MODULE-NOT-REGISTERED (409)
+Scenario     : VIOLATION · data class INVALID · language ALL
+Preconditions: the registrar is on the type entry; the submitted owner module code has no
+               ModuleRegistry row in SEC at the moment of submit — the case the F3 validator
+               leaves to the server, since the select is filled from a list loaded earlier
+               (a module deregistered between load and submit)
+Steps        : 1. enter key `SHIPPING_MODE` and both names
+               2. submit with the owner module code `XYZ`
+Expected     : the save is refused and the localized message renders **inline on the
+               owner-module field**, routed by the catalog code MDL-409-MODULE-NOT-REGISTERED —
+               ar: «الوحدة المالكة غير مسجّلة في وحدة الأمان» ·
+               en: "The owning module is not registered in the Security module" ·
+               no row is added to the master list (AC-MDL-002: «ولا يُخزَّن صفّ نوع البتة»)
+Test data    : key `SHIPPING_MODE`, owner module code `XYZ`
+<!-- TC:TC-MDL-016:END -->
+
+<!-- TC:TC-MDL-017:START traces=AC-MDL-003,REQ-MDL-003,SCR-MDL-001,API-MDL-003 -->
+### TC-MDL-017 — the rename form carries no key field at all
+Derived from : AC-MDL-003  (REQ-MDL-003)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId/edit`  (submits API-MDL-003)
+Rule / code  : RULE-MDL-003 → no code and no refusal: the rule is expressed by the field's absence
+Scenario     : HAPPY · data class VALID · language ALL
+Preconditions: an existing type with key `PAYMENT_METHOD` and names «طريقة الدفع» /
+               "Payment method", reached by selecting it in the master list (the edit route
+               hydrates from the row the search query already holds — ADR-MDL-005)
+Steps        : 1. open the type editor from the list
+               2. observe the key and the owner module code
+               3. change the two names to «وسيلة الدفع» and "Payment means" and save
+Expected     : 2. `key` and `ownerModuleCode` render read-only — neither is an input — and the
+                  rule's own text is stated beside the key: ar: «لا يمكن تعديل مفتاح نوع اللوكب
+                  بعد إنشائه» · en: "A lookup type's key cannot be changed after creation"
+               3. the save succeeds; the list row shows the two new names and the same key
+                  `PAYMENT_METHOD`
+Test data    : key `PAYMENT_METHOD`, revised names «وسيلة الدفع» / "Payment means"
+<!-- TC:TC-MDL-017:END -->
+
+<!-- TC:TC-MDL-018:START traces=AC-MDL-005,REQ-MDL-005,SCR-MDL-001,API-MDL-005 -->
+### TC-MDL-018 — selecting a type confines the detail pane to its values
+Derived from : AC-MDL-005  (REQ-MDL-005)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId`  (reads API-MDL-005)
+Rule / code  : — · the manager's pane shows what the consumer read hides
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: the type `PAYMENT_METHOD` holds four values at `sortOrder` 1, 2, 3 and 4, one of
+               them deactivated; a second type holds two values of its own
+Steps        : 1. on `/reference-data/lookups`, select `PAYMENT_METHOD` in the master list
+               2. select the second type
+Expected     : 1. the route becomes `/reference-data/lookups/:typeId` and the detail pane lists
+                  all four values of `PAYMENT_METHOD` — the active and the deactivated alike,
+                  the deactivated one marked inactive — ordered ascending by `sortOrder`, with no
+                  value of the second type shown
+               2. the pane shows that type's two values and none of `PAYMENT_METHOD`'s
+Test data    : `PAYMENT_METHOD` with four values (one deactivated); a second type with two
+<!-- TC:TC-MDL-018:END -->
+
+<!-- TC:TC-MDL-019:START traces=AC-MDL-006,REQ-MDL-006,SCR-MDL-001,API-MDL-006 -->
+### TC-MDL-019 — add a value from the detail level
+Derived from : AC-MDL-006  (REQ-MDL-006)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId/values/new`  (submits API-MDL-006)
+Rule / code  : RULE-MDL-002 (satisfied — no value under this type carries `CASH`) → no error
+Scenario     : HAPPY · data class VALID · language ALL
+Preconditions: `PAYMENT_METHOD` is the selected type and holds no value whose code is `CASH`
+Steps        : 1. open the value entry — route `/reference-data/lookups/:typeId/values/new`
+               2. enter code `CASH`, nameAr «نقدًا», nameEn "Cash", sort order 1
+               3. save — one submit, one call; the parent type is the route's id, never typed
+Expected     : the value is saved active under `PAYMENT_METHOD` and the success message renders —
+               ar: «تم حفظ القيمة.» · en: "The value has been saved." ·
+               the detail pane shows the new row at rank 1
+Test data    : code `CASH`, names «نقدًا» / "Cash", sort order 1
+<!-- TC:TC-MDL-019:END -->
+
+<!-- TC:TC-MDL-020:START traces=AC-MDL-007,REQ-MDL-007,SCR-MDL-001,API-MDL-006 -->
+### TC-MDL-020 — a duplicate code is refused inline on the code field
+Derived from : AC-MDL-007  (REQ-MDL-007)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId/values/new`  (submits API-MDL-006)
+Rule / code  : RULE-MDL-002 → MDL-409-VALUE-DUP (409)
+Scenario     : VIOLATION · data class INVALID · language ALL
+Preconditions: the selected type `PAYMENT_METHOD` already holds a value whose code is `CASH`
+Steps        : 1. open the value entry under the same type
+               2. enter code `CASH` and leave the field (the uniqueness check runs on blur,
+                  scoped to the selected parent type)
+               3. complete the labels and the rank and submit
+Expected     : the save is refused and the localized message renders **inline on `code`** —
+               ar: «هذا الرمز مستخدم بالفعل ضمن هذا النوع» ·
+               en: "This code is already used within this type" ·
+               the detail pane holds exactly the rows it held before the attempt (AC-MDL-007:
+               «ويبقى عدد قيم النوع كما كان قبل الطلب»)
+Test data    : type `PAYMENT_METHOD`, code `CASH` (already held)
+<!-- TC:TC-MDL-020:END -->
+
+<!-- TC:TC-MDL-021:START traces=AC-MDL-008,REQ-MDL-008,SCR-MDL-001,API-MDL-007 -->
+### TC-MDL-021 — edit a value's labels and rank, its code read-only
+Derived from : AC-MDL-008  (REQ-MDL-008)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId/values/:valueId/edit`
+               (submits API-MDL-007)
+Rule / code  : RULE-MDL-002 → nothing can raise it here: `code` is not an input on edit
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: a value under `PAYMENT_METHOD` whose code is `CASH` and whose rank is 1, reached
+               from the detail pane (the editor hydrates from the row the pane's query holds)
+Steps        : 1. open the value editor from its row
+               2. observe the code field
+               3. change the labels to «نقد» / "Cash payment", set the sort order to 2, and save
+Expected     : 2. `code` renders read-only and is not an input
+               3. the save succeeds; the row shows the two new labels at rank 2 and the same
+                  code `CASH`, and the pane re-renders in `sortOrder` order
+Test data    : value `CASH`, revised labels «نقد» / "Cash payment", sort order 2
+<!-- TC:TC-MDL-021:END -->
+
+<!-- TC:TC-MDL-022:START traces=AC-MDL-010,REQ-MDL-010,SCR-MDL-001,API-MDL-009 -->
+### TC-MDL-022 — dragging a value submits the type's whole ordered set
+Derived from : AC-MDL-010  (REQ-MDL-010)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId`  (submits API-MDL-009)
+Rule / code  : — · no `RULE-*` applies to a reorder
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: the selected type holds exactly three values — `CASH`, `CHEQUE`, `TRANSFER` at
+               ranks 1, 2 and 3 — and the detail pane's `code` filter is empty, which is what
+               makes the drag handle enabled at all: the pane must show the whole type before a
+               reorder may be submitted
+Steps        : 1. drag `TRANSFER` above `CASH` and `CHEQUE`
+               2. let the reorder settle
+Expected     : the ordered set `TRANSFER`, `CASH`, `CHEQUE` is submitted once, as ids without
+               rank numbers; the persisted ranks become 1 for `TRANSFER`, 2 for `CASH` and 3 for
+               `CHEQUE`, and the pane renders the persisted order the response carries
+Test data    : `CASH`, `CHEQUE`, `TRANSFER` at ranks 1–3, reordered to `TRANSFER`, `CASH`,
+               `CHEQUE` (AC-MDL-010's own values)
+<!-- TC:TC-MDL-022:END -->
+
+<!-- TC:TC-MDL-023:START traces=AC-MDL-013,REQ-MDL-013,SCR-MDL-002,API-MDL-010,UXD-MDL-001 -->
+### TC-MDL-023 — the registry browses the active types grouped by owner
+Derived from : AC-MDL-013  (REQ-MDL-013)
+Exercises    : SCR-MDL-002 `/reference-data/type-registry`  (reads API-MDL-010)
+Rule / code  : — · the active-only narrowing is REQ-MDL-013's own text
+Scenario     : HAPPY · data class VALID · language —
+Preconditions: a platform administrator whose effective menu carries `MDL_TYPE_REGISTRY`; three
+               active lookup types — two owned by `FIN`, one owned by `SEC`
+Steps        : 1. navigate to `/reference-data/type-registry`
+               2. apply no filter
+Expected     : two owner group sections render — `FIN` carrying its two types and `SEC` carrying
+               its one — each type row carrying `key`, both names and the owner module code; the
+               group headings are labelled through UXD-MDL-001, falling back to the bare code the
+               browse returns when that read is refused, never to free text
+Test data    : three active types, owners `FIN` (×2) and `SEC` (AC-MDL-013's own precondition)
+<!-- TC:TC-MDL-023:END -->
+<!-- SUB:UI-FLOWS:END -->
+
+<!-- SUB:INT-FLOW:START traces=REQ-MDL-004,REQ-MDL-009,AC-MDL-004,AC-MDL-009 -->
+### SUB — INT-FLOW
+
+The two module lifecycle flows: a deactivation at either level, and what it changes across the
+two screens. Each of the two ACs also has a half that no screen can observe — the consumer read —
+which is asserted on the backend track and is named here rather than silently dropped.
+
+<!-- TC:TC-MDL-024:START traces=AC-MDL-004,REQ-MDL-004,SCR-MDL-001,SCR-MDL-002,API-MDL-004 -->
+### TC-MDL-024 — deactivating a type leaves its values on the screen and removes it from the registry
+Derived from : AC-MDL-004  (REQ-MDL-004)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId` (submits API-MDL-004) ·
+               SCR-MDL-002 `/reference-data/type-registry`
+Rule / code  : RULE-MDL-004 → the rule's own text is what the confirmation and the state label say
+Scenario     : STATE · data class VALID · language ALL
+Preconditions: an active type `PAYMENT_METHOD` holding three active values; the caller's menu
+               carries both `MDL_LOOKUPS` and `MDL_TYPE_REGISTRY`; the registry currently lists
+               the type under `FIN`
+Steps        : 1. with the type selected, invoke Deactivate and read the confirmation
+               2. confirm
+               3. navigate to `/reference-data/type-registry`
+Expected     : 1. the confirmation states the consequence before the act — consuming modules stop
+                  receiving this type's values, and the key stays reserved because no activate
+                  action exists at either level
+               2. the type row shows inactive, labelled with the rule's own text —
+                  ar: «هذا النوع معطّل حاليًا» · en: "This lookup type is currently inactive" —
+                  and its three values are still listed in the detail pane, unchanged
+               3. the type is no longer among the registry's groups: that browse admits active
+                  types only
+Test data    : type `PAYMENT_METHOD` with three active values, owner `FIN`
+               (the consumer-read half of AC-MDL-004's Then has no screen surface and is
+               asserted by TC-MDL-004 on the backend track)
+<!-- TC:TC-MDL-024:END -->
+
+<!-- TC:TC-MDL-025:START traces=AC-MDL-009,REQ-MDL-009,SCR-MDL-001,API-MDL-008 -->
+### TC-MDL-025 — a deactivated value stays visible in the management pane
+Derived from : AC-MDL-009  (REQ-MDL-009)
+Exercises    : SCR-MDL-001 `/reference-data/lookups/:typeId`  (submits API-MDL-008)
+Rule / code  : — · the value's disappearance from the consumer read is RULE-MDL-004's effect
+Scenario     : STATE · data class VALID · language —
+Preconditions: an active value whose code is `CHEQUE`, under the active type `PAYMENT_METHOD`,
+               shown in the detail pane
+Steps        : 1. invoke Deactivate on the `CHEQUE` row and read the confirmation
+               2. confirm
+               3. look for an Activate affordance on the row and at the type level
+Expected     : 1. the confirmation states that the code stays reserved under this type and that
+                  the act is not reversible from this screen
+               2. the row remains in the detail pane, marked inactive (AC-MDL-009: «وتبقى معروضة
+                  في الجزء التفصيلي للشاشة العامة»)
+               3. no Activate affordance exists at either level — no endpoint is published for it
+Test data    : value `CHEQUE` under type `PAYMENT_METHOD`
+               (the consumer-read half of AC-MDL-009's Then is asserted by TC-MDL-009 on the
+               backend track)
+<!-- TC:TC-MDL-025:END -->
+<!-- SUB:INT-FLOW:END -->
+<!-- PHASE:TEST-PLAN-FE:END -->
+
+## TC TRACEABILITY INDEX
+
+**AC → TC**
+
+| AC | TC | AC | TC |
+|---|---|---|---|
+| AC-MDL-001 | TC-MDL-015 | AC-MDL-008 | TC-MDL-021 |
+| AC-MDL-002 | TC-MDL-016 | AC-MDL-009 | TC-MDL-025 |
+| AC-MDL-003 | TC-MDL-017 | AC-MDL-010 | TC-MDL-022 |
+| AC-MDL-004 | TC-MDL-024 | AC-MDL-011 | — no screen (ADR-MDL-007) → TC-MDL-011, backend |
+| AC-MDL-005 | TC-MDL-018 | AC-MDL-012 | — no screen (ADR-MDL-007) → TC-MDL-012, backend |
+| AC-MDL-006 | TC-MDL-019 | AC-MDL-013 | TC-MDL-023 |
+| AC-MDL-007 | TC-MDL-020 | — | — |
+
+**REQ → TC**
+
+| REQ | TC | REQ | TC |
+|---|---|---|---|
+| REQ-MDL-001 | TC-MDL-015 | REQ-MDL-008 | TC-MDL-021 |
+| REQ-MDL-002 | TC-MDL-016 | REQ-MDL-009 | TC-MDL-025 |
+| REQ-MDL-003 | TC-MDL-017 | REQ-MDL-010 | TC-MDL-022 |
+| REQ-MDL-004 | TC-MDL-024 | REQ-MDL-011 | — no screen → backend track |
+| REQ-MDL-005 | TC-MDL-018 | REQ-MDL-012 | — no screen → backend track |
+| REQ-MDL-006 | TC-MDL-019 | REQ-MDL-013 | TC-MDL-023 |
+| REQ-MDL-007 | TC-MDL-020 | — | — |
+
+**SCR → TC**
+
+| SCR | route(s) exercised | TC |
+|---|---|---|
+| SCR-MDL-001 | `/reference-data/lookups` · `/new` · `/:typeId` · `/:typeId/edit` · `/:typeId/values/new` · `/:typeId/values/:valueId/edit` | TC-MDL-015, TC-MDL-016, TC-MDL-017, TC-MDL-018, TC-MDL-019, TC-MDL-020, TC-MDL-021, TC-MDL-022, TC-MDL-024, TC-MDL-025 |
+| SCR-MDL-002 | `/reference-data/type-registry` | TC-MDL-023, TC-MDL-024 (the registry assertion) |
+
+**RULE / catalog code → TC**
+
+| RULE | code | TC |
+|---|---|---|
+| RULE-MDL-001 | MDL-409-MODULE-NOT-REGISTERED (409) | TC-MDL-016 |
+| RULE-MDL-002 | MDL-409-VALUE-DUP (409) | TC-MDL-020 · TC-MDL-021 (not raisable on edit, asserted as such) |
+| RULE-MDL-003 | — (expressed by the field's absence) | TC-MDL-017 |
+| RULE-MDL-004 | — on this track (the code is answered to a calling module, not to a screen) | TC-MDL-024 — the rule's text as the confirmation and the state label |
+
+**UXD → TC** — UXD-MDL-001 (`ownerModuleCode`, owned by SEC) is cited by TC-MDL-015 (the select
+that must offer `FIN`), TC-MDL-016 (the field the refusal routes to) and TC-MDL-023 (the group
+headings and their fallback). No **integration** TC is derived from it: at `scope: module` the
+`INT-UXD` phase is skipped entirely (§2 rule 3), and SEC — the owner module — is not in this
+selection. Nothing about UXD-MDL-001 is recorded as a gap here; it is not this run's concern.
+
+## COVERAGE
+
+```
+AC  covered   11/11   ✓ 0 gaps   of the screen-bearing AC set (ADR-MDL-023)
+                      AC-MDL-011, AC-MDL-012 — out of track, no screen implements them
+                      (ADR-MDL-007); both covered by TC-MDL-011 / TC-MDL-012 on the backend
+AC  (module)  13/13   ✓ 0 gaps   across both tracks
+REQ covered   11/13   REQ-MDL-011, REQ-MDL-012 have no screen — the same two, the same reason
+SCR covered    2/2    ✓ each of SCR-MDL-001 and SCR-MDL-002 carries ≥1 TC
+TC count       11     ✓ 1.0× the screen-bearing AC count — under the ~2× over-engineering guard
+Integration    n/a    scope = module: no INT-UXD phase is emitted and none is owed (§2 rule 3)
+```
 ══════════════════════════════════════════════════════════════════
 
 <<<END ARTIFACT>>>
@@ -3569,6 +4071,17 @@ the consumer read (G11). None outstanding within this stage's scope; G8 and G9 r
 against `analysis/decisions/MDL/ADR-MDL-008.md` and `ADR-MDL-005.md`, which this pass's writable
 file set does not include.
 
+Findings fixed in this later revision (gate `pass-2`, second round): a server-side reorder
+invariant gap settled client-side instead of filed (this round's G1, PF-MDL-004), a backend test
+naming the wrong surface and an unconstructible failure mode (this round's G2, PF-MDL-005), an
+undisclosed cross-module registration gap on SEC's side carried as ACTIVE with no outstanding
+condition (this round's G3, PF-MDL-006), the UNIQUE_CHECK line requesting an EQUALS filter the
+backend never honours (this round's G6), and a `sortField` modelled for an ordering the backend
+cannot produce (this round's G7). This round's G4 and G5 land outside this stage's writable
+files (srs-mdl.md and ADR-MDL-008.md respectively) and are carried, not applied here — the same
+posture G8/G9 already state above. No new ADR was raised: every fix corrects against an input
+already on record, not a two-sided choice.
+
 ADRs
 analysis/decisions/MDL/ADR-MDL-002.md (ACCEPTED — three reads are POST `…/search`; the backend
 contract summary is what lags) ·
@@ -3618,11 +4131,16 @@ PLATFORM FINDINGS (frontend track, this run)
 | PF-MDL-001 | OPEN | deactivate-endpoint permission (UPDATE vs DELETE) divergence — G5 |
 | PF-MDL-002 | OPEN (conditional) | api-docs field-precision divergence from the db-script — G1 |
 | PF-MDL-003 | OPEN | no by-id read published for either entity, blocking cold-load hydration — G4 |
+| PF-MDL-004 | OPEN | QR-MDL-009 checks only type membership per id, never that the submitted set is the type's complete, non-duplicated value set — this round's G1, owner MDL backend track (P3.1) |
+| PF-MDL-005 | OPEN | TC-MDL-014 names the wrong surface (API-SEC-021, a frontend HTTP read) for an unconstructible in-process failure mode — this round's G2, owner MDL backend track (P3.1) |
+| PF-MDL-006 | OPEN | SEC's own P3.1 artifacts register only `SecUserDirectoryApi`, leaving XM-MDL-001's module-registry read unregistered on SEC's side while the XM is carried ACTIVE — this round's G3, owner SEC / P3.1 track |
 Full text of each in frontend-execution-plan-mdl.md, API SURFACE.
 
 Event
-"P3.2 revised (gate pass-2): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10 called), 2 new ADRs
-(ADR-MDL-014, ADR-MDL-015), 3 platform-findings rows filed, 11 findings (G1-G11) applied"
+"P3.2 revised (gate pass-2, second round): MDL v1 — 2 screens, 1 UXD, 11/11 API bound (10
+called), 0 new ADRs, 3 additional platform-findings rows filed (PF-MDL-004..006), 5 findings
+(G1, G2, G3, G6, G7 of this round) applied — G4 and G5 of this round land outside this stage's
+writable files and are carried forward"
 ══════════════════════════════════════════════════════════════════
 
 <<<END ARTIFACT>>>
@@ -4320,6 +4838,80 @@ Errors `LocalizedException → {code, messageAr, messageEn}`
 
 صفّان في SEC_PAGES لا أكثر — شاشتان مركّبتان، لكل واحدة رمز صفحة واحد. المصدر هو B4 في
 كلا متطلَّبَي الشاشة، وأسماء الصلاحيات تشتقّها وحدة الأمان من رمز الصفحة ولا تُعدَّد هنا.
+══════════════════════════════════════════════════════════════════
+
+<<<END ARTIFACT>>>
+
+<<<ARTIFACT: current-test-execution-manifest.md>>>
+# TEST EXECUTION MANIFEST — البيانات المرجعية / Master Data Lookup (MDL)
+══════════════════════════════════════════════════════════════════
+Module : MDL   Version : v1   Profile : erp   Scope : module
+Emitted because `profile.stack.testing.manifest` is ON. A **derived view** for the `api-verify`
+standalone: it introduces no id, defines nothing, gates nothing, and every cell below is an
+`ID` or a value one of the cited artifacts already states.
+Derived from : `backend-test-plan-mdl.md` (this run) · `_state/current-backend-execution-plan.md`
+               (v1) · `_state/current-srs.md` (v1)
+Regenerate whenever the backend execution plan or the backend test plan changes — a stale
+manifest is a defect.
+══════════════════════════════════════════════════════════════════
+
+## DEPENDENCY ORDER
+
+The order in which entities must be built for any TC of this module to run. It is read off the
+FK and XM relations of the backend plan and the "must belong to" rules, and nothing else.
+
+```
+0.  SEC · ModuleRegistry row for the owner module code   (ENT-SEC-004, through XM-MDL-001)
+      ── not this module's data and not created by any endpoint of it: it is the precondition
+         RULE-MDL-001 reads at create time, a SOFT-READ with no foreign key. TC-MDL-001 needs
+         the row present (FIN); TC-MDL-002 needs it absent (XYZ); TC-MDL-014 needs it present
+         and then removed.
+1.  ENT-MDL-001 · LookupType   (MDL_LOOKUP_TYPE)         ← API-MDL-002
+      ── no intra-module parent. Its PK comes from SEQ_MDL_LOOKUP_TYPE (QR-MDL-016).
+2.  ENT-MDL-002 · LookupValue  (MDL_LOOKUP_VALUE)        ← API-MDL-006
+      ── depends on 1 through FK_LOOKUP_VALUE_TYPE (DBF-MDL-012); the parent type arrives as the
+         path id, never in the body. Its PK comes from SEQ_MDL_LOOKUP_VALUE (QR-MDL-017).
+```
+
+No other order constraint exists in this module: there is no numbered document, no status
+workflow, no period binding and no second cross-module dependency. Both tables start empty —
+every required column is written by an endpoint or by the platform, so nothing is seeded.
+
+## RULE → CODE → TC
+
+Runtime code format `{MOD}-{http}[-{SLUG}]`; the envelope is
+`LocalizedException → {code, messageAr, messageEn}`. Informational-only rules are excluded —
+this module has none: all four are enforced, and the two that raise no code say why.
+
+| RULE | catalog code | TC | HTTP | API |
+|---|---|---|---|---|
+| RULE-MDL-001 | MDL-409-MODULE-NOT-REGISTERED | TC-MDL-002 · TC-MDL-016 (frontend) | 409 | API-MDL-002 |
+| RULE-MDL-001 | — (create-only limit: no code on any later path) | TC-MDL-014 | — | API-MDL-001, API-MDL-003, API-MDL-011 |
+| RULE-MDL-002 | MDL-409-VALUE-DUP | TC-MDL-007 · TC-MDL-020 (frontend) | 409 | API-MDL-006 |
+| RULE-MDL-002 | MDL-409-VALUE-DUP (unreachable through the update request shape) | TC-MDL-008 · TC-MDL-021 (frontend) | 409 | API-MDL-007 |
+| RULE-MDL-003 | — (no catalog row exists: `key` is absent from the update request) | TC-MDL-003 · TC-MDL-017 (frontend) | — | API-MDL-003 |
+| RULE-MDL-004 | MDL-404-TYPE-KEY | TC-MDL-004, TC-MDL-012 | 404 | API-MDL-011 |
+| RULE-MDL-004 | — (read-time exclusion, no code: the type is active, the value is not returned) | TC-MDL-009, TC-MDL-011 | — | API-MDL-011 |
+
+**Catalog rows no TC exercises**, listed so `api-verify` does not read this table as complete
+coverage of the catalog: MDL-409-TYPE-DUP, MDL-404-TYPE, MDL-404-VALUE, MDL-400-REORDER-MISMATCH,
+and the three platform rows VALIDATION_ERROR (400), ACCESS_DENIED (403), INTERNAL_ERROR (500).
+No `AC-*` states any of them, and this engine derives from the ACs; the absence is a
+requirements-side gap, not a test-generation one.
+
+## ENTITY CRUD CHECKLIST
+
+Each cell is ✓ only where an `API-*` of the backend plan serves it; a `—` carries its reason.
+
+| ENT | create | read (by id) | search | update | deactivate (soft) | activate |
+|---|---|---|---|---|---|---|
+| ENT-MDL-001 · LookupType | ✓ API-MDL-002 | — none published (SRS names it, no REQ requires it) | ✓ API-MDL-001, API-MDL-010 | ✓ API-MDL-003 | ✓ API-MDL-004 | — out of scope (SRS A2: no reactivation in v1) |
+| ENT-MDL-002 · LookupValue | ✓ API-MDL-006 | — none published (same reason) | ✓ API-MDL-005, API-MDL-011 | ✓ API-MDL-007, API-MDL-009 (rank) | ✓ API-MDL-008 | — out of scope (same) |
+
+`deactivate` is the `DELETE` verb with `soft` semantics (`profile.stack.db.delete_semantics`): no
+row is removed by any endpoint of this module. The two `—` in the `read` column are the operations
+ADR-MDL-005 records as omitted rather than faked, and the two in `activate` are the SRS's own
+scope statement — neither is an untested endpoint.
 ══════════════════════════════════════════════════════════════════
 
 <<<END ARTIFACT>>>
