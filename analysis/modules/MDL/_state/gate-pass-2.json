@@ -1,7 +1,7 @@
 {
   "gate": "pass-2",
   "pass": "2",
-  "verdict": "REVISE",
+  "verdict": "ESCALATE",
   "scores": {
     "unambiguous": 3,
     "verifiable": 3,
