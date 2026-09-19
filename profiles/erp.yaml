@@ -179,6 +179,13 @@ conventions:
                                              # module did both and every endpoint answered forbidden to
                                              # every caller, the administrator included.
   composite_screen: true
+  screen_composition: true                 # with composite_screen on, one SCR carries Search + Entry
+                                           # (+ Master/Detail) — and nothing said what happens when a
+                                           # sub-view is a second JOB. A user screen's inline role
+                                           # picker carried its own save button beside the screen's
+                                           # own; an administrator set roles, pressed Save, and left
+                                           # with nothing assigned. Every screen block now states
+                                           # where its secondary detail sits (C9.17 falsifies it).
   numbering: "document numbers come from the platform numbering engine; never generated in a module"
   lookups: "all LOV values runtime-loaded from the lookup module; no hardcoded enums in APIs or field specs"
   workflow_engine: forbidden
