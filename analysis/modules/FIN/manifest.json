@@ -35,6 +35,14 @@
       "backend/test": true,
       "frontend/exec": true,
       "frontend/test": true
+    },
+    "inputs": {
+      "api-docs": {
+        "repo": "backend",
+        "commit": "327f21ba1068dff7f9491da0beed695aa4aa2a4a",
+        "digest": "c7101d8482be5ff9ec41ff8011b75cada18d4eda03ed416579232ea2f3011f62",
+        "fetched_at": "2026-09-19T08:26:46+00:00"
+      }
     }
   },
   "created_at": "2026-09-10T16:17:52+00:00"

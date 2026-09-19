@@ -3,7 +3,7 @@
   "generated_at": "2026-09-11",
   "current_phase": "ALIGN-BE",
   "current_sub": "ALIGN-BE",
-  "api_docs_path": "governance/shared/erp/modules/MDL/api-docs/",
+  "api_docs_path": "governance/shared/backend/modules/MDL/api-docs/",
   "phases": [
     {
       "id": "CORE",
@@ -149,8 +149,8 @@
       "phase": "INT-C",
       "sub": "INT-C",
       "endpoint": "XM-MDL-001",
-      "detail": "INT-C.md's Interface line reads literally 'REST call \u2014 GET /api/v1/sec/registry?moduleCode={code}'. The actual implementation (src/main/java/com/erp/sec/crossmodule/SecModuleRegistryApi.java + Impl) is a direct in-process Spring interface injection, no HTTP \u2014 the same doctrine SecUserDirectoryApi already established (single-artifact monolith, pom.xml has no <modules>). The class's own javadoc names this explicitly as a documented deviation superseding INT-C.md's literal wording.",
-      "resolution": "Resolved as NAMING_MISMATCH \u2014 INT-C.md's literal REST-call wording is superseded by this project's established direct-Spring-interface-injection cross-module doctrine (SecUserDirectoryApi precedent + build-create-service skill); the real implementation (SecModuleRegistryApi, direct injection) is correct and was confirmed by the INT-C phase sub.",
+      "detail": "INT-C.md's Interface line reads literally 'REST call — GET /api/v1/sec/registry?moduleCode={code}'. The actual implementation (src/main/java/com/erp/sec/crossmodule/SecModuleRegistryApi.java + Impl) is a direct in-process Spring interface injection, no HTTP — the same doctrine SecUserDirectoryApi already established (single-artifact monolith, pom.xml has no <modules>). The class's own javadoc names this explicitly as a documented deviation superseding INT-C.md's literal wording.",
+      "resolution": "Resolved as NAMING_MISMATCH — INT-C.md's literal REST-call wording is superseded by this project's established direct-Spring-interface-injection cross-module doctrine (SecUserDirectoryApi precedent + build-create-service skill); the real implementation (SecModuleRegistryApi, direct injection) is correct and was confirmed by the INT-C phase sub.",
       "recorded_at": "2026-09-11"
     },
     {
@@ -158,8 +158,8 @@
       "phase": "SVC-API",
       "sub": "SVC-API-CRUD",
       "endpoint": "API-MDL-002 (MDL-503 error catalog row)",
-      "detail": "_SECTIONS.md's Error Catalog lists MDL-503 ('Could not verify the owning module right now') for 'SEC unreachable during XM-MDL-001's validation call'. Because XM-MDL-001 is a direct Spring-bean call (see above), not a network call, there is no 'SEC unreachable' failure mode to surface \u2014 MdlErrorCodes has no MDL_503 constant and messages.properties/messages_ar.properties have no MDL-503 key.",
-      "resolution": "Resolved as a documentation note, not a defect \u2014 MDL-503 describes a transient-network-outage scenario that cannot occur under this module's direct in-process Spring interface injection (no real network hop to SEC); a genuine DB-layer failure instead surfaces as the generic MDL-500/platform 500 path via GlobalExceptionHandler. No code change needed.",
+      "detail": "_SECTIONS.md's Error Catalog lists MDL-503 ('Could not verify the owning module right now') for 'SEC unreachable during XM-MDL-001's validation call'. Because XM-MDL-001 is a direct Spring-bean call (see above), not a network call, there is no 'SEC unreachable' failure mode to surface — MdlErrorCodes has no MDL_503 constant and messages.properties/messages_ar.properties have no MDL-503 key.",
+      "resolution": "Resolved as a documentation note, not a defect — MDL-503 describes a transient-network-outage scenario that cannot occur under this module's direct in-process Spring interface injection (no real network hop to SEC); a genuine DB-layer failure instead surfaces as the generic MDL-500/platform 500 path via GlobalExceptionHandler. No code change needed.",
       "recorded_at": "2026-09-11"
     },
     {
@@ -176,7 +176,7 @@
       "phase": "SVC-API",
       "sub": "SVC-API-SEARCH",
       "endpoint": "API-MDL-001, API-MDL-005, API-MDL-010",
-      "detail": "The module's earlier GET + query-param deviation for these three criteria-driven reads (each using SpecBuilder-based dynamic JPA Specification filtering) was reversed to POST + body, mirroring SEC's own GET-to-POST-/search reversal (governance/project-artifacts/sec-implementation-notes.md \u00a78). New endpoints: POST /api/v1/mdl/lookup-types/search (LookupTypeSearchRequest), POST /api/v1/mdl/lookup-types/values/search (LookupValueSearchRequest, child pattern \u2014 parent lookupTypeId travels in filters[], never a path variable), POST /api/v1/mdl/lookup-types/by-owner/search (LookupTypeByOwnerSearchRequest \u2014 isActiveFl stays server-forced, not a client filter). API-MDL-011 (consumer read-by-key, no SpecBuilder) is unchanged, same reasoning as SEC's dashboard/menu staying GET. api-docs/endpoints/lookup-type-management.md, lookup-value-management.md and index.md were hand-updated to match rather than regenerated, because the still-unresolved MISSING_OPENAPI_GROUP_BEAN gap above blocks api-doc-generator for MDL entirely \u2014 re-run the generator once that gap is fixed to confirm these hand edits converge with real generated output.",
+      "detail": "The module's earlier GET + query-param deviation for these three criteria-driven reads (each using SpecBuilder-based dynamic JPA Specification filtering) was reversed to POST + body, mirroring SEC's own GET-to-POST-/search reversal (governance/project-artifacts/sec-implementation-notes.md §8). New endpoints: POST /api/v1/mdl/lookup-types/search (LookupTypeSearchRequest), POST /api/v1/mdl/lookup-types/values/search (LookupValueSearchRequest, child pattern — parent lookupTypeId travels in filters[], never a path variable), POST /api/v1/mdl/lookup-types/by-owner/search (LookupTypeByOwnerSearchRequest — isActiveFl stays server-forced, not a client filter). API-MDL-011 (consumer read-by-key, no SpecBuilder) is unchanged, same reasoning as SEC's dashboard/menu staying GET. api-docs/endpoints/lookup-type-management.md, lookup-value-management.md and index.md were hand-updated to match rather than regenerated, because the still-unresolved MISSING_OPENAPI_GROUP_BEAN gap above blocks api-doc-generator for MDL entirely — re-run the generator once that gap is fixed to confirm these hand edits converge with real generated output.",
       "resolution": "RESOLVED 2026-09-12. Code (controllers/services/new SearchRequest DTOs), P3_1/backend-execution-plan-mdl.md, packages/backend-execution/SVC-API/SVC-API-SEARCH.md, packages/backend-execution/_SECTIONS.md, packages/backend-execution/DOC/DOC.md, P1/srs-mdl.md B5 tables, test_gen/backend-test-plan-mdl.md and packages/backend-test/API-SCENARIOS.md (TC-MDL-005, TC-MDL-013 verb/endpoint only), the hand-written governance/modules/MDL/test-api/test_mdl_apis.py pytest suite, and the three api-docs files above were all realigned to POST in the same pass.",
       "recorded_at": "2026-09-12"
     }
