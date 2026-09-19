@@ -168,7 +168,7 @@
       "sub": "DOC",
       "endpoint": "ALL (MDL has no GroupedOpenApi bean at all)",
       "detail": "com.erp.main.config.OpenApiConfig.java declares GroupedOpenApi beans for sec, cu, notif, file only -- no mdl bean exists, despite com.erp.mdl.controller (LookupTypeController, LookupValueController, LookupConsumerController) being fully implemented. Confirmed live during the 2026-09-11 execute-backend-test run: GET /v3/api-docs/swagger-config lists only cu/file/notif/sec; GET /v3/api-docs/mdl returns 500. This blocks governance/governance-tools/api-doc-generator's discovery.match_openapi_group for --module MDL (ERROR: could not identify a unique springdoc GroupedOpenApi group), which blocks execute-backend-test.md's mandatory STEP 0.3 api-doc regeneration, which in turn blocked STEP 1 (api-verify) entirely for that run -- 0/14 REQUIRED-COVERAGE TCs could be exercised.",
-      "resolution": "UNRESOLVED -- requires adding a mdlApi() GroupedOpenApi bean (group id \"mdl\", packagesToScan \"com.erp.mdl.controller\") to OpenApiConfig.java, following the existing secApi()/cuApi()/notifApi()/fileApi() pattern. This is a src/main/java change, out of scope for the test-execution command that discovered it (report-only, no source edits). See reports/TEST-REPORT-MDL-backend-2026-09-11.md for the full run record.",
+      "resolution": "RESOLVED -- mdlApi() GroupedOpenApi bean (group \"mdl\", packagesToScan \"com.erp.mdl.controller\") exists in com.erp.main.config.OpenApiConfig.java, following the secApi()/cuApi()/notifApi()/fileApi() pattern. Verified 2026-09-19: api-docs for MDL regenerated from the running app (11 endpoints, all carrying a Contract ID). The 2026-09-11 blocker no longer applies.",
       "recorded_at": "2026-09-11"
     },
     {
