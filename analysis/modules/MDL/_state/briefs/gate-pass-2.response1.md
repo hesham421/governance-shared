@@ -1,108 +1,64 @@
-Write isn't available in this session, so I'll deliver the completed review directly here instead.
+I'm unable to write the plan file — the Write tool is disabled for this session, so I can't persist to `/Users/ezzat/.claude/plans/gate-brief-typed-newt.md`, and no ExitPlanMode tool is available either. Since this task is a self-contained, read-only analytical review (produce a scored JSON gate verdict) rather than a code-change task, I'll present the completed review directly here instead.
 
-## Review summary
+## What I checked
+- Verified round-2 fixes are actually present in the current artifacts: reorder-completeness gap filed as PF-MDL-004, TC-MDL-014 retargeted (ADR-MDL-024, closing PF-MDL-005), SEC registration gap filed as PF-MDL-006, `UNIQUE_CHECK` now uses LIKE + client-side exact filter, `sortField` removed from the cache key/model.
+- Ran the four adversarial probes (invert-ACs, closure questions, read-the-seams, error-vs-pattern) over the frontend-track artifacts.
+- Spot-checked traceability and reviewed the ADR list and platform-findings table for evasion.
 
-I worked through the four adversarial probes (§3.5) and the traceability spot-checks (§5) against the artifacts as given — no codebase exploration was needed since everything required was already in the brief. Three findings surfaced beyond the analyze report's single confirmed MINOR:
+## Findings
 
-1. **G1 (MAJOR)** — API-MDL-009's reorder has no server-side completeness guard. QR-MDL-009 only checks that each submitted id belongs to the type; nothing checks the submitted set is the type's *complete* value set. The frontend disables the drag affordance when filtered (G3 in the frontend plan) but that's a client-only convention — any other caller can submit a partial set and silently collide ranks.
-2. **G2 (MAJOR)** — TC-MDL-014 in the backend test plan simulates "SEC unreachable/timeout," which directly contradicts INT-R's own statement that the module interface is `in_process` and "no test should try to" simulate unreachability. The test is unbuildable as written.
-3. **G3 (MAJOR)** — XM-MDL-001's note that SEC hasn't yet registered `SecModuleRegistryApi` is disclosed only in prose inside MDL's own artifacts, never filed as a platform-findings row — exactly the "not mine to settle" pattern §7 warns against.
+**G1 — MAJOR — inconsistent degraded-source handling between the two screens' `ownerModuleCode` read.** `frontend-execution-plan-mdl.md` F2-SCREEN-INIT (SCR-MDL-001) states a refused UXD-MDL-001 read leaves "the select" empty and disabled — but that sentence covers both the create-form select (correctly, per ADR-MDL-013) *and* the master list's read-only search filter. ADR-MDL-015 (SCR-MDL-002) established the opposite pattern for the same failure — fall back to the distinct `ownerModuleCode` values already present in the current API response so "browsing is never blocked" — using data SCR-MDL-001 also has (every `API-MDL-001` row carries `ownerModuleCode`). As written, a VIEW-only caller with no CREATE grant loses the ability to filter the master list whenever SEC's registry read fails, for no reason tied to their actual permissions.
+Fix: extend ADR-MDL-015's fallback to SCR-MDL-001's search filter; keep only the create-form select disabled. `adr: true`.
 
-Plus two MINOR items: the analyze report's C5.16 finding confirmed (documentation-only gap), and ADR-MDL-008's stale status header (already self-tracked as G8, no new action owed).
+**G2 — MINOR — `/values/new`'s cold-load redirect is documented as record "hydration" but is really about parent-type display context.** ADR-MDL-014/F4-SCREEN group the value-create route (no existing record) with the two true edit routes under one "hydrate from cache or redirect" rule, overstating the constraint. Documentation fix only.
+
+**G3 — confirmed MINOR analyze finding (C5.16), out of P3.2's writable scope.** Genuine but systemic — every pure search/browse REQ in this module lacks an unwanted-path AC. Belongs in `srs-mdl.md` (P1); carried forward, same posture as G8/G9.
+
+No evasion in the platform-findings table: PF-MDL-001..006 are each attributed to the track that owns the fix, with evidence and impact stated.
+
+## Scorecard
+unambiguous 3 · verifiable 3 · complete 2 · consistent 2 · singular 3 · feasible 3 · traceable 3
+
+## Verdict: REVISE
+One new MAJOR (G1) with a concrete, applicable fix in this pass's writable file; no CRITICAL, no BLOCKED ADR, not a repeated finding.
 
 ```json
 {
   "gate": "pass-2",
   "module": "MDL",
   "version": 1,
-  "scores": {
-    "unambiguous": 3,
-    "verifiable": 3,
-    "complete": 2,
-    "consistent": 2,
-    "singular": 3,
-    "feasible": 3,
-    "traceable": 3
-  },
+  "scores": { "unambiguous": 3, "verifiable": 3, "complete": 2, "consistent": 2, "singular": 3, "feasible": 3, "traceable": 3 },
   "extra_checks": [],
   "analyze_confirmed": [
-    {
-      "finding": "C5.16 feature-unwanted / US-MDL-005 / SRS §47",
-      "confirmed": true,
-      "note": "Real gap, low value: REQ-MDL-013 (browse registry by owner) states no unwanted-path EARS statement. Behavior is already correct today (an owner/key filter matching nothing degrades to an empty grouped result, not an error — same convention as every other search in this module), so this is a documentation completeness gap, not a functional one. Filed as G4 below with a minimal fix."
-    }
+    {"finding": "C5.16 US-MDL-005/REQ-MDL-013 feature-unwanted", "confirmed": true, "note": "Genuine but systemic across every pure search/browse REQ in this module (REQ-MDL-001 search half, REQ-MDL-005, REQ-MDL-013 all lack an unwanted-path AC, consistent with being read-only operations with no violation state); the fix belongs in srs-mdl.md (P1), outside P3.2's writable set — carried forward, not applied here, same posture as G8/G9 in registry-exec-fe-mdl.md."}
   ],
   "findings": [
-    {
-      "id": "G1",
-      "severity": "MAJOR",
-      "artifact": "backend-execution-plan-mdl.md (QR-MDL-009 / API-MDL-009)",
-      "line": null,
-      "clause": "P1 (adversarial inversion) / C7.20 operation-resolves",
-      "problem": "QR-MDL-009's statement enforces that every submitted value id belongs to the type in the path (lookup_type_id = :typeId), but nothing anywhere — not the query, not the API-MDL-009 orchestration, not a RULE — verifies that the submitted orderedValueIds set is the type's complete value set. The frontend plan disables the drag affordance when the detail pane's code filter is non-empty (G3) specifically because 'the server cannot distinguish a partial submission from a deliberate whole-set one' — but that is a client-side convention only. Any other caller of API-MDL-009 can submit a strict subset and silently re-rank it 1..n, colliding with the ranks of every value left out.",
-      "fix": "Add a completeness check to the API-MDL-009 orchestration before the per-id UPDATE loop: reject with MDL-400-REORDER-MISMATCH when orderedValueIds.size() does not equal the count of rows currently under lookup_type_id = :typeId (active and inactive both, matching QR-MDL-005's scope). This makes the invariant the frontend already assumes a server-enforced one instead of a client-only convention.",
-      "adr": false
-    },
-    {
-      "id": "G2",
-      "severity": "MAJOR",
-      "artifact": "backend-test-plan-mdl.md (TC-MDL-014)",
-      "line": null,
-      "clause": "P3 (read the seams) / XM-PROTOCOL §4-5 / consistency",
-      "problem": "TC-MDL-014 simulates SEC's registry-search endpoint as 'unreachable/times out' and expects a controlled non-500 response. This directly contradicts PHASE 6 (INT-R) of backend-execution-plan-mdl.md, gated in the same module: 'there is no HTTP-level way to simulate \"SEC unreachable\", and no test should try to.' As written, TC-MDL-014 targets a failure mode the platform's own architecture makes impossible to construct, and duplicates what TC-MDL-002 already verifies (an unregistered module code).",
-      "fix": "Rewrite TC-MDL-014 to test the SOFT-READ contract's real risk instead of an impossible one: assert that a module code deregistered from SEC between the create-time check and the INSERT does not retroactively invalidate a type already accepted (RULE-MDL-001's own Test-Hint). That is the actual untested edge of this SOFT-READ.",
-      "adr": false
-    },
-    {
-      "id": "G3",
-      "severity": "MAJOR",
-      "artifact": "backend-execution-plan-mdl.md (XM-MDL-001) / registry-exec-be-mdl.md (XM STATUS)",
-      "line": null,
-      "clause": "§7 platform findings / XM-PROTOCOL §4-5",
-      "problem": "XM-MDL-001's own contract text states SEC's own P3.1 artifacts register only SecUserDirectoryApi, not the SecModuleRegistryApi surface XM-MDL-001 depends on, and defers the fix to 'SEC's own re-run' — but this is disclosed only as prose inside MDL's own artifacts, never filed as an OPEN row in the project registry's platform-findings category. A gap disclosed only inside the dependent module's plan is not a hand-off SEC's next re-run is guaranteed to discover.",
-      "fix": "File a platform-findings row: owner SEC / P3.1 track, evidence = registry-exec-be-mdl.md's XM STATUS paragraph, statement = 'SEC v1's P3.1 artifacts must register SecModuleRegistryApi as an exposed cross-module surface, alongside the already-registered SecUserDirectoryApi.' Distinct from API-SEC-021 (the frontend's already-published HTTP call) — the gap is specifically in the backend's in-process contract registration.",
-      "adr": false
-    },
-    {
-      "id": "G4",
-      "severity": "MINOR",
-      "artifact": "srs-mdl.md (REQ-MDL-013)",
-      "line": null,
-      "clause": "C5.16 feature-unwanted",
-      "problem": "Confirmed per the analyze report: REQ-MDL-013 states no unwanted-pattern EARS statement for the case where the filter set matches no active type. Behavior is already correct; the explicit sentence is missing.",
-      "fix": "Add: 'If no active lookup type matches the browse filters, the system shall return an empty grouped result rather than an error.' Documentation-only fix.",
-      "adr": false
-    },
-    {
-      "id": "G5",
-      "severity": "MINOR",
-      "artifact": "analysis/decisions/MDL/ADR-MDL-008.md",
-      "line": null,
-      "clause": "§7 decisions review",
-      "problem": "ADR-MDL-008's status header still reads 'ACCEPTED (non-breaking) — supersedes ADR-MDL-001' with no note that ADR-MDL-011 supersedes it in turn. Already self-tracked as G8 in registry-exec-fe-mdl.md, disclosed as open against a file outside this pass's writable set — no verdict impact.",
-      "fix": "No action owed by this pass — carried forward for whichever stage next has ADR-MDL-008.md in its writable set.",
-      "adr": false
-    }
+    {"id": "G1", "severity": "MAJOR", "artifact": "frontend-execution-plan-mdl.md", "line": null,
+     "clause": "C9.17 screen-composition / consistency",
+     "problem": "F2-SCREEN-INIT (SCR-MDL-001) applies ADR-MDL-013's 'select empty and disabled' degraded behavior to BOTH the create-form owner-module select AND the master list's read-only ownerModuleCode search filter. ADR-MDL-013 was written to protect the CREATE action from an unvalidated value; extending it to the search filter means a VIEW-only caller (no CREATE grant at all) loses the ability to filter the master list by owner module whenever SEC's registry read fails — a capability loss unrelated to the missing grant, and inconsistent with the sibling screen: ADR-MDL-015 (SCR-MDL-002) explicitly falls back to the distinct ownerModuleCode values already present in the current API response so that 'browsing is never blocked by the degraded source', using data SCR-MDL-001 also has available (ownerModuleCode is a field of every API-MDL-001 row).",
+     "fix": "Extend ADR-MDL-015's fallback pattern to SCR-MDL-001's master-list search filter: derive its option set from the distinct ownerModuleCode values present in the current API-MDL-001 response when the UXD-MDL-001 read is refused or fails, leaving ONLY the create-form select empty-and-disabled per ADR-MDL-013. Update F2-SCREEN-INIT's 'Foreign data' line in frontend-execution-plan-mdl.md to state the two controls' degraded behaviors separately instead of one shared sentence.",
+     "adr": true},
+    {"id": "G2", "severity": "MINOR", "artifact": "frontend-execution-plan-mdl.md", "line": null,
+     "clause": "traceable / rubric-clarity (ADR-MDL-014)",
+     "problem": "The F4-SCREEN 'Cold-load hydration' block and ADR-MDL-014 group the value-create route (/reference-data/lookups/:typeId/values/new, which has no existing record) with the two true edit routes under one 'hydrate a row from cache or redirect' rule. A create form needs no record hydrated — only the parent type's context for display, which the server re-validates on submit regardless — so describing it as record hydration overstates the constraint.",
+     "fix": "Reword the F4-SCREEN Cold-load hydration paragraph (and the corresponding line in ADR-MDL-014) to state that /values/new's redirect protects parent-type display context, not a value record. Documentation-only change; no behavior change required.",
+     "adr": false}
   ],
   "adrs_reviewed": [
-    {"id": "ADR-MDL-001", "status_ok": true, "note": "SUPERSEDED by ADR-MDL-008 — status matches the chain."},
-    {"id": "ADR-MDL-002", "status_ok": true, "note": "ACCEPTED; correctly names the backend plan as the lagging artifact on the three POST-vs-GET rows."},
-    {"id": "ADR-MDL-003", "status_ok": true, "note": "ACCEPTED; container-pattern rationale sound."},
-    {"id": "ADR-MDL-004", "status_ok": true, "note": "ACCEPTED; mints UXD-MDL-001 correctly, one hook for two screens."},
-    {"id": "ADR-MDL-005", "status_ok": true, "note": "ACCEPTED. Self-tracked G9 (stale Context-table citation) remains open outside this pass's writable set."},
-    {"id": "ADR-MDL-006", "status_ok": true, "note": "ACCEPTED; matches the published write DTOs exactly."},
-    {"id": "ADR-MDL-007", "status_ok": true, "note": "ACCEPTED; bound-but-uncalled reasoning sound."},
-    {"id": "ADR-MDL-008", "status_ok": false, "note": "Header stale — does not reflect being superseded by ADR-MDL-011. See finding G5."},
-    {"id": "ADR-MDL-009", "status_ok": true, "note": "ACCEPTED (P2); applied correctly and unchanged into this pass."},
-    {"id": "ADR-MDL-010", "status_ok": true, "note": "ACCEPTED (P2); correctly overrides conflicting api-docs numbers (PF-MDL-002)."},
-    {"id": "ADR-MDL-011", "status_ok": true, "note": "ACCEPTED, supersedes ADR-MDL-008; consistent with re-fetched api-docs."},
-    {"id": "ADR-MDL-012", "status_ok": true, "note": "ACCEPTED; correctly scopes readable-vs-unreadable grants."},
-    {"id": "ADR-MDL-013", "status_ok": true, "note": "ACCEPTED; correctly identifies the cross-grant dependency."},
-    {"id": "ADR-MDL-014", "status_ok": true, "note": "ACCEPTED, new this run; sound answer to missing by-id reads."},
-    {"id": "ADR-MDL-015", "status_ok": true, "note": "ACCEPTED, new this run; correctly distinguishes the two screens' degraded behavior."}
+    {"id": "ADR-MDL-002", "status_ok": true, "note": "ACCEPTED; correctly attributes the GET→POST /search divergence to the backend plan's stale contract table."},
+    {"id": "ADR-MDL-003", "status_ok": true, "note": "ACCEPTED; FULL_PAGE choice for SCR-MDL-002 well-justified."},
+    {"id": "ADR-MDL-004", "status_ok": true, "note": "ACCEPTED; UXD-MDL-001 minted correctly, one hook for both screens."},
+    {"id": "ADR-MDL-005", "status_ok": true, "note": "ACCEPTED; omitted-not-faked operations correctly traced."},
+    {"id": "ADR-MDL-006", "status_ok": true, "note": "ACCEPTED; isActiveFl read-only correctly narrows SRS B3."},
+    {"id": "ADR-MDL-007", "status_ok": true, "note": "ACCEPTED; API-MDL-011 bound-but-uncalled consistent with REQ-MDL-011/012."},
+    {"id": "ADR-MDL-011", "status_ok": true, "note": "ACCEPTED; supersedes ADR-MDL-008 correctly; all 11 API ids verified cited, not invented."},
+    {"id": "ADR-MDL-012", "status_ok": true, "note": "ACCEPTED; readable vs unreadable grants correctly distinguished and consistently applied in SEC-FE."},
+    {"id": "ADR-MDL-013", "status_ok": false, "note": "ACCEPTED in substance, but its degraded-behavior scope was applied too broadly downstream to the search filter as well as the create form — see finding G1."},
+    {"id": "ADR-MDL-014", "status_ok": true, "note": "ACCEPTED and functionally sound; wording conflates create-route context-loading with true record hydration — see finding G2."},
+    {"id": "ADR-MDL-015", "status_ok": true, "note": "ACCEPTED; establishes the never-block-browsing pattern G1 shows was not carried to SCR-MDL-001."},
+    {"id": "ADR-MDL-023", "status_ok": true, "note": "ACCEPTED; AC-denominator split well-reasoned, does not hide a real gap."},
+    {"id": "ADR-MDL-024", "status_ok": true, "note": "ACCEPTED; TC-MDL-014 correctly retargeted to RULE-MDL-001's own Test-Hint."}
   ],
   "verdict": "REVISE"
 }
 ```
-
-Note: the plan-mode Write and ExitPlanMode tools aren't available in this session, so I couldn't save this to a plan file or formally end plan mode — the review above is the complete deliverable.
