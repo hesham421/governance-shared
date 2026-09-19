@@ -14,10 +14,10 @@ omits none of them: every line below is copied from its source and attributed to
 Traces            : REQ-MDL-001, REQ-MDL-002, REQ-MDL-003, REQ-MDL-004, REQ-MDL-005, REQ-MDL-006, REQ-MDL-007, REQ-MDL-008, REQ-MDL-009, REQ-MDL-010, AC-MDL-001, AC-MDL-002, AC-MDL-003, AC-MDL-004, AC-MDL-005, AC-MDL-006, AC-MDL-007, AC-MDL-008, AC-MDL-009, AC-MDL-010, UXD-MDL-001
 Screen requirement: SCR-REQ-MDL-001 · page code MDL_LOOKUPS
 UI pattern        : header + repeating lines — رئيسي (أنواع) + تفصيلي (قيم) قابل لإعادة الترتيب / master (types) + detail (values), reorderable — من SRS §B1 حرفيًا، غير مُبدَّل / verbatim from the SRS screen entry, not changed here
-Sub-views         : Search (الأنواع / the types, مُرقَّم الصفحات على الخادم / server-paged) · Entry (نوع / a type) · Detail (قيم النوع المختار / the selected type's values) · Entry (قيمة / a value) — أربعة سطوح تحت SCR واحد / four surfaces under ONE SCR
+Sub-views         : Search (الأنواع / the types, مُرقَّم الصفحات على الخادم / server-paged) · Entry (نوع / a type) · Detail (قيم النوع المختار / the selected type's values, غير مُرقَّمة الصفحات — محصورة بنوع واحد / not paged — bounded by one type) · Entry (قيمة / a value) — أربعة سطوح تحت SCR واحد / four surfaces under ONE SCR
 Fields shown      : كل حقول ENT-MDL-001 وENT-MDL-002 كما في SRS §A3 — الجدولان أدناه، بتسمية لكل لغة وبعلم القراءة فقط / every field of ENT-MDL-001 and ENT-MDL-002 as SRS §A3 states them — the two tables below, label per language, read-only flags marked
 Composition       : جزء القيم ليس تفصيلًا ثانويًا داخل نموذج النوع / the values are not secondary detail inside the type's form — inline: none · summary row + second level: صفّ لكل قيمة في جزء القيم، ومحرّرها يُفتح من ذلك الصفّ / a row per value in the values pane, its editor opened from that row · submits: one per open form, never two open at once
-Permissions       : SRS §B4 — MDL_LOOKUPS: VIEW (بوابة / gateway) · CREATE · UPDATE · DELETE (تعطيل ناعم / soft deactivate) — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
+Permissions       : SRS §B4 — MDL_LOOKUPS: VIEW (بوابة / gateway) · CREATE · UPDATE · DELETE (تعطيل ناعم / soft deactivate) — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`. The api-docs' own endpoint requirements versus this matrix are filed as PF-MDL-001 in frontend-execution-plan-mdl.md, not resolved here.
 Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC)
 States            : empty — لا نوع يطابق المرشِّحات / no type matches the filters · النوع المختار بلا قيم / the selected type has no values (رسالتان مختلفتان / two distinct messages) · loading — هيكل عظمي للقائمة، ومؤشّر موضعي لجزء القيم / a list skeleton and a local indicator on the values pane · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message (الرموز نفسها من نصيب الجزء ب / the codes themselves are Part B's) · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
 
@@ -50,7 +50,8 @@ States            : empty — لا نوع يطابق المرشِّحات / no t
 المفتاح (LIKE) · الوحدة المالكة (EXACT) · الاسم في اللغتين معًا (LIKE) · الحالة (EXACT) على القائمة
 الرئيسية؛ ورمز القيمة (LIKE) على الجزء التفصيلي، محصورًا بالنوع المختار (REQ-MDL-005). القائمة
 الرئيسية مُرقَّمة الصفحات على الخادم، والجزء التفصيلي يُعرض كاملًا مرتَّبًا بـ`sortOrder` لأنه محصور
-بنوع واحد / the master list is server-paged; the detail is shown whole, ordered by `sortOrder`,
+بنوع واحد ولا ترقيم صفحات له أصلًا (backend-execution-plan API-MDL-005 · QR-MDL-005 · SRS §B2) /
+the master list is server-paged; the detail is shown whole, unpaged, ordered by `sortOrder`,
 because it is confined to one type.
 
 **الإجراءات / actions** — SRS §B3: حفظ نوع · حفظ تعديل النوع · تعطيل النوع · حفظ قيمة · حفظ تعديل
@@ -58,6 +59,32 @@ because it is confined to one type.
 value · save value changes · deactivate value · reorder. لا إجراء تفعيل ولا محو نهائي على أي من
 المستويين / no activate and no hard delete at either level — SRS §B3 and §A2 (re-activation is out
 of scope), which is why deactivation is stated as one-way where it is offered.
+
+**أثر التعطيل على الرمز/المفتاح — لا استرجاع له / the code/key consequence of deactivation, and
+that it cannot be undone through any surface here.** `UQ_MDL_LOOKUP_TYPE_KEY` and
+`UQ_MDL_LOOKUP_VALUE_TYPE_CODE` are unique over every row, active or not (db-script BLOCK 5b),
+and no activate endpoint exists at either level (ADR-MDL-005). Deactivating a value or a type
+therefore does not free its `code` or `key` for reuse — it reserves it, permanently, under that
+type or under the platform. Both deactivate confirmations state this explicitly, in the wording
+the act itself deserves, not deferred to a later error message:
+
+- **Type deactivate confirmation** — ar: «سيصبح النوع غير فعّال، ولن يُعاد إليه المفتاح
+  `{key}` بعد ذلك — لا يوجد إجراء لإعادة التفعيل من هذه الشاشة.» ·
+  en: "The type will become inactive, and its key `{key}` cannot be reused afterwards — there is
+  no activate action on this screen."
+- **Value deactivate confirmation** — ar: «ستصبح القيمة غير فعّالة، ولن يُعاد إليها الرمز
+  `{code}` ضمن هذا النوع بعد ذلك — لا يوجد إجراء لإعادة التفعيل من هذه الشاشة.» ·
+  en: "The value will become inactive, and its code `{code}` cannot be reused under this type
+  afterwards — there is no activate action on this screen."
+
+A user who then tries to register the same key or code again meets `MDL-409-TYPE-DUP` or
+`MDL-409-VALUE-DUP`, which by default reads as a collision with a live record. The value create
+form's inline routing of `MDL-409-VALUE-DUP` (frontend-execution-plan-mdl.md, F2-QUERY VALUE
+CREATE) therefore adds that a deactivated value of the same code under this type may be the one
+holding it, and points at the list's own inactive row — still shown in this manager's pane
+(AC-MDL-005, AC-MDL-009) — as the evidence a user can check without leaving the screen. The same
+applies at the type level: a rejected registration whose key is provably a prior, now-inactive
+type is not a code the platform will ever hand back.
 
 **لماذا هذا التوزيع / why this composition.** الشاشة تحرّر سجلّين من كيانين مختلفين، لا سجلًّا واحدًا
 ذا مجموعة أبناء / this screen edits records of two different entities, not one record with a child
@@ -70,15 +97,20 @@ write carries no values at all, and each value is a record of its own. فالن�
    and a value editor and a type form are never open at once, so two Save buttons never face the
    user together;
 2. **حالة فتحه في حالة التنقّل** حيث تعيش بقية حالة التنقّل، فالرجوع يغلقه، والصرف يغلقه وحده،
-   والرابط العميق يفتحه / its open state lives in navigation state: back closes it, dismissing
-   closes only it, and a deep link opens it;
+   والرابط العميق يفتحه إن وُجد سجلّه في الذاكرة المؤقتة، وإلا يُعاد التوجيه إلى مستوى النوع
+   (frontend-execution-plan-mdl.md ADR-MDL-014) / it lives in navigation state: back closes it,
+   dismissing closes only it, and a deep link opens it when its record is in cache, else redirects
+   to the type level (ADR-MDL-014);
 3. **لا منطقة تمرير خاصة به** — القائمة تتمرّر مع الجسم الذي تسكنه / it carries no scroll region of
    its own; the list scrolls with the body it sits in;
 4. **يُرسم شقيقًا للمستوى الأول** لا داخل عنصره / it renders as a SIBLING of the first level, never
    inside its element.
-إعادة الترتيب إجراء واحد على القائمة كلها — المجموعة المرتَّبة تُرسل مرة واحدة — لا تحريرًا لحقل في
-نموذج / reordering is one action over the whole list: the ordered set is submitted once, not
-edited field by field. ولا إجراء على هذه الشاشة يملك نداءين / no action of this screen owns two
+إعادة الترتيب إجراء واحد على القائمة كلها، وعلى المجموعة **الكاملة غير المُرشَّحة** من قيم النوع —
+لا مجموعة جزئية: مسح مُرشِّح الرمز شرط لإتاحة السحب، لأن الخادم لا يميّز إرسال جزء من القيم عن
+إرسال المجموعة كاملة عمدًا (frontend-execution-plan-mdl.md, G3) / reordering is one action over
+the whole, unfiltered value set — never a partial one: clearing the code filter is a precondition
+for the drag affordance, because the server cannot distinguish a partial submission from a
+deliberate whole-set one. ولا إجراء على هذه الشاشة يملك نداءين / no action of this screen owns two
 calls, so nothing here needs an ordered pair.
 
 ## SCR-MDL-002 — سجل أنواع اللوكب حسب المالك / Lookup-type registry by owner
@@ -89,7 +121,7 @@ Sub-views         : Search (مرشِّحان / two filters) · Browse (المج�
 Fields shown      : حقول ENT-MDL-001 المعروضة بالإشارة، كلها للقراءة / the displayed fields of ENT-MDL-001, every one read-only — الجدول أدناه / the table below
 Composition       : none — سجل للقراءة فقط بلا تفصيل ثانوي ولا مُنتقٍ ولا مجموعة أبناء تُحرَّر / a read-only browse with no secondary detail, no picker and no editable child set · submits: none — الشاشة لا تكتب شيئًا / the screen writes nothing
 Permissions       : SRS §B4 — MDL_TYPE_REGISTRY: VIEW (بوابة / gateway) وحدها؛ لا CREATE ولا UPDATE ولا DELETE / VIEW alone — reference only; names follow `PERM_<PAGE_CODE>_<ACTION>`
-Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC) — هنا عنوان المجموعة نفسه / here it is the group heading itself
+Cross-module data : `ownerModuleCode` → UXD-MDL-001 (owner module SEC) — هنا عنوان المجموعة نفسه، مع مصدر بديل عند تعذّر القراءة (ADR-MDL-015) / here it is the group heading itself, with a degraded-source fallback (ADR-MDL-015)
 States            : empty — لا وحدة مالكة تطابق المرشِّحات / no owner module matches the filters (مجموعة بلا أنواع لا تُعاد أصلًا / a group with no types is not returned at all) · loading — هيكل عظمي للمجموعات / a skeleton over the groups · error — لافتة برسالة الكتالوج المحلية / a banner carrying the localized catalog message · offline — لا شيء: SRS لا تنصّ على عمل بلا اتصال / nothing: the SRS states no offline behaviour
 
 | Field | التسمية (ar) | Label (en) | Read-only | من / from |
@@ -120,7 +152,12 @@ Owner       : SEC — `ModuleRegistry` (ENT-SEC-004)، وهو الكيان ال�
 Real API    : `POST /api/v1/sec/registry/search` (API-SEC-021) — سجل وحدات الأمان، شكله ومعرّفه من مواصفة تلك الوحدة لا من هنا / the security module's registry search; its shape and its id belong to that module's own artifacts
 Grant       : كل دور يُمنح `PERM_MDL_LOOKUPS_CREATE` يلزمه `PERM_SEC_MODULE_REGISTRY_VIEW` أيضًا / every role granted `PERM_MDL_LOOKUPS_CREATE` must also hold `PERM_SEC_MODULE_REGISTRY_VIEW` — منحٌ تملكه وحدة الأمان، يُسمّى هنا ولا يُنشأ (ADR-MDL-013) / SEC's grant to make; named here, minted nowhere
 Control     : قائمة اختيار على رموز الوحدات المسجَّلة، لا حقل نصّ حرّ (ADR-MDL-004) / a select over the registered module codes, never a free-text field
-Degraded    : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or failed read leaves the select empty and disabled with a message naming the missing read, and the create action disabled behind it — never a fall back to free text (ADR-MDL-013)
+Degraded (SCR-MDL-001) : القراءة مرفوضة أو متعذّرة → القائمة فارغة ومعطَّلة برسالة تسمّي القراءة
+Degraded (SCR-MDL-002) : القراءة مرفوضة أو متعذّرة → المرشِّح يسقط إلى القيم المميَّزة لـ`ownerModuleCode` الحاضرة فعلًا في ردّ API-MDL-010 نفسه، لا إلى نصّ حرّ ولا إلى رمز لا تحمله أي مجموعة معروضة؛ عناوين المجموعات تبقى على الرمز الخام الذي يعيده التصفّح أصلًا، والتصفّح لا يُحجب بهذا العطل بحال (ADR-MDL-015، G6) / a refused or failed read leaves the SCR-MDL-002 filter falling back to the distinct `ownerModuleCode` values already present in the current API-MDL-010 response — never free text, never a code no displayed group carries; group headings stay on the raw code the browse already returns, and browsing is never blocked by it
+                  الناقصة، وإجراء الإنشاء معطَّل خلفها؛ ولا رجوع إلى النصّ الحرّ / a refused or
+                  failed read on SCR-MDL-001 leaves the select empty and disabled with a message
+                  naming the missing read, and the create action disabled behind it — never a
+                  fall back to free text (this half is ADR-MDL-013)
 
 `UXD-MDL-001` هو حاجة في طبقة التطبيق لا قيد قاعدة بيانات: شاشة تملكها هذه الوحدة تعرض بيانات
 مرجعها الموثوق وحدةٌ أخرى / an application-layer need, not a DB constraint: a screen this module
@@ -130,7 +167,11 @@ owns displays data whose authoritative source is another module's real API. لا
 existence check behind RULE-MDL-001, and it appears in no backend artifact.
 
 واحد لا اثنان: التبعية نفسها والخطّاف نفسه يخدمان الشاشتين، فلا يُمنت `UXD-*` لكل شاشة / ONE, not
-one per screen: the same dependency and the same shared hook serve both screens.
+one per screen: the same dependency and the same shared hook serve both screens. The two
+screens' degraded paths differ because their controls differ — a select that must accept an
+unpicked value (SCR-MDL-001, create) cannot degrade the same way a filter over an already-known
+result set can (SCR-MDL-002) — and each is now its own ADR: ADR-MDL-013 for the first,
+ADR-MDL-015 for the second.
 
 **لا تبعية عرض ثانية** / no second display dependency: MDL لا تملك مفتاح قائمة قيم ولا تستهلك أيًّا
 منه (SRS §A6)، فلا حقل على أي من الشاشتين مسنود بقائمة قيم، ولا قيمة مُرمَّزة تُقرأ من وحدة أخرى /
@@ -150,10 +191,12 @@ B1 every US-* used in a flow has an SRS counterpart (REQ/AC/screen)
 B2 no RULE-* contradicts a flow or a spec outcome
    ✓ RULE-MDL-001 (owner module registered) → the create form's owner-module field and its
      server message · RULE-MDL-002 (no duplicate code within a type) → the value form's code
-     field · RULE-MDL-003 (the key is immutable) → `key` read-only on edit, stated beside it ·
-     RULE-MDL-004 (an inactive type hides its values from consumers) → said in the deactivate
-     confirmation, and NOT applied to this screen's own value list, which is the manager's view
-     and shows inactive rows (AC-MDL-005, AC-MDL-009). No contradiction; no ADR needed.
+     field, now naming the reserved-code case (G7) · RULE-MDL-003 (the key is immutable) →
+     `key` read-only on edit, stated beside it · RULE-MDL-004 (an inactive type hides its
+     values from consumers) → said in the deactivate confirmation, alongside the reserved-key
+     consequence (G7), and NOT applied to this screen's own value list, which is the manager's
+     view and shows inactive rows (AC-MDL-005, AC-MDL-009). No contradiction; no ADR needed for
+     the rules themselves.
 B3 every field and permission on a screen exists in the SRS
    ✓ extra: none — every field above is an SRS §A3 field of the owning entity and every
      permission is an SRS §B4 row. missing: none — no field of either entity is dropped, the
@@ -161,9 +204,10 @@ B3 every field and permission on a screen exists in the SRS
 B4 every screen entry of the SRS has exactly one SCR-* block
    ✓ SCR-REQ-MDL-001 → SCR-MDL-001 · SCR-REQ-MDL-002 → SCR-MDL-002. Two screen requirements,
      two SCR blocks, and the sub-views of each stay under their one SCR.
-RESULT  reconciled 2 · reworked 0 · ADRs ADR-MDL-013 (new, the grant that travels with
-        UXD-MDL-001); applied unchanged: ADR-MDL-003, ADR-MDL-004, ADR-MDL-005, ADR-MDL-006,
-        ADR-MDL-007
+RESULT  reconciled 2 · reworked 0 · ADRs applied this pass: ADR-MDL-014 (new — cold-load
+        redirect for the deep-linked entry routes, G4), ADR-MDL-015 (new — the SCR-MDL-002
+        degraded-source fallback for UXD-MDL-001, G6); applied unchanged: ADR-MDL-003,
+        ADR-MDL-004, ADR-MDL-005, ADR-MDL-006, ADR-MDL-007, ADR-MDL-013
 ```
 
 لا سؤال في هذه المرحلة ولا قرار بحالة BLOCKED / no question is raised at this stage and no ADR is
