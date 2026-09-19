@@ -355,7 +355,7 @@
       "sub": "F4-SCR-FIN-006",
       "endpoint": "(not an endpoint) analysis/modules/FIN/P3_2/ui-ux-spec-fin.md line 56 — SCR-FIN-006 UI pattern",
       "detail": "The Entry carries a seven-field header AND a repeating seven-field line row whose accountId is a picker over the whole chart of accounts. The spec decides screen composition and is silent on where that collection and that picker live, so the decision falls to the component author. The identical silence produced a shipped defect in SCR-SEC-004 on 2026-09-19: an inline picker taller than the form it accompanied, in a second scroll container, with its own submit beside the footer Save — roles could be set and silently not saved.",
-      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: erp-drawer-zustand §10."
+      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: ui-secondary-detail-panels (stack-agnostic) / erp-drawer-zustand §10."
     },
     {
       "type": "UX_PATTERN_UNSPECIFIED",
@@ -363,7 +363,7 @@
       "sub": "F4-SCR-FIN-003",
       "endpoint": "(not an endpoint) analysis/modules/FIN/P3_2/ui-ux-spec-fin.md line 29 — SCR-FIN-003 UI pattern",
       "detail": "'Entry (master + detail)' places a repeating seven-field line editor inside the Entry. 'Master + Detail' names the SCREEN's composition (a page-level master-detail, correct) and says nothing about the Entry's, which is where the collection actually lands.",
-      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: erp-drawer-zustand §10."
+      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: ui-secondary-detail-panels (stack-agnostic) / erp-drawer-zustand §10."
     },
     {
       "type": "UX_PATTERN_UNSPECIFIED",
@@ -371,7 +371,7 @@
       "sub": "F4-SCR-FIN-004",
       "endpoint": "(not an endpoint) analysis/modules/FIN/P3_2/ui-ux-spec-fin.md line 38 — SCR-FIN-004 UI pattern",
       "detail": "Half-decided: FULL_PAGE and 'no separate entry drawer needed' already avoids the defect for the line collection, but accountId and dimensionValueId per line remain pickers over unbounded entity sets with nowhere declared to go.",
-      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: erp-drawer-zustand §10."
+      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: ui-secondary-detail-panels (stack-agnostic) / erp-drawer-zustand §10."
     },
     {
       "type": "UX_PATTERN_UNSPECIFIED",
@@ -379,7 +379,7 @@
       "sub": "F4-SCR-FIN-005",
       "endpoint": "(not an endpoint) analysis/modules/FIN/P3_2/ui-ux-spec-fin.md line 47 — SCR-FIN-005 UI pattern",
       "detail": "Repeating target rows with targetAccountId and dimensionValueId pickers, and unlike SCR-FIN-004 this screen is not marked FULL_PAGE, so the collection lands inline in the Entry too.",
-      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: erp-drawer-zustand §10."
+      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: ui-secondary-detail-panels (stack-agnostic) / erp-drawer-zustand §10."
     },
     {
       "type": "UX_PATTERN_UNSPECIFIED",
@@ -387,7 +387,7 @@
       "sub": "F4-SCR-FIN-001",
       "endpoint": "(not an endpoint) analysis/modules/FIN/P3_2/ui-ux-spec-fin.md line 11 — SCR-FIN-001 UI pattern",
       "detail": "parentAccountId is a picker over the entire chart of accounts and the spec's own 'true hierarchy' makes the natural control a searchable tree — which has no bounded height and is the worst case to nest inline in a Drawer body.",
-      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: erp-drawer-zustand §10."
+      "resolution": "OPEN — proposed amendment written in full at governance/project-artifacts/analysis-amendments-fin-drawer-pattern-2026-09-19.md. DESIGN-SPEC gap, not an api-doc gap: nothing in the published surface is wrong. Filed here because api_doc_gaps is the only channel gov.py feedback reads; the endpoint field names an artifact location. Correction rule: ui-secondary-detail-panels (stack-agnostic) / erp-drawer-zustand §10."
     }
   ]
 }
