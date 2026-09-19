@@ -1,0 +1,130 @@
+{
+  "gate": "pass-2",
+  "pass": "2",
+  "verdict": "REVISE",
+  "scores": {
+    "unambiguous": 3,
+    "verifiable": 3,
+    "complete": 2,
+    "consistent": 2,
+    "singular": 3,
+    "feasible": 3,
+    "traceable": 3
+  },
+  "findings": [
+    {
+      "id": "G1",
+      "severity": "MAJOR",
+      "artifact": "frontend-execution-plan-mdl.md (API SURFACE / platform findings)",
+      "line": null,
+      "clause": "P1 adversarial inversion · C7.20 operation-resolves · §7 platform findings",
+      "problem": "QR-MDL-009 enforces only that each submitted id belongs to the type (lookup_type_id = :typeId). Nothing verifies the submitted set is the type's complete value set, contains no duplicate, and is non-empty. A subset re-ranks 1..n and collides with the ranks of every value left out; [A,A,B] on a 3-value type writes A twice. The frontend disables the drag affordance when the pane is filtered (G3) precisely because 'the server cannot distinguish a partial submission from a deliberate whole-set one' — so this pass identified a server-side invariant gap and settled it with a client-side convention instead of filing it, contrary to the PF-MDL-001 precedent it set for exactly this class.",
+      "fix": "File a platform-findings row (PF-MDL-004) in frontend-execution-plan-mdl.md, owner MDL backend track (P3.1). Evidence: QR-MDL-009's statement and Result-shape lines, against frontend-execution-plan-mdl.md F2-QUERY VALUE REORDER's submission rule. Required backend change: reject in the API-MDL-009 orchestration, before the UPDATE loop and inside the same transaction, when the DISTINCT submitted id count does not equal the count of rows under lookup_type_id = :typeId (active and inactive both, matching QR-MDL-005's scope) — and broaden MDL-400-REORDER-MISMATCH's catalog trigger, which today reads only 'a submitted id does not belong to the type in the path', to cover an incomplete or duplicated set.",
+      "adr": false
+    },
+    {
+      "id": "G2",
+      "severity": "MAJOR",
+      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-test-plan-mdl.md TC-MDL-014",
+      "line": null,
+      "clause": "P3 read the seams · XM-PROTOCOL §4-5 · consistency",
+      "problem": "TC-MDL-014 makes 'SEC's registry-search endpoint (API-SEC-021) unreachable/times out' and expects a controlled non-500. Three artifacts under review contradict it: backend-execution-plan INT-R states 'there is no HTTP-level way to simulate \"SEC unreachable\", and no test should try to'; ALIGN-BE struck the 503 row for that same impossibility; and API-SEC-021 is the FRONTEND's HTTP read behind UXD-MDL-001, not the backend XM path at all, which is an injected in-process call. The test names the wrong surface AND an unconstructible failure mode, and duplicates TC-MDL-002's coverage.",
+      "fix": "File a platform-findings row (PF-MDL-005) in frontend-execution-plan-mdl.md, owner MDL backend track. Evidence: TC-MDL-014's Preconditions line against backend-execution-plan-mdl.md PHASE 6 (INT-R) and the ALIGN-BE strike note. Required change: retarget TC-MDL-014 to the SOFT-READ's real untested edge — a module deregistered from SEC after its types were accepted must not invalidate them (RULE-MDL-001's own Test-Hint) — and drop the API-SEC-021 citation, which belongs to the frontend's UXD-MDL-001 read.",
+      "adr": false
+    },
+    {
+      "id": "G3",
+      "severity": "MAJOR",
+      "artifact": "frontend-execution-plan-mdl.md (platform findings) / backend-execution-plan-mdl.md XM-MDL-001",
+      "line": null,
+      "clause": "§7 platform findings · XM-PROTOCOL §4-5",
+      "problem": "XM-MDL-001's contract states that SEC's P3.1 artifacts register only SecUserDirectoryApi, so the module-registry read this XM consumes is written down nowhere on SEC's side, and defers it to 'SEC's own re-run'. registry-exec-be repeats it. It is disclosed only as prose inside MDL's own artifacts and filed as no platform-findings row anywhere — the 'not mine to settle into the void' pattern §7 exists to stop. Meanwhile the XM is carried ACTIVE with 'Unblock condition: none outstanding', which is the claim the prose two paragraphs above contradicts.",
+      "fix": "File a platform-findings row (PF-MDL-006) in frontend-execution-plan-mdl.md, owner SEC / P3.1 track. Evidence: registry-exec-be-mdl.md XM STATUS and backend-execution-plan-mdl.md INT-C XM-MDL-001 Interface paragraph. Statement: SEC v1's P3.1 artifacts must register SecModuleRegistryApi as an exposed cross-module surface alongside SecUserDirectoryApi. Distinct from API-SEC-021, which is the published HTTP read UXD-MDL-001 uses — the gap is specifically the in-process backend contract.",
+      "adr": false
+    },
+    {
+      "id": "G4",
+      "severity": "MINOR",
+      "artifact": "srs-mdl.md REQ-MDL-013",
+      "line": null,
+      "clause": "C5.16 feature-unwanted",
+      "problem": "US-MDL-005's one requirement states no unwanted path. The real silent path is not the empty result (already a stated platform convention) but the deregistered owner: RULE-MDL-001 is create-time only, so a module removed from SEC keeps owning its types, and SCR-MDL-002 groups the registry by owner code — an administrator auditing by owner sees a group headed by a module code that no longer exists, unmarked. ADR-MDL-015 and ui-ux-spec-mdl.md both acknowledge it downstream; the SRS states it nowhere.",
+      "fix": "Add to REQ-MDL-013 an unwanted-pattern statement: 'If a lookup type's owner module code is no longer registered in the security module, then the system shall still return that type under its stored owner module code, and shall neither remove nor alter the type.' This documents the behaviour RULE-MDL-001's existing Test-Hint already decided, so no new choice is taken. Outside this pass's writable set — file alongside the rows above, owner P1.",
+      "adr": false
+    },
+    {
+      "id": "G5",
+      "severity": "MINOR",
+      "artifact": "analysis/decisions/MDL/ADR-MDL-008.md",
+      "line": null,
+      "clause": "§7 decisions review",
+      "problem": "The status header reads 'ACCEPTED (non-breaking) — supersedes ADR-MDL-001' with no record that ADR-MDL-011 supersedes it in turn.",
+      "fix": "No action owed by this pass. Already recorded by it as G8 in registry-exec-fe-mdl.md, correctly noted as outside its writable file set; per §7 recording a finding never lowers a score. Carried for whichever stage next holds ADR-MDL-008.md.",
+      "adr": false
+    },
+    {
+      "id": "G6",
+      "severity": "MAJOR",
+      "artifact": "frontend-execution-plan-mdl.md (F3 · SCR-MDL-001, UNIQUE_CHECK)",
+      "line": null,
+      "clause": "P3 read the seams · C9.5 · consistent",
+      "problem": "The UNIQUE_CHECK specifies 'the type's key through API-MDL-001 with an EQUALS filter' and 'the value's code through API-MDL-005 with EQUALS filters on both lookupTypeId and code'. Both queries bind those columns with LIKE unconditionally: QR-MDL-001 'WHERE [key LIKE :key]' (Filters: key: LIKE) and QR-MDL-005 'AND [code LIKE :code]' (Filters: lookupTypeId: EXACT · code: LIKE); PHASE 1's Search contract and SRS §B2 agree. An EQUALS operator therefore cannot produce an exact match — typing PAYMENT returns the existing PAYMENT_METHOD row and the blur check falsely reports the key as already taken, on the one field RULE-MDL-003 makes unchangeable afterwards. Capped below CRITICAL only because the plan states the check never blocks submit and the server's 409 is the authority.",
+      "fix": "Rewrite the UNIQUE_CHECK line to request the LIKE filter the backend declares and then assert exact equality client-side over the returned rows before showing the inline message — for key on API-MDL-001, and for code scoped to lookupTypeId on API-MDL-005. This uses only the published surface, needs no new endpoint or operator, and is correct whether or not the service honours EQUALS. Inside this pass's writable set.",
+      "adr": false
+    },
+    {
+      "id": "G7",
+      "severity": "MINOR",
+      "artifact": "frontend-execution-plan-mdl.md (F1-SCREEN SCR-MDL-001; F2-QUERY TYPE SEARCH)",
+      "line": null,
+      "clause": "P4 error vs pattern · consistent",
+      "problem": "The master search model carries sortField and sortDirection and the cache key carries both, but the backend declares a single ordering — QR-MDL-001 'ORDER BY key', PHASE 1 'key ASC — paged' and 'the module offers no free-form sort parameter'. This is the pass's own G2 correction unapplied to itself: 'keying a variation the server cannot produce would fragment the cache for nothing'.",
+      "fix": "Drop sortField from the F1 search model and from the F2 TYPE SEARCH cache key, or constrain it to the single literal 'key'. Keep sortDirection, which PHASE 1's 'refused on any other field' wording leaves available on key itself. Inside this pass's writable set.",
+      "adr": false
+    }
+  ],
+  "coverage": [
+    {
+      "id": "us-req",
+      "from": "US",
+      "to": [
+        "REQ"
+      ],
+      "total": 5,
+      "covered": 5,
+      "pct": 100.0
+    },
+    {
+      "id": "req-ac",
+      "from": "REQ",
+      "to": [
+        "AC"
+      ],
+      "total": 13,
+      "covered": 13,
+      "pct": 100.0
+    },
+    {
+      "id": "req-api",
+      "from": "REQ",
+      "to": [
+        "API"
+      ],
+      "total": 13,
+      "covered": 13,
+      "pct": 100.0
+    },
+    {
+      "id": "req-ux",
+      "from": "REQ",
+      "to": [
+        "SCR",
+        "UXD"
+      ],
+      "total": 13,
+      "covered": 11,
+      "pct": 84.6
+    }
+  ],
+  "at": "2026-09-19T12:22:46+00:00"
+}
